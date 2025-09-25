@@ -1,0 +1,55 @@
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #d3c9ed 0%, #fff 100%);
+  color: #181818;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Sora', sans-serif;
+  color: #8b72cc;
+}
+
+a {
+  color: #8b72cc;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button, .btn {
+  font-family: 'Poppins', sans-serif;
+  background: #8b72cc;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75em 1.5em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button:hover, .btn:hover {
+  background: #6a56b3;
+}
+
+input, textarea, select {
+  font-family: 'Poppins', sans-serif;
+  border: 1.5px solid #d3c9ed;
+  border-radius: 8px;
+  padding: 0.75em 1em;
+  background: #fff;
+  color: #181818;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+}
+
+:root {
+  --primary-black: #181818;
+  --primary-white: #fff;
+  --primary-purple: #d3c9ed;
+  --btn-color: #8b72cc;
+}
