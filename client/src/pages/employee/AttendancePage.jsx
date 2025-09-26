@@ -229,7 +229,7 @@ function AttendancePage() {
   const absentDays = totalDays - presentDays;
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-lime-50 via-sky-50 to-pink-50 px-4 py-6 md:py-10 max-w-4xl mx-auto font-sans">
+    <div className="min-h-screen bg-gradient-to-tr from-lime-50 via-sky-50 to-pink-50 px-4 py-6 md:py-10 w-full font-sans">
       <ProfileHeader
         name={user.name}
         position={user.position}
@@ -337,6 +337,7 @@ function AttendancePage() {
         <DateStrip
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
+          attendanceHistory={attendanceHistory}
         />
       </div>
       {isSelf && type && !isCapturing && (
