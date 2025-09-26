@@ -41,19 +41,19 @@ app.use("/api/payslips", require("./routes/payslipRoutes"));
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 async function setupAdmin() {
-  const existing = await User.findOne({ email: 'admin@urbancode.in' });
+  const existing = await User.findOne({ email: 'ranjith.c96me@gmail.com' });
   if (!existing) {
     const hashed = await bcrypt.hash('12345678', 10);
     await User.create({
       name: 'Admin',
-      email: 'admin@urbancode.in',
+      email: 'ranjith.c96me@gmail.com',
       password: hashed,
       role: 'admin',
-      phone: '9876543210',
+      phone: '6374129515',
       position: 'Admin',
-      company: 'Urbancode'
+      company: 'Techackode'
     });
-    console.log('Admin created: admin@urbancode.in / 12345678');
+    console.log('Admin created: ranjith.c96me@gmail.com / 12345678');
   }
 }
 setupAdmin();
@@ -71,7 +71,7 @@ app.get('/employeesAttendance',authMiddleware, async (req, res) => {
 // Start server
 async function startServer() {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB connected');
     
     app.listen(process.env.PORT ||5000, () => console.log('Server running on port 5000'));
