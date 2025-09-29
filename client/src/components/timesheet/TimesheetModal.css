@@ -1,0 +1,144 @@
+/* Custom Timesheet Modal Styles */
+.timesheet-modal {
+  backdrop-filter: blur(8px);
+}
+
+.task-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-height: 120px;
+  width: 100%;
+}
+
+.task-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.task-card.completed {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border: 3px solid #10b981;
+}
+
+.task-card.pending {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 3px solid #e2e8f0;
+}
+
+.task-card.pending:hover {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+}
+
+.task-checkbox {
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.task-checkbox:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.task-checkbox.checked {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  animation: checkmark 0.4s ease-in-out;
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.task-text {
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.5;
+  font-size: 1.25rem;
+}
+
+.task-text.completed {
+  color: #059669;
+  text-decoration: line-through;
+  text-decoration-thickness: 3px;
+}
+
+.time-card {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border: 3px solid #a855f7;
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: #a855f7;
+  }
+  50% {
+    border-color: #8b5cf6;
+  }
+}
+
+.summary-card {
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.summary-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.add-task-form {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 3px solid #10b981;
+  animation: glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  }
+  to {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+  }
+}
+
+.task-meta {
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4b5563;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.action-button {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.action-button:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.edit-button:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.delete-button:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
