@@ -61,7 +61,7 @@ const UserCard = ({ user, className = '', onEdit }) => {
         <div className="flex items-center gap-4">
           <div className="relative">
             <img
-              src={'https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png'}
+              src={user.profilePic || 'https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png'}
               alt={`${user.name}'s avatar`}
               className="w-16 h-16 rounded-full object-cover ring-2 ring-gray-200"
             />
@@ -103,7 +103,7 @@ const UserCard = ({ user, className = '', onEdit }) => {
         <div className="w-full lg:w-1/3 flex flex-col items-center">
           <div className="relative mb-6">
             <img
-              src={'https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png'}
+              src={user.profilePic || 'https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png'}
               alt={`${user.name}'s avatar`}
               className="w-36 h-36 rounded-full object-cover ring-4 ring-gray-200 shadow-md"
             />
