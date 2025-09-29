@@ -282,18 +282,18 @@ function AttendancePage() {
   const absentDays = currentDayOfMonth - presentDays; // Only count days up to today
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-purple-50 to-white px-4 py-6 md:py-10 w-full font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-green-50 px-4 py-6 md:py-10 w-full font-sans">
       
       {/* Purple Theme Action Controls */}
       <div className="flex flex-col lg:flex-row lg:justify-between items-stretch lg:items-center gap-6 mb-8 px-2 sm:px-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full lg:w-auto">
           <button
             onClick={() => navigate("/apply-leave")}
-            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base"
+            className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-sm sm:text-base"
           >
             <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-purple-100 rounded-lg">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-1.5 bg-green-100 rounded-lg">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </div>
@@ -303,11 +303,11 @@ function AttendancePage() {
           
           <button
             onClick={() => navigate("/task-manager")}
-            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base"
+            className="group relative overflow-hidden bg-white hover:bg-blue-50 text-blue-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-blue-200/60 transition-all duration-300 text-sm sm:text-base"
           >
             <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-purple-100 rounded-lg">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-1.5 bg-blue-100 rounded-lg">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
               </div>
@@ -317,11 +317,11 @@ function AttendancePage() {
           
           <button
             onClick={() => setShowCalendarModal(true)}
-            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base sm:col-span-2 lg:col-span-1"
+            className="group relative overflow-hidden bg-white hover:bg-orange-50 text-orange-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-orange-200/60 transition-all duration-300 text-sm sm:text-base sm:col-span-2 lg:col-span-1"
           >
             <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-purple-100 rounded-lg">
-                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-1.5 bg-orange-100 rounded-lg">
+                <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -332,10 +332,10 @@ function AttendancePage() {
         
         <button
           onClick={onLogout}
-          className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full lg:w-auto text-sm sm:text-base"
+          className="group relative overflow-hidden bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full lg:w-auto text-sm sm:text-base"
         >
           <span className="relative z-10 flex items-center justify-center gap-3">
-            <div className="p-1.5 bg-purple-500/50 rounded-lg">
+            <div className="p-1.5 bg-pink-300/50 rounded-lg">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
@@ -406,64 +406,64 @@ function AttendancePage() {
         company={user.company}
       />
 
-       {/* Purple Theme Stats Cards */}
+       {/* Light Multi-Color Stats Cards */}
       <div className="grid grid-cols-3 gap-6 mb-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-green-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
-            <span className="text-sm font-medium text-purple-700 uppercase tracking-wide">Present Days</span>
+            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            <span className="text-sm font-medium text-green-700 uppercase tracking-wide">Present Days</span>
           </div>
-          <p className="text-3xl font-bold text-purple-900 mb-2">{presentDays}</p>
-          <div className="w-full bg-purple-200 h-1.5 rounded-full">
+          <p className="text-3xl font-bold text-green-800 mb-2">{presentDays}</p>
+          <div className="w-full bg-green-200 h-1.5 rounded-full">
             <div 
-              className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full transition-all duration-500" 
+              className="bg-gradient-to-r from-green-400 to-green-500 h-1.5 rounded-full transition-all duration-500" 
               style={{width: `${(presentDays / currentDayOfMonth) * 100}%`}}
             ></div>
           </div>
-          <p className="text-xs text-purple-600 mt-2">Days Attended</p>
+          <p className="text-xs text-green-600 mt-2">Days Attended</p>
         </div>
         
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
-            <span className="text-sm font-medium text-purple-700 uppercase tracking-wide">Absent Days</span>
+            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+            <span className="text-sm font-medium text-orange-700 uppercase tracking-wide">Absent Days</span>
           </div>
-          <p className="text-3xl font-bold text-purple-900 mb-2">{absentDays}</p>
-          <div className="w-full bg-purple-200 h-1.5 rounded-full">
+          <p className="text-3xl font-bold text-orange-800 mb-2">{absentDays}</p>
+          <div className="w-full bg-orange-200 h-1.5 rounded-full">
             <div 
-              className="bg-gradient-to-r from-purple-300 to-purple-400 h-1.5 rounded-full transition-all duration-500" 
+              className="bg-gradient-to-r from-orange-400 to-orange-500 h-1.5 rounded-full transition-all duration-500" 
               style={{width: `${(absentDays / currentDayOfMonth) * 100}%`}}
             ></div>
           </div>
-          <p className="text-xs text-purple-600 mt-2">Days Missed</p>
+          <p className="text-xs text-orange-600 mt-2">Days Missed</p>
         </div>
         
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-3 h-3 bg-purple-800 rounded-full"></div>
-            <span className="text-sm font-medium text-purple-700 uppercase tracking-wide">Total Days</span>
+            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+            <span className="text-sm font-medium text-blue-700 uppercase tracking-wide">Total Days</span>
           </div>
-          <p className="text-3xl font-bold text-purple-900 mb-2">{currentDayOfMonth}</p>
-          <div className="w-full bg-purple-200 h-1.5 rounded-full">
-            <div className="bg-gradient-to-r from-purple-700 to-purple-800 h-1.5 rounded-full w-full"></div>
+          <p className="text-3xl font-bold text-blue-800 mb-2">{currentDayOfMonth}</p>
+          <div className="w-full bg-blue-200 h-1.5 rounded-full">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full w-full"></div>
           </div>
-          <p className="text-xs text-purple-600 mt-2">Month Progress</p>
+          <p className="text-xs text-blue-600 mt-2">Month Progress</p>
         </div>
       </div>
 
-      {/* Purple Theme Weekly Analytics */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
+      {/* Light Multi-Color Weekly Analytics */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-indigo-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
         {/* Header Section */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <svg className="w-5 h-5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <svg className="w-5 h-5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-purple-900">Weekly Performance</h3>
-              <p className="text-sm text-purple-600">Track your weekly productivity metrics</p>
+              <h3 className="text-lg font-semibold text-indigo-900">Weekly Performance</h3>
+              <p className="text-sm text-indigo-600">Track your weekly productivity metrics</p>
             </div>
           </div>
           
@@ -510,34 +510,34 @@ function AttendancePage() {
           </div>
         </div>
 
-        {/* Purple Theme Metrics Grid */}
+        {/* Light Multi-Color Metrics Grid */}
         <div className="grid grid-cols-4 gap-6">
           {/* Expected Hours */}
-          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+          <div className="bg-cyan-50/80 backdrop-blur-sm rounded-2xl p-4 border border-cyan-100">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Expected Hours</div>
-              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+              <div className="text-xs font-medium text-cyan-600 uppercase tracking-wide">Expected Hours</div>
+              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
             </div>
-            <div className="text-2xl font-bold text-purple-900 mb-2">
+            <div className="text-2xl font-bold text-cyan-800 mb-2">
               {(() => {
                 const { workingDays } = calculateWeeklyHours();
                 const expectedHours = Math.max(workingDays * 8, 40);
                 return `${expectedHours}.00`;
               })()}
             </div>
-            <div className="w-full bg-purple-200 h-1 rounded-full">
-              <div className="bg-gradient-to-r from-purple-400 to-purple-500 h-1 rounded-full w-full"></div>
+            <div className="w-full bg-cyan-200 h-1 rounded-full">
+              <div className="bg-gradient-to-r from-cyan-300 to-cyan-400 h-1 rounded-full w-full"></div>
             </div>
-            <div className="text-xs text-purple-600 mt-2">Standard Work Week</div>
+            <div className="text-xs text-cyan-600 mt-2">Standard Work Week</div>
           </div>
 
           {/* Worked Hours */}
-          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+          <div className="bg-emerald-50/80 backdrop-blur-sm rounded-2xl p-4 border border-emerald-100">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Worked Hours</div>
-              <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+              <div className="text-xs font-medium text-emerald-600 uppercase tracking-wide">Worked Hours</div>
+              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
             </div>
-            <div className="text-2xl font-bold text-purple-900 mb-2">
+            <div className="text-2xl font-bold text-emerald-800 mb-2">
               {(() => {
                 const { totalWorkedHours } = calculateWeeklyHours();
                 const hours = Math.floor(totalWorkedHours);
@@ -545,25 +545,25 @@ function AttendancePage() {
                 return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
               })()}
             </div>
-            <div className="w-full bg-purple-200 h-1 rounded-full">
+            <div className="w-full bg-emerald-200 h-1 rounded-full">
               <div 
-                className="bg-gradient-to-r from-purple-600 to-purple-700 h-1 rounded-full transition-all duration-500" 
+                className="bg-gradient-to-r from-emerald-400 to-emerald-500 h-1 rounded-full transition-all duration-500" 
                 style={{
                   width: `${Math.min((calculateWeeklyHours().totalWorkedHours / 40) * 100, 100)}%`
                 }}
               ></div>
             </div>
-            <div className="text-xs text-purple-600 mt-2">Actual Time Logged</div>
+            <div className="text-xs text-emerald-600 mt-2">Actual Time Logged</div>
           </div>
 
           {/* Efficiency Score */}
-          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+          <div className="bg-amber-50/80 backdrop-blur-sm rounded-2xl p-4 border border-amber-100">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Efficiency</div>
-              <div className="w-2 h-2 bg-purple-700 rounded-full"></div>
+              <div className="text-xs font-medium text-amber-600 uppercase tracking-wide">Efficiency</div>
+              <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
             </div>
             <div className="flex items-center justify-between mb-2">
-              <div className="text-2xl font-bold text-purple-900">
+              <div className="text-2xl font-bold text-amber-800">
                 {(() => {
                   const { totalWorkedHours, workingDays } = calculateWeeklyHours();
                   const expectedHours = Math.max(workingDays * 8, 40);
@@ -577,7 +577,7 @@ function AttendancePage() {
                     cx="16"
                     cy="16"
                     r="14"
-                    stroke="#ddd6fe"
+                    stroke="#fef3c7"
                     strokeWidth="2"
                     fill="none"
                   />
@@ -585,7 +585,7 @@ function AttendancePage() {
                     cx="16"
                     cy="16"
                     r="14"
-                    stroke="#7c3aed"
+                    stroke="#f59e0b"
                     strokeWidth="2"
                     fill="none"
                     strokeDasharray={`${(() => {
@@ -602,9 +602,9 @@ function AttendancePage() {
                 </svg>
               </div>
             </div>
-            <div className="w-full bg-purple-200 h-1 rounded-full">
+            <div className="w-full bg-amber-200 h-1 rounded-full">
               <div 
-                className="bg-gradient-to-r from-purple-700 to-purple-800 h-1 rounded-full transition-all duration-500" 
+                className="bg-gradient-to-r from-amber-400 to-amber-500 h-1 rounded-full transition-all duration-500" 
                 style={{
                   width: `${(() => {
                     const { totalWorkedHours, workingDays } = calculateWeeklyHours();
@@ -614,26 +614,26 @@ function AttendancePage() {
                 }}
               ></div>
             </div>
-            <div className="text-xs text-purple-600 mt-2">Performance Ratio</div>
+            <div className="text-xs text-amber-600 mt-2">Performance Ratio</div>
           </div>
 
           {/* Performance Status */}
-          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+          <div className="bg-violet-50/80 backdrop-blur-sm rounded-2xl p-4 border border-violet-100">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Status</div>
+              <div className="text-xs font-medium text-violet-600 uppercase tracking-wide">Status</div>
               <div className={`w-2 h-2 rounded-full ${
                 (() => {
                   const { totalWorkedHours, workingDays } = calculateWeeklyHours();
                   const expectedHours = Math.max(workingDays * 8, 40);
                   const efficiency = (totalWorkedHours / expectedHours) * 100;
                   
-                  if (efficiency >= 90) return 'bg-purple-800';
-                  if (efficiency >= 75) return 'bg-purple-600';
-                  return 'bg-purple-400';
+                  if (efficiency >= 90) return 'bg-violet-600';
+                  if (efficiency >= 75) return 'bg-violet-500';
+                  return 'bg-violet-400';
                 })()
               }`}></div>
             </div>
-            <div className="text-lg font-semibold text-purple-900 mb-2">
+            <div className="text-lg font-semibold text-violet-800 mb-2">
               {(() => {
                 const { totalWorkedHours, workingDays } = calculateWeeklyHours();
                 const expectedHours = Math.max(workingDays * 8, 40);
@@ -651,14 +651,14 @@ function AttendancePage() {
                 const expectedHours = Math.max(workingDays * 8, 40);
                 const efficiency = (totalWorkedHours / expectedHours) * 100;
                 
-                if (efficiency >= 90) return 'bg-purple-100 text-purple-800';
-                if (efficiency >= 75) return 'bg-purple-100 text-purple-700';
-                return 'bg-purple-100 text-purple-600';
+                if (efficiency >= 90) return 'bg-violet-100 text-violet-700';
+                if (efficiency >= 75) return 'bg-violet-100 text-violet-600';
+                return 'bg-violet-100 text-violet-500';
               })()
             }`}>
               {currentWeekOffset === 0 ? 'This Week' : currentWeekOffset < 0 ? `${Math.abs(currentWeekOffset)} week${Math.abs(currentWeekOffset) > 1 ? 's' : ''} ago` : `${currentWeekOffset} week${currentWeekOffset > 1 ? 's' : ''} ahead`}
             </div>
-            <div className="text-xs text-purple-600 mt-1">Current Period</div>
+            <div className="text-xs text-violet-600 mt-1">Current Period</div>
           </div>
         </div>
       </div>
@@ -673,16 +673,16 @@ function AttendancePage() {
       </div>
 
       {/* Today's Attendance Analytics */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-teal-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-purple-100 rounded-lg">
-            <svg className="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="p-3 bg-teal-100 rounded-lg">
+            <svg className="w-6 h-6 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-purple-900">Daily Attendance</h3>
-            <p className="text-sm text-purple-600">Monitor your daily work activities and time tracking</p>
+            <h3 className="text-xl font-semibold text-teal-900">Daily Attendance</h3>
+            <p className="text-sm text-teal-600">Monitor your daily work activities and time tracking</p>
           </div>
         </div>
         <AttendanceCards attendanceData={attendanceHistory} />
@@ -697,7 +697,7 @@ function AttendancePage() {
               getLocation();
               startCamera();
             }}
-            className="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4"
+            className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-4 px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4"
           >
             <span className="relative z-10 flex items-center gap-2">
               {type === "check-in" ? (
