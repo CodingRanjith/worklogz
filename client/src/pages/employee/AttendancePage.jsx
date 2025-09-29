@@ -13,6 +13,7 @@ import AttendanceCards from "../../components/attendance/AttendanceCards";
 import ActivityLog from "../../components/attendance/ActivityLog";
 import CameraView from "../../components/attendance/CameraView";
 import { compressImage } from "../../components/attendance/utils";
+import TimesheetModal from "../../components/timesheet/TimesheetModal";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ function AttendancePage() {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTimesheetModal, setShowTimesheetModal] = useState(false);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0); // 0 = current week, -1 = previous week, +1 = next week
 
   const videoRef = useRef(null);
@@ -284,9 +286,23 @@ function AttendancePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-green-50 px-4 py-6 md:py-10 w-full font-sans">
       
-      {/* Purple Theme Action Controls */}
+      {/* Light Multi-Color Action Controls */}
       <div className="flex flex-col lg:flex-row lg:justify-between items-stretch lg:items-center gap-6 mb-8 px-2 sm:px-0">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full lg:w-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full lg:w-auto">
+          <button
+            onClick={() => setShowTimesheetModal(true)}
+            className="group relative overflow-hidden bg-white hover:bg-emerald-50 text-emerald-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-emerald-200/60 transition-all duration-300 text-sm sm:text-base"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              <div className="p-1.5 bg-emerald-100 rounded-lg">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <span>Add Timesheet</span>
+            </span>
+          </button>
+          
           <button
             onClick={() => navigate("/apply-leave")}
             className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-sm sm:text-base"
@@ -317,7 +333,7 @@ function AttendancePage() {
           
           <button
             onClick={() => setShowCalendarModal(true)}
-            className="group relative overflow-hidden bg-white hover:bg-orange-50 text-orange-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-orange-200/60 transition-all duration-300 text-sm sm:text-base sm:col-span-2 lg:col-span-1"
+            className="group relative overflow-hidden bg-white hover:bg-orange-50 text-orange-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-orange-200/60 transition-all duration-300 text-sm sm:text-base"
           >
             <span className="relative z-10 flex items-center justify-center gap-3">
               <div className="p-1.5 bg-orange-100 rounded-lg">
@@ -827,6 +843,12 @@ function AttendancePage() {
           </div>
         </div>
       )}
+
+      {/* Timesheet Modal */}
+      <TimesheetModal
+        isOpen={showTimesheetModal}
+        onClose={() => setShowTimesheetModal(false)}
+      />
     </div>
   );
 }
