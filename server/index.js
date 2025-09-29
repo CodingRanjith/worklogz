@@ -9,9 +9,10 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://worklogz.netlify.app', 'http://localhost:3000'],
+  origin: true, // Accept all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Allow cookies and credentials
 }));
 app.use(express.json());
 
