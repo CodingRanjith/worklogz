@@ -1,0 +1,231 @@
+/* Holiday Modal Styles */
+.holiday-modal {
+  backdrop-filter: blur(8px);
+  animation: modalFadeIn 0.3s ease-out;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Close button enhanced visibility */
+.holiday-modal button[aria-label="close"], 
+.holiday-modal .absolute.top-4.right-4 {
+  background: white !important;
+  color: #374151 !important;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.holiday-modal button[aria-label="close"]:hover,
+.holiday-modal .absolute.top-4.right-4:hover {
+  background: #f9fafb !important;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Header text enhancement */
+.holiday-modal h2 {
+  color: white !important;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  font-weight: 800;
+}
+
+.holiday-modal .text-white {
+  color: white !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.holiday-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.holiday-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  transition: all 0.6s;
+  opacity: 0;
+}
+
+.holiday-card:hover::before {
+  animation: shimmer 1.5s ease-in-out;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+.holiday-card.upcoming {
+  animation: slideInUp 0.5s ease-out forwards;
+  transform: translateY(20px);
+  opacity: 0;
+}
+
+.holiday-card.upcoming:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(16, 185, 129, 0.15);
+}
+
+.holiday-card.past {
+  animation: slideInUp 0.4s ease-out forwards;
+  transform: translateY(15px);
+  opacity: 0;
+}
+
+.holiday-card.past:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Stagger animation for cards */
+.holiday-card:nth-child(1) { animation-delay: 0.1s; }
+.holiday-card:nth-child(2) { animation-delay: 0.2s; }
+.holiday-card:nth-child(3) { animation-delay: 0.3s; }
+.holiday-card:nth-child(4) { animation-delay: 0.4s; }
+.holiday-card:nth-child(5) { animation-delay: 0.5s; }
+.holiday-card:nth-child(6) { animation-delay: 0.6s; }
+
+/* Pulse animation for TODAY badge */
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* Custom scrollbar for modal */
+.holiday-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.holiday-modal::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.holiday-modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #a855f7, #ec4899);
+  border-radius: 4px;
+}
+
+.holiday-modal::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #9333ea, #db2777);
+}
+
+/* Loading spinner enhancement */
+.loading-spinner {
+  position: relative;
+}
+
+.loading-spinner::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid transparent;
+  border-top: 2px solid #a855f7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .holiday-modal {
+    margin: 1rem;
+    max-width: calc(100vw - 2rem);
+  }
+  
+  .holiday-card {
+    padding: 1rem;
+  }
+  
+  .holiday-card h4 {
+    font-size: 1.1rem;
+  }
+}
+
+/* Holiday type specific styling */
+.holiday-card[data-holiday*="christmas"] {
+  background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+  border-color: #f59e0b !important;
+}
+
+.holiday-card[data-holiday*="new year"] {
+  background: linear-gradient(135deg, #ddd6fe, #c4b5fd) !important;
+  border-color: #8b5cf6 !important;
+}
+
+.holiday-card[data-holiday*="diwali"] {
+  background: linear-gradient(135deg, #fed7d7, #feb2b2) !important;
+  border-color: #f56565 !important;
+}
+
+/* Enhanced hover effects */
+.holiday-card:hover .text-3xl,
+.holiday-card:hover .text-2xl {
+  animation: bounce 0.6s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 20%, 60%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  80% {
+    transform: translateY(-5px);
+  }
+}
