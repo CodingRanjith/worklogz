@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 import Swal from "sweetalert2";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -32,16 +31,65 @@ function AttendancePage() {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentWeekOffset, setCurrentWeekOffset] = useState(0); // 0 = current week, -1 = previous week, +1 = next week
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
-  useEffect(() => {
-    fetchUser();
-    fetchAttendance();
-  }, [userId]);
+  // Dynamic week calculation functions
+  const getCurrentWeekDates = useCallback(() => {
+    const today = new Date();
+    const startOfWeek = new Date(today);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+    
+    // Apply week offset
+    startOfWeek.setDate(startOfWeek.getDate() + (currentWeekOffset * 7));
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    
+    return { startOfWeek, endOfWeek };
+  }, [currentWeekOffset]);
 
-  const fetchUser = async () => {
+  const calculateWeeklyHours = useCallback(() => {
+    const { startOfWeek, endOfWeek } = getCurrentWeekDates();
+    
+    let totalWorkedHours = 0;
+    let workingDays = 0;
+    
+    for (let d = new Date(startOfWeek); d <= endOfWeek; d.setDate(d.getDate() + 1)) {
+      const dateKey = d.toDateString();
+      const dayEntries = attendanceHistory.filter(e => 
+        new Date(e.timestamp).toDateString() === dateKey
+      );
+      const checkIn = dayEntries.find(e => e.type === 'check-in');
+      const checkOut = dayEntries.find(e => e.type === 'check-out');
+      
+      if (checkIn && checkOut) {
+        const diff = new Date(checkOut.timestamp) - new Date(checkIn.timestamp);
+        totalWorkedHours += diff / (1000 * 60 * 60);
+        workingDays++;
+      }
+    }
+    
+    return { totalWorkedHours, workingDays };
+  }, [attendanceHistory, getCurrentWeekDates]);
+
+  const goToPreviousWeek = () => {
+    setCurrentWeekOffset(prev => prev - 1);
+  };
+
+  const goToNextWeek = () => {
+    setCurrentWeekOffset(prev => prev + 1);
+  };
+
+  const goToCurrentWeek = () => {
+    setCurrentWeekOffset(0);
+  };
+
+  const fetchUser = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
       const res = await axios.get(
@@ -58,9 +106,9 @@ function AttendancePage() {
     } catch (err) {
       // Swal.fire({ icon: 'error', title: 'Error', text: 'Unable to load user info' });
     }
-  };
+  }, [isSelf, userId]);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
       const res = await axios.get(
@@ -95,7 +143,12 @@ function AttendancePage() {
         text: "Unable to load attendance data",
       });
     }
-  };
+  }, [isSelf, userId]);
+
+  useEffect(() => {
+    fetchUser();
+    fetchAttendance();
+  }, [fetchUser, fetchAttendance]);
 
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -225,206 +278,552 @@ function AttendancePage() {
   );
 
   const presentDays = Object.keys(attendanceMap).length;
-  const totalDays = new Date().getDate();
-  const absentDays = totalDays - presentDays;
+  const currentDayOfMonth = new Date().getDate(); // Today's date (29)
+  const absentDays = currentDayOfMonth - presentDays; // Only count days up to today
 
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-lime-50 via-sky-50 to-pink-50 px-4 py-6 md:py-10 w-full font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 via-purple-50 to-white px-4 py-6 md:py-10 w-full font-sans">
+      
+      {/* Purple Theme Action Controls */}
+      <div className="flex flex-col lg:flex-row lg:justify-between items-stretch lg:items-center gap-6 mb-8 px-2 sm:px-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full lg:w-auto">
+          <button
+            onClick={() => navigate("/apply-leave")}
+            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              <div className="p-1.5 bg-purple-100 rounded-lg">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </div>
+              <span>Apply Leave</span>
+            </span>
+          </button>
+          
+          <button
+            onClick={() => navigate("/task-manager")}
+            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              <div className="p-1.5 bg-purple-100 rounded-lg">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+              </div>
+              <span>Task Manager</span>
+            </span>
+          </button>
+          
+          <button
+            onClick={() => setShowCalendarModal(true)}
+            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base sm:col-span-2 lg:col-span-1"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              <div className="p-1.5 bg-purple-100 rounded-lg">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span>Calendar View</span>
+            </span>
+          </button>
+        </div>
+        
+        <button
+          onClick={onLogout}
+          className="group relative overflow-hidden bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full lg:w-auto text-sm sm:text-base"
+        >
+          <span className="relative z-10 flex items-center justify-center gap-3">
+            <div className="p-1.5 bg-purple-500/50 rounded-lg">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </div>
+            <span>Logout</span>
+          </span>
+        </button>
+      </div>
+
+      {showCalendarModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
+          <div className="glass rounded-3xl shadow-2xl max-w-md w-full mx-4 relative elevation-4 border border-white/20">
+            <button
+              className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+              onClick={() => setShowCalendarModal(false)}
+            >
+              ✕
+            </button>
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold gradient-text mb-2">
+                  Attendance Calendar
+                </h2>
+                <p className="text-slate-600">
+                  {calendarViewDate.toLocaleString("default", { month: "long" })} {calendarViewDate.getFullYear()}
+                </p>
+              </div>
+              <Calendar
+                onChange={setSelectedDate}
+                value={selectedDate}
+                onActiveStartDateChange={({ activeStartDate }) =>
+                  setCalendarViewDate(activeStartDate)
+                }
+                tileClassName={({ date, view }) => {
+                  if (view === "month") {
+                    const key = date.toDateString();
+                    const record = attendanceMap[key];
+                    if (record?.checkin && record?.checkout) return "present-day";
+                    if (record?.checkin && !record?.checkout)
+                      return "partial-present";
+                    if (!record) return "absent-day";
+                  }
+                  return "";
+                }}
+                className="w-full rounded-2xl border-none shadow-inner"
+              />
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-green-100">
+                  <div className="w-4 h-4 bg-green-500 rounded-full shadow-md"></div>
+                  <span className="text-xs font-semibold text-green-700">Present</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-yellow-100">
+                  <div className="w-4 h-4 bg-yellow-500 rounded-full shadow-md"></div>
+                  <span className="text-xs font-semibold text-yellow-700">Partial</span>
+                </div>
+                <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-red-100">
+                  <div className="w-4 h-4 bg-red-500 rounded-full shadow-md"></div>
+                  <span className="text-xs font-semibold text-red-700">Absent</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <ProfileHeader
         name={user.name}
         position={user.position}
         company={user.company}
       />
 
-      <div className="mt-4 mb-4 flex justify-around text-sm font-medium text-gray-700">
-        <div>
-          ✅ Present: <span className="text-green-600">{presentDays}</span>
+       {/* Purple Theme Stats Cards */}
+      <div className="grid grid-cols-3 gap-6 mb-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+            <span className="text-sm font-medium text-purple-700 uppercase tracking-wide">Present Days</span>
+          </div>
+          <p className="text-3xl font-bold text-purple-900 mb-2">{presentDays}</p>
+          <div className="w-full bg-purple-200 h-1.5 rounded-full">
+            <div 
+              className="bg-gradient-to-r from-purple-500 to-purple-600 h-1.5 rounded-full transition-all duration-500" 
+              style={{width: `${(presentDays / currentDayOfMonth) * 100}%`}}
+            ></div>
+          </div>
+          <p className="text-xs text-purple-600 mt-2">Days Attended</p>
         </div>
-        <div>
-          ❌ Absent: <span className="text-red-600">{absentDays}</span>
+        
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-3 h-3 bg-purple-400 rounded-full"></div>
+            <span className="text-sm font-medium text-purple-700 uppercase tracking-wide">Absent Days</span>
+          </div>
+          <p className="text-3xl font-bold text-purple-900 mb-2">{absentDays}</p>
+          <div className="w-full bg-purple-200 h-1.5 rounded-full">
+            <div 
+              className="bg-gradient-to-r from-purple-300 to-purple-400 h-1.5 rounded-full transition-all duration-500" 
+              style={{width: `${(absentDays / currentDayOfMonth) * 100}%`}}
+            ></div>
+          </div>
+          <p className="text-xs text-purple-600 mt-2">Days Missed</p>
         </div>
-        <div>
-          📅 Total: <span className="text-blue-600">{totalDays}</span>
+        
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-3 h-3 bg-purple-800 rounded-full"></div>
+            <span className="text-sm font-medium text-purple-700 uppercase tracking-wide">Total Days</span>
+          </div>
+          <p className="text-3xl font-bold text-purple-900 mb-2">{currentDayOfMonth}</p>
+          <div className="w-full bg-purple-200 h-1.5 rounded-full">
+            <div className="bg-gradient-to-r from-purple-700 to-purple-800 h-1.5 rounded-full w-full"></div>
+          </div>
+          <p className="text-xs text-purple-600 mt-2">Month Progress</p>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:justify-between items-stretch md:items-center gap-3 mb-4">
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-          <button
-            onClick={() => navigate("/apply-leave")}
-            className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600 w-full sm:w-auto"
-          >
-            📝 Apply Leave
-          </button>
-          <button
-            onClick={() => navigate("/task-manager")}
-            className="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 w-full sm:w-auto"
-          >
-            🗂 Task Manager
-          </button>
-          <button
-            onClick={() => setShowCalendarModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 w-full sm:w-auto"
-          >
-            📅 Open Calendar View
-          </button>
-        </div>
-        <button
-          onClick={onLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600 w-full sm:w-auto"
-        >
-          🔒 Logout
-        </button>
-      </div>
-
-      {showCalendarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg max-w-md w-full relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-black"
-              onClick={() => setShowCalendarModal(false)}
-            >
-              ✕
-            </button>
-            <h2 className="text-lg font-bold mb-4 text-center">
-              Attendance -{" "}
-              {calendarViewDate.toLocaleString("default", { month: "long" })}{" "}
-              {calendarViewDate.getFullYear()}
-            </h2>
-            <Calendar
-              onChange={setSelectedDate}
-              value={selectedDate}
-              onActiveStartDateChange={({ activeStartDate }) =>
-                setCalendarViewDate(activeStartDate)
-              }
-              tileClassName={({ date, view }) => {
-                if (view === "month") {
-                  const key = date.toDateString();
-                  const record = attendanceMap[key];
-                  if (record?.checkin && record?.checkout) return "present-day";
-                  if (record?.checkin && !record?.checkout)
-                    return "partial-present";
-                  if (!record) return "absent-day";
-                }
-                return "";
-              }}
-            />
-            <div className="flex justify-around mt-4 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-4 bg-green-200 rounded"></span>Present
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-4 bg-yellow-200 rounded"></span>Check-in
-                Only
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-4 h-4 bg-red-200 rounded"></span>Absent
-              </div>
+      {/* Purple Theme Weekly Analytics */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
+        {/* Header Section */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <svg className="w-5 h-5 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-purple-900">Weekly Performance</h3>
+              <p className="text-sm text-purple-600">Track your weekly productivity metrics</p>
             </div>
           </div>
+          
+          {/* Week Navigation Controls */}
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={goToPreviousWeek}
+              className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors duration-200"
+            >
+              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            <div className="px-4 py-2 bg-purple-50 rounded-lg border border-purple-200">
+              <div className="text-center">
+                <div className="text-xs font-medium text-purple-600 mb-1">Week Period</div>
+                <div className="text-sm font-semibold text-purple-800">
+                  {(() => {
+                    const { startOfWeek, endOfWeek } = getCurrentWeekDates();
+                    return `${startOfWeek.toLocaleDateString('en-GB')} - ${endOfWeek.toLocaleDateString('en-GB')}`;
+                  })()}
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={goToNextWeek}
+              className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors duration-200"
+            >
+              <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+            
+            {currentWeekOffset !== 0 && (
+              <button
+                onClick={goToCurrentWeek}
+                className="ml-2 px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-colors duration-200"
+              >
+                Current Week
+              </button>
+            )}
+          </div>
         </div>
-      )}
 
-      <div className="mt-8">
-        <h3 className="text-lg font-semibold text-gray-700 mb-3">
-          Today Attendance
-        </h3>
-        <AttendanceCards attendanceData={attendanceHistory} />
-        <br></br>
-        <ActivityLog activities={filteredLogs} />
+        {/* Purple Theme Metrics Grid */}
+        <div className="grid grid-cols-4 gap-6">
+          {/* Expected Hours */}
+          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Expected Hours</div>
+              <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+            </div>
+            <div className="text-2xl font-bold text-purple-900 mb-2">
+              {(() => {
+                const { workingDays } = calculateWeeklyHours();
+                const expectedHours = Math.max(workingDays * 8, 40);
+                return `${expectedHours}.00`;
+              })()}
+            </div>
+            <div className="w-full bg-purple-200 h-1 rounded-full">
+              <div className="bg-gradient-to-r from-purple-400 to-purple-500 h-1 rounded-full w-full"></div>
+            </div>
+            <div className="text-xs text-purple-600 mt-2">Standard Work Week</div>
+          </div>
+
+          {/* Worked Hours */}
+          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Worked Hours</div>
+              <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
+            </div>
+            <div className="text-2xl font-bold text-purple-900 mb-2">
+              {(() => {
+                const { totalWorkedHours } = calculateWeeklyHours();
+                const hours = Math.floor(totalWorkedHours);
+                const minutes = Math.floor((totalWorkedHours - hours) * 60);
+                return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+              })()}
+            </div>
+            <div className="w-full bg-purple-200 h-1 rounded-full">
+              <div 
+                className="bg-gradient-to-r from-purple-600 to-purple-700 h-1 rounded-full transition-all duration-500" 
+                style={{
+                  width: `${Math.min((calculateWeeklyHours().totalWorkedHours / 40) * 100, 100)}%`
+                }}
+              ></div>
+            </div>
+            <div className="text-xs text-purple-600 mt-2">Actual Time Logged</div>
+          </div>
+
+          {/* Efficiency Score */}
+          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Efficiency</div>
+              <div className="w-2 h-2 bg-purple-700 rounded-full"></div>
+            </div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-2xl font-bold text-purple-900">
+                {(() => {
+                  const { totalWorkedHours, workingDays } = calculateWeeklyHours();
+                  const expectedHours = Math.max(workingDays * 8, 40);
+                  const efficiency = Math.min((totalWorkedHours / expectedHours) * 100, 100);
+                  return Math.round(efficiency);
+                })()}%
+              </div>
+              <div className="relative w-8 h-8">
+                <svg className="w-8 h-8 transform -rotate-90" viewBox="0 0 32 32">
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r="14"
+                    stroke="#ddd6fe"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                  <circle
+                    cx="16"
+                    cy="16"
+                    r="14"
+                    stroke="#7c3aed"
+                    strokeWidth="2"
+                    fill="none"
+                    strokeDasharray={`${(() => {
+                      const { totalWorkedHours, workingDays } = calculateWeeklyHours();
+                      const expectedHours = Math.max(workingDays * 8, 40);
+                      const efficiency = Math.min((totalWorkedHours / expectedHours) * 100, 100);
+                      const circumference = 2 * Math.PI * 14;
+                      const strokeDasharray = (efficiency / 100) * circumference;
+                      return strokeDasharray;
+                    })()} ${2 * Math.PI * 14}`}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div className="w-full bg-purple-200 h-1 rounded-full">
+              <div 
+                className="bg-gradient-to-r from-purple-700 to-purple-800 h-1 rounded-full transition-all duration-500" 
+                style={{
+                  width: `${(() => {
+                    const { totalWorkedHours, workingDays } = calculateWeeklyHours();
+                    const expectedHours = Math.max(workingDays * 8, 40);
+                    return Math.min((totalWorkedHours / expectedHours) * 100, 100);
+                  })()}%`
+                }}
+              ></div>
+            </div>
+            <div className="text-xs text-purple-600 mt-2">Performance Ratio</div>
+          </div>
+
+          {/* Performance Status */}
+          <div className="bg-purple-50/80 backdrop-blur-sm rounded-2xl p-4 border border-purple-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-xs font-medium text-purple-600 uppercase tracking-wide">Status</div>
+              <div className={`w-2 h-2 rounded-full ${
+                (() => {
+                  const { totalWorkedHours, workingDays } = calculateWeeklyHours();
+                  const expectedHours = Math.max(workingDays * 8, 40);
+                  const efficiency = (totalWorkedHours / expectedHours) * 100;
+                  
+                  if (efficiency >= 90) return 'bg-purple-800';
+                  if (efficiency >= 75) return 'bg-purple-600';
+                  return 'bg-purple-400';
+                })()
+              }`}></div>
+            </div>
+            <div className="text-lg font-semibold text-purple-900 mb-2">
+              {(() => {
+                const { totalWorkedHours, workingDays } = calculateWeeklyHours();
+                const expectedHours = Math.max(workingDays * 8, 40);
+                const efficiency = (totalWorkedHours / expectedHours) * 100;
+                
+                if (efficiency >= 90) return 'Excellent';
+                if (efficiency >= 75) return 'Good';
+                if (efficiency >= 50) return 'Average';
+                return 'Below Target';
+              })()}
+            </div>
+            <div className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+              (() => {
+                const { totalWorkedHours, workingDays } = calculateWeeklyHours();
+                const expectedHours = Math.max(workingDays * 8, 40);
+                const efficiency = (totalWorkedHours / expectedHours) * 100;
+                
+                if (efficiency >= 90) return 'bg-purple-100 text-purple-800';
+                if (efficiency >= 75) return 'bg-purple-100 text-purple-700';
+                return 'bg-purple-100 text-purple-600';
+              })()
+            }`}>
+              {currentWeekOffset === 0 ? 'This Week' : currentWeekOffset < 0 ? `${Math.abs(currentWeekOffset)} week${Math.abs(currentWeekOffset) > 1 ? 's' : ''} ago` : `${currentWeekOffset} week${currentWeekOffset > 1 ? 's' : ''} ahead`}
+            </div>
+            <div className="text-xs text-purple-600 mt-1">Current Period</div>
+          </div>
+        </div>
       </div>
-      <div className="mt-8">
+
+      {/* Monthly Effort Tracker */}
+      <div className="mb-6">
         <DateStrip
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
           attendanceHistory={attendanceHistory}
         />
       </div>
+
+      {/* Today's Attendance Analytics */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-purple-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 bg-purple-100 rounded-lg">
+            <svg className="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-purple-900">Daily Attendance</h3>
+            <p className="text-sm text-purple-600">Monitor your daily work activities and time tracking</p>
+          </div>
+        </div>
+        <AttendanceCards attendanceData={attendanceHistory} />
+        <div className="mt-6">
+          <ActivityLog activities={filteredLogs} />
+        </div>
+      </div>
       {isSelf && type && !isCapturing && (
-        <div className="fixed bottom-6 left-6 right-6 flex justify-center z-30">
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30">
           <button
             onClick={() => {
               getLocation();
               startCamera();
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition"
+            className="group relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4"
           >
-            {type === "check-in" ? "Check In" : "Check Out"}
+            <span className="relative z-10 flex items-center gap-2">
+              {type === "check-in" ? (
+                <>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Check In
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414L7 8.586 5.707 7.293a1 1 0 00-1.414 1.414L6.586 11l-2.293 2.293a1 1 0 101.414 1.414L8 12.414l2.293 2.293a1 1 0 001.414-1.414L9.414 11l2.293-2.293z" clipRule="evenodd" />
+                  </svg>
+                  Check Out
+                </>
+              )}
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
           </button>
         </div>
       )}
 
       {isCapturing && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4 text-center">
-            {!image ? (
-              <>
-                <CameraView ref={videoRef} />
-                <div className="flex justify-between mt-4">
-                  <button
-                    onClick={stopCamera}
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={captureImage}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-                  >
-                    Capture
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <img
-                  src={image}
-                  alt="Captured"
-                  className="rounded-lg w-full object-cover"
-                />
-                {capturedTime && (
-                  <div className="text-sm text-gray-600 mt-2 space-y-1">
-                    <p>
-                      <span className="font-medium">Captured at:</span>{" "}
-                      {capturedTime.toLocaleTimeString()} on{" "}
-                      {capturedTime.toLocaleDateString()}
-                    </p>
-                    {location && (
-                      <p>
-                        <span className="font-medium">Location:</span>{" "}
-                        {location}
-                      </p>
-                    )}
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass w-full max-w-sm rounded-3xl shadow-2xl space-y-6 text-center elevation-4 border border-white/20">
+            <div className="p-6">
+              {!image ? (
+                <>
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold gradient-text mb-2">Take Attendance Photo</h3>
+                    <p className="text-sm text-slate-600">Position your face in the center</p>
                   </div>
-                )}
-                <div className="flex justify-between mt-4">
-                  <button
-                    onClick={() => {
-                      URL.revokeObjectURL(image);
-                      setImage(null);
-                      setCompressedBlob(null);
-                      startCamera();
-                    }}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
-                  >
-                    Retake
-                  </button>
-                  <button
-                    onClick={submitAttendance}
-                    className={`bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg ${
-                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting
-                      ? "Submitting..."
-                      : `Submit ${
+                  <div className="relative rounded-2xl overflow-hidden shadow-inner mb-6">
+                    <CameraView ref={videoRef} />
+                    <div className="absolute inset-0 border-4 border-white/30 rounded-2xl pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-blue-500 rounded-full pointer-events-none animate-pulse"></div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={stopCamera}
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={captureImage}
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg"
+                    >
+                      📸 Capture
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold gradient-text mb-2">Confirm Photo</h3>
+                    <p className="text-sm text-slate-600">Review your attendance photo</p>
+                  </div>
+                  <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
+                    <img
+                      src={image}
+                      alt="Captured"
+                      className="rounded-2xl w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                  </div>
+                  {capturedTime && (
+                    <div className="glass rounded-xl p-4 mb-6 text-sm text-slate-600 space-y-1">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-semibold text-slate-700">Capture Details</span>
+                      </div>
+                      <p>
+                        <span className="font-medium">Time:</span>{" "}
+                        {capturedTime.toLocaleTimeString()}
+                      </p>
+                      <p>
+                        <span className="font-medium">Date:</span>{" "}
+                        {capturedTime.toLocaleDateString()}
+                      </p>
+                      {location && (
+                        <p>
+                          <span className="font-medium">Location:</span> {location}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        URL.revokeObjectURL(image);
+                        setImage(null);
+                        setCompressedBlob(null);
+                        startCamera();
+                      }}
+                      className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple"
+                    >
+                      🔄 Retake
+                    </button>
+                    <button
+                      onClick={submitAttendance}
+                      className={`flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg ${
+                        isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Submitting...
+                        </span>
+                      ) : (
+                        `✨ Submit ${
                           type === "check-in" ? "Check In" : "Check Out"
-                        }`}
-                  </button>
-                </div>
-              </>
-            )}
+                        }`
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

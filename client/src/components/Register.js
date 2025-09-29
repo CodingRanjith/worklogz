@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
-  FiUser, FiMail, FiLock, FiBriefcase, FiHome, FiCalendar, FiPhone
+  FiUser, FiMail, FiLock, FiBriefcase, FiHome, /* FiCalendar, */ FiPhone
 } from 'react-icons/fi';
 import { API_ENDPOINTS } from '../utils/api';
 import Swal from 'sweetalert2';

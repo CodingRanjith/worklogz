@@ -16,7 +16,7 @@ import Register from './components/Register';
 // Admin Pages
 import Dashboard from './pages/admin/Dashboard';
 import Employees from './pages/admin/Employees';
-import Salary from './pages/admin/Salary';
+// import Salary from './pages/admin/Salary'; // Unused - commented out
 import Attendance from './pages/admin/Attendance';
 import Reports from './pages/admin/Reports';
 import LeaveRequestsAdmin from './pages/admin/LeaveRequests';
@@ -56,7 +56,7 @@ function App() {
         localStorage.removeItem('token');
       }
     }
-  }, []);
+  }, [navigate]);
   return (
    
       <Routes>
