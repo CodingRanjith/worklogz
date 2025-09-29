@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { API_ENDPOINTS } from '../../utils/api';
-import urbancodeLogo from '../../assets/uclogo.png';
-import jobzenterLogo from '../../assets/jzlogo.png';
-import { FiBell, FiClock } from 'react-icons/fi';
+import { FiBell, FiClock, FiUser } from 'react-icons/fi';
 
 function ProfileHeader() {
   const [user, setUser] = useState(null);
@@ -45,17 +43,6 @@ function ProfileHeader() {
 
   if (!user) return null;
 
-  const getCompanyLogo = (company) => {
-    switch (company) {
-      case 'Urbancode':
-        return urbancodeLogo;
-      case 'Jobzenter':
-        return jobzenterLogo;
-      default:
-        return '/default-logo.png';
-    }
-  };
-
   // Get greeting based on time
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -90,12 +77,24 @@ function ProfileHeader() {
       <div className="flex items-center justify-between gap-6">
         {/* Left side - User Profile */}
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full border-2 border-purple-200 shadow-sm bg-white p-1">
-            <img
-              src={getCompanyLogo(user.company)}
-              alt={user.company}
-              className="w-full h-full object-contain rounded-full"
-            />
+          <div className="w-16 h-16 rounded-full border-2 border-purple-200 shadow-sm bg-gradient-to-br from-purple-100 to-purple-50 p-1 flex items-center justify-center overflow-hidden">
+            {user.profilePic ? (
+              <img
+                src={user.profilePic}
+                alt={`${user.name}'s profile`}
+                className="w-full h-full object-cover rounded-full"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className={`w-full h-full rounded-full flex items-center justify-center ${user.profilePic ? 'hidden' : 'flex'}`}
+              style={{ display: user.profilePic ? 'none' : 'flex' }}
+            >
+              <FiUser className="text-purple-400 text-2xl" />
+            </div>
           </div>
           <div>
             <div className="flex items-center gap-2 mb-1">
