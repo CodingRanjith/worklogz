@@ -107,37 +107,37 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
     const baseClasses = 'group relative flex flex-col items-center justify-center p-4 rounded-2xl shadow-sm min-w-[76px] min-h-[90px] transition-all duration-300 cursor-pointer transform hover:scale-105 hover:shadow-md';
     
     if (day.isSelected) {
-      return `${baseClasses} bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg ring-2 ring-indigo-300 ring-opacity-50`;
+      return `${baseClasses} bg-gradient-to-br from-purple-600 to-purple-700 text-white shadow-lg ring-2 ring-purple-300 ring-opacity-50`;
     }
     
     if (day.isToday) {
-      return `${baseClasses} bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-400 text-emerald-800 shadow-md ring-2 ring-emerald-200 ring-opacity-50`;
+      return `${baseClasses} bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-400 text-purple-800 shadow-md ring-2 ring-purple-200 ring-opacity-50`;
     }
     
     if (day.isFuture) {
-      return `${baseClasses} bg-slate-50 border border-slate-200 text-slate-400 cursor-not-allowed opacity-60`;
+      return `${baseClasses} bg-purple-50 border border-purple-200 text-purple-400 cursor-not-allowed opacity-60`;
     }
     
     if (day.workHours === 0 && !day.isWeekend && !day.isFuture) {
-      return `${baseClasses} bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 text-red-700 hover:from-red-100 hover:to-rose-100`;
+      return `${baseClasses} bg-gradient-to-br from-purple-100 to-purple-200 border border-purple-300 text-purple-700 hover:from-purple-200 hover:to-purple-300`;
     }
     
     if (day.workHours > 0) {
       const intensity = Math.min(day.workHours / 8, 1);
       if (intensity > 0.8) {
-        return `${baseClasses} bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-300 text-emerald-800 hover:from-emerald-100 hover:to-green-100`;
+        return `${baseClasses} bg-gradient-to-br from-purple-500 to-purple-600 border border-purple-600 text-white hover:from-purple-600 hover:to-purple-700`;
       } else if (intensity > 0.5) {
-        return `${baseClasses} bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-300 text-blue-800 hover:from-blue-100 hover:to-cyan-100`;
+        return `${baseClasses} bg-gradient-to-br from-purple-200 to-purple-300 border border-purple-400 text-purple-800 hover:from-purple-300 hover:to-purple-400`;
       } else {
-        return `${baseClasses} bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-300 text-amber-800 hover:from-amber-100 hover:to-yellow-100`;
+        return `${baseClasses} bg-gradient-to-br from-purple-100 to-purple-200 border border-purple-300 text-purple-700 hover:from-purple-200 hover:to-purple-300`;
       }
     }
     
     if (day.isWeekend) {
-      return `${baseClasses} bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-200 text-rose-700 hover:from-rose-100 hover:to-pink-100`;
+      return `${baseClasses} bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 text-purple-600 hover:from-purple-100 hover:to-purple-200`;
     }
     
-    return `${baseClasses} bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:shadow-md`;
+    return `${baseClasses} bg-white border border-purple-200 text-purple-700 hover:bg-purple-50 hover:shadow-md`;
   };
 
   return (
@@ -218,24 +218,24 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
                 {day.formattedHours}
               </div>
               {day.isToday && !day.isSelected && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full animate-pulse ring-2 ring-emerald-200"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-pulse ring-2 ring-purple-200"></div>
               )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Total effort display */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mt-6 pt-6 border-t border-slate-200">
+      {/* Total effort display - Purple Theme */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mt-6 pt-6 border-t border-purple-200">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl">
-            <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+          <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl">
+            <svg className="w-6 h-6 text-purple-700" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
             </svg>
           </div>
           <div>
-            <span className="text-sm font-medium text-slate-600 block">Total Effort</span>
-            <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-sm font-medium text-purple-600 block">Total Effort</span>
+            <span className="text-3xl font-bold bg-gradient-to-r from-purple-700 to-purple-800 bg-clip-text text-transparent">
               {totalEffort} hrs
             </span>
           </div>
@@ -244,14 +244,14 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
         <div className="flex items-center gap-4 flex-1 max-w-sm">
           <div className="flex-1">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-medium text-slate-500">Progress</span>
-              <span className="text-xs font-bold text-slate-700">
+              <span className="text-xs font-medium text-purple-600">Progress</span>
+              <span className="text-xs font-bold text-purple-800">
                 {Math.round((parseFloat(totalEffort.replace(':', '.')) / 160) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-purple-200 rounded-full h-3 overflow-hidden">
               <div 
-                className="h-3 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-1000 ease-out relative overflow-hidden"
+                className="h-3 rounded-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 transition-all duration-1000 ease-out relative overflow-hidden"
                 style={{ width: `${Math.min((parseFloat(totalEffort.replace(':', '.')) / 160) * 100, 100)}%` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
