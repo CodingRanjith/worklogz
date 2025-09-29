@@ -39,6 +39,7 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const currentPath = window.location.pathname;
 
     if (token) {
       try {
@@ -48,15 +49,18 @@ function App() {
         if (isExpired) {
           localStorage.removeItem('token');
         } else {
-          if (decoded.role === 'admin') navigate('/dashboard');
-          else if (decoded.role === 'employee') navigate('/attendance');
+          // Only redirect if user is on login page or root page
+          if (currentPath === '/' || currentPath === '/login') {
+            if (decoded.role === 'admin') navigate('/dashboard');
+            else if (decoded.role === 'employee') navigate('/attendance');
+          }
         }
       } catch (err) {
         console.error('Error decoding token:', err);
         localStorage.removeItem('token');
       }
     }
-  }, [navigate]);
+  }, []);
   return (
    
       <Routes>
