@@ -95,23 +95,23 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
   };
 
   const getWorkHoursStyle = (hours, isFuture, isWeekend) => {
-    if (isFuture) return 'bg-gray-100 text-gray-400 border border-gray-200';
-    if (isWeekend) return 'bg-indigo-100 text-indigo-600 border border-indigo-200';
-    if (hours === 0) return 'bg-red-100 text-red-600 border border-red-200';
-    if (hours > 0 && hours < 4) return 'bg-orange-100 text-orange-700 border border-orange-200';
-    if (hours >= 8) return 'bg-green-100 text-green-700 border border-green-200';
-    return 'bg-yellow-100 text-yellow-700 border border-yellow-200';
+    if (isFuture) return 'bg-purple-100 text-purple-400 border border-purple-200';
+    if (isWeekend) return 'bg-purple-200 text-purple-700 border border-purple-300';
+    if (hours === 0) return 'bg-purple-100 text-purple-600 border border-purple-200';
+    if (hours > 0 && hours < 4) return 'bg-purple-200 text-purple-700 border border-purple-300';
+    if (hours >= 8) return 'bg-purple-600 text-white border border-purple-700';
+    return 'bg-purple-300 text-purple-800 border border-purple-400';
   };
 
   const getDayBackgroundStyle = (day) => {
     const baseClasses = 'group relative flex flex-col items-center justify-center p-4 rounded-2xl shadow-sm min-w-[76px] min-h-[90px] transition-all duration-300 cursor-pointer transform hover:scale-105 hover:shadow-md';
     
     if (day.isSelected) {
-      return `${baseClasses} bg-gradient-to-br from-teal-400 to-teal-500 text-white shadow-lg ring-2 ring-teal-200 ring-opacity-50`;
+      return `${baseClasses} bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg ring-2 ring-blue-300 ring-opacity-50`;
     }
     
     if (day.isToday) {
-      return `${baseClasses} bg-gradient-to-br from-teal-100 to-teal-200 border-2 border-teal-300 text-teal-800 shadow-md ring-2 ring-teal-150 ring-opacity-50`;
+      return `${baseClasses} bg-gradient-to-br from-blue-100 to-blue-200 border-2 border-blue-400 text-blue-800 shadow-md ring-2 ring-blue-200 ring-opacity-50`;
     }
     
     if (day.isFuture) {
@@ -119,49 +119,49 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
     }
     
     if (day.workHours === 0 && !day.isWeekend && !day.isFuture) {
-      return `${baseClasses} bg-gradient-to-br from-red-100 to-red-150 border border-red-200 text-red-700 hover:from-red-150 hover:to-red-200`;
+      return `${baseClasses} bg-gradient-to-br from-red-100 to-red-200 border border-red-300 text-red-700 hover:from-red-200 hover:to-red-300`;
     }
     
     if (day.workHours > 0) {
       const intensity = Math.min(day.workHours / 8, 1);
       if (intensity > 0.8) {
-        return `${baseClasses} bg-gradient-to-br from-green-200 to-green-300 border border-green-300 text-green-800 hover:from-green-250 hover:to-green-350`;
+        return `${baseClasses} bg-gradient-to-br from-green-400 to-green-500 border border-green-500 text-white hover:from-green-500 hover:to-green-600`;
       } else if (intensity > 0.5) {
-        return `${baseClasses} bg-gradient-to-br from-yellow-150 to-yellow-200 border border-yellow-250 text-yellow-800 hover:from-yellow-200 hover:to-yellow-250`;
+        return `${baseClasses} bg-gradient-to-br from-yellow-200 to-yellow-300 border border-yellow-400 text-yellow-800 hover:from-yellow-300 hover:to-yellow-400`;
       } else {
-        return `${baseClasses} bg-gradient-to-br from-orange-150 to-orange-200 border border-orange-250 text-orange-800 hover:from-orange-200 hover:to-orange-250`;
+        return `${baseClasses} bg-gradient-to-br from-orange-200 to-orange-300 border border-orange-400 text-orange-800 hover:from-orange-300 hover:to-orange-400`;
       }
     }
     
     if (day.isWeekend) {
-      return `${baseClasses} bg-gradient-to-br from-indigo-100 to-indigo-150 border border-indigo-200 text-indigo-700 hover:from-indigo-150 hover:to-indigo-200`;
+      return `${baseClasses} bg-gradient-to-br from-purple-100 to-purple-200 border border-purple-300 text-purple-700 hover:from-purple-200 hover:to-purple-300`;
     }
     
     return `${baseClasses} bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:shadow-md`;
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-teal-200/60 p-6 mb-6 hover:shadow-xl transition-all duration-300">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-200/60 p-6 mb-6 hover:shadow-xl transition-all duration-300">
       {/* Header with navigation and title */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 bg-gradient-to-r from-teal-400 to-teal-500 rounded-full"></div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-700 bg-clip-text text-transparent">
+            <div className="w-3 h-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full"></div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-700 to-purple-800 bg-clip-text text-transparent">
               Monthly Effort Tracker
             </h2>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-teal-100 to-teal-200 rounded-full">
-            <svg className="w-4 h-4 text-teal-700" fill="currentColor" viewBox="0 0 20 20">
+          <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-100 to-purple-200 rounded-full">
+            <svg className="w-4 h-4 text-purple-700" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
             </svg>
-            <span className="text-lg font-semibold text-teal-800">{viewingYear}</span>
+            <span className="text-lg font-semibold text-purple-800">{viewingYear}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigateMonth(-1)}
-            className="p-3 rounded-full bg-gradient-to-r from-teal-100 to-teal-200 hover:from-teal-200 hover:to-teal-300 text-teal-700 hover:text-teal-800 transition-all duration-300 shadow-sm hover:shadow-md"
+            className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-700 hover:text-purple-800 transition-all duration-300 shadow-sm hover:shadow-md"
             title="Previous Month"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -170,7 +170,7 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
           </button>
           <button
             onClick={() => navigateMonth(1)}
-            className="p-3 rounded-full bg-gradient-to-r from-teal-100 to-teal-200 hover:from-teal-200 hover:to-teal-300 text-teal-700 hover:text-teal-800 transition-all duration-300 shadow-sm hover:shadow-md"
+            className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-purple-200 hover:from-purple-200 hover:to-purple-300 text-purple-700 hover:text-purple-800 transition-all duration-300 shadow-sm hover:shadow-md"
             title="Next Month"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -180,7 +180,7 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
         </div>
       </div>
 
-      {/* Month tabs - Light Teal Theme */}
+      {/* Month tabs - Purple Theme */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
         {monthNames.map((month, index) => {
           const monthIndex = index <= 8 ? index + 3 : index - 9;
@@ -192,8 +192,8 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
               onClick={() => setViewingMonth(monthIndex)}
               className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 whitespace-nowrap transform hover:scale-105 ${
                 isActive 
-                  ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg ring-2 ring-teal-300 ring-opacity-50' 
-                  : 'bg-white text-teal-700 hover:bg-teal-50 border border-teal-200 shadow-sm hover:shadow-md'
+                  ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg ring-2 ring-purple-300 ring-opacity-50' 
+                  : 'bg-white text-purple-700 hover:bg-purple-50 border border-purple-200 shadow-sm hover:shadow-md'
               }`}
             >
               {month}
@@ -218,24 +218,24 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
                 {day.formattedHours}
               </div>
               {day.isToday && !day.isSelected && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-teal-500 rounded-full animate-pulse ring-2 ring-teal-200"></div>
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-pulse ring-2 ring-purple-200"></div>
               )}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Total effort display - Light Teal Theme */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mt-6 pt-6 border-t border-teal-200">
+      {/* Total effort display - Purple Theme */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-6 mt-6 pt-6 border-t border-purple-200">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-gradient-to-br from-teal-100 to-teal-200 rounded-xl">
-            <svg className="w-6 h-6 text-teal-700" fill="currentColor" viewBox="0 0 20 20">
+          <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl">
+            <svg className="w-6 h-6 text-purple-700" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
             </svg>
           </div>
           <div>
-            <span className="text-sm font-medium text-teal-600 block">Total Effort</span>
-            <span className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-teal-700 bg-clip-text text-transparent">
+            <span className="text-sm font-medium text-purple-600 block">Total Effort</span>
+            <span className="text-3xl font-bold bg-gradient-to-r from-purple-700 to-purple-800 bg-clip-text text-transparent">
               {totalEffort} hrs
             </span>
           </div>
@@ -244,14 +244,14 @@ function DateStrip({ selectedDate, setSelectedDate, attendanceHistory = [] }) {
         <div className="flex items-center gap-4 flex-1 max-w-sm">
           <div className="flex-1">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-medium text-teal-600">Progress</span>
-              <span className="text-xs font-bold text-teal-800">
+              <span className="text-xs font-medium text-purple-600">Progress</span>
+              <span className="text-xs font-bold text-purple-800">
                 {Math.round((parseFloat(totalEffort.replace(':', '.')) / 160) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-teal-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-purple-200 rounded-full h-3 overflow-hidden">
               <div 
-                className="h-3 rounded-full bg-gradient-to-r from-teal-400 via-teal-500 to-teal-600 transition-all duration-1000 ease-out relative overflow-hidden"
+                className="h-3 rounded-full bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 transition-all duration-1000 ease-out relative overflow-hidden"
                 style={{ width: `${Math.min((parseFloat(totalEffort.replace(':', '.')) / 160) * 100, 100)}%` }}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-pulse"></div>
