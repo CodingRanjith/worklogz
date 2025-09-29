@@ -6,8 +6,8 @@ import { useEffect } from 'react';
 
 
 
-// Savitha Admnin Dashboard
-import DashSavi from './pages/Dashboard';
+// Ranjith Admin Dashboard
+import DashRanjith from './pages/Dashboard';
 
 // Public Pages
 import Login from './components/Login';
@@ -73,7 +73,7 @@ function App() {
 
         {/* Protected Admin Layout Wrapper */}
         <Route element={<Layout />}>
-          <Route path="/admin" element={<DashSavi />} />
+          <Route path="/admin" element={<DashRanjith />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/employees" element={<Employees />} />
           <Route path="/salaryhistory" element={<PayslipList />} />
