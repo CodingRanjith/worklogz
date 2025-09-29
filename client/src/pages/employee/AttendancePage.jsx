@@ -14,6 +14,7 @@ import ActivityLog from "../../components/attendance/ActivityLog";
 import CameraView from "../../components/attendance/CameraView";
 import { compressImage } from "../../components/attendance/utils";
 import TimesheetModal from "../../components/timesheet/TimesheetModal";
+import HolidayModal from "../../components/holidays/HolidayModal";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ function AttendancePage() {
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
+  const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0); // 0 = current week, -1 = previous week, +1 = next week
 
   const videoRef = useRef(null);
@@ -286,9 +288,16 @@ function AttendancePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-green-50 px-4 py-6 md:py-10 w-full font-sans">
       
-      {/* Light Multi-Color Action Controls */}
+     
+      <ProfileHeader
+        name={user.name}
+        position={user.position}
+        company={user.company}
+      />
+
+       {/* Light Multi-Color Action Controls */}
       <div className="flex flex-col lg:flex-row lg:justify-between items-stretch lg:items-center gap-6 mb-8 px-2 sm:px-0">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full lg:w-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full lg:w-auto">
           <button
             onClick={() => setShowTimesheetModal(true)}
             className="group relative overflow-hidden bg-white hover:bg-emerald-50 text-emerald-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-emerald-200/60 transition-all duration-300 text-sm sm:text-base"
@@ -344,6 +353,20 @@ function AttendancePage() {
               <span>Calendar View</span>
             </span>
           </button>
+          
+          <button
+            onClick={() => setShowHolidayModal(true)}
+            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              <div className="p-1.5 bg-purple-100 rounded-lg">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                </svg>
+              </div>
+              <span>Holiday List</span>
+            </span>
+          </button>
         </div>
         
         <button
@@ -363,7 +386,7 @@ function AttendancePage() {
 
       {showCalendarModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="glass rounded-3xl shadow-2xl max-w-md w-full mx-4 relative elevation-4 border border-white/20">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 relative border border-gray-200">
             <button
               className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
               onClick={() => setShowCalendarModal(false)}
@@ -372,10 +395,10 @@ function AttendancePage() {
             </button>
             <div className="p-6">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold gradient-text mb-2">
+                <h2 className="text-2xl font-bold text-gray-800 calendar-modal-header mb-2">
                   Attendance Calendar
                 </h2>
-                <p className="text-slate-600">
+                <p className="text-gray-700 calendar-modal-subtitle">
                   {calendarViewDate.toLocaleString("default", { month: "long" })} {calendarViewDate.getFullYear()}
                 </p>
               </div>
@@ -416,11 +439,6 @@ function AttendancePage() {
           </div>
         </div>
       )}
-      <ProfileHeader
-        name={user.name}
-        position={user.position}
-        company={user.company}
-      />
 
        {/* Light Multi-Color Stats Cards */}
       <div className="grid grid-cols-3 gap-6 mb-6">
@@ -467,7 +485,30 @@ function AttendancePage() {
         </div>
       </div>
 
-      {/* Light Multi-Color Weekly Analytics */}
+    
+
+      
+
+      {/* Today's Attendance Analytics */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-teal-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 bg-teal-100 rounded-lg">
+            <svg className="w-6 h-6 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-teal-900">Daily Attendance</h3>
+            <p className="text-sm text-teal-600">Monitor your daily work activities and time tracking</p>
+          </div>
+        </div>
+        <AttendanceCards attendanceData={attendanceHistory} />
+        <div className="mt-6">
+          <ActivityLog activities={filteredLogs} />
+        </div>
+      </div>
+
+        {/* Light Multi-Color Weekly Analytics */}
       <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-indigo-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
         {/* Header Section */}
         <div className="flex items-center justify-between mb-6">
@@ -687,25 +728,6 @@ function AttendancePage() {
           attendanceHistory={attendanceHistory}
         />
       </div>
-
-      {/* Today's Attendance Analytics */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-teal-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-teal-100 rounded-lg">
-            <svg className="w-6 h-6 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold text-teal-900">Daily Attendance</h3>
-            <p className="text-sm text-teal-600">Monitor your daily work activities and time tracking</p>
-          </div>
-        </div>
-        <AttendanceCards attendanceData={attendanceHistory} />
-        <div className="mt-6">
-          <ActivityLog activities={filteredLogs} />
-        </div>
-      </div>
       {isSelf && type && !isCapturing && (
         <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30">
           <button
@@ -843,6 +865,12 @@ function AttendancePage() {
           </div>
         </div>
       )}
+
+      {/* Holiday Modal */}
+      <HolidayModal
+        isOpen={showHolidayModal}
+        onClose={() => setShowHolidayModal(false)}
+      />
 
       {/* Timesheet Modal */}
       <TimesheetModal
