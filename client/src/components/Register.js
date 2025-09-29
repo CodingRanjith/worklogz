@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import {
-  FiUser, FiMail, FiLock, FiBriefcase, FiHome, /* FiCalendar, */ FiPhone
+  FiUser, FiMail, FiLock, FiBriefcase, FiHome, /* FiCalendar, */ FiPhone, FiCamera
 } from 'react-icons/fi';
 import { API_ENDPOINTS } from '../utils/api';
 import Swal from 'sweetalert2';
@@ -15,21 +15,44 @@ function Register() {
     password: '',
     phone: '',
     position: '',
-    company: ''
+    company: '',
+    profilePic: null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, profilePic: file }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await axios.post(API_ENDPOINTS.register, {
-        ...formData
+      const submitData = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null) {
+          submitData.append(key, formData[key]);
+        }
+      });
+      
+      await axios.post(API_ENDPOINTS.register, submitData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       Swal.fire({
         icon: 'success',
@@ -46,8 +69,10 @@ function Register() {
         password: '',
         phone: '',
         position: '',
-        company: ''
+        company: '',
+        profilePic: null
       });
+      setPreviewImage(null);
     } catch (error) {
       Swal.fire({
         icon: 'error',
@@ -73,6 +98,29 @@ function Register() {
             <p className="text-[#181818] text-sm" style={{fontFamily: 'Poppins, sans-serif'}}>Fill in the details to create a user with a weekly schedule</p>
           </div>
           <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Profile Picture Upload */}
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative mb-4">
+                <div className="w-24 h-24 rounded-full border-2 border-dashed border-[#d3c9ed] flex items-center justify-center overflow-hidden bg-[#f3f0fa]">
+                  {previewImage ? (
+                    <img src={previewImage} alt="Profile Preview" className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <FiCamera className="text-[#8b72cc] text-2xl" />
+                  )}
+                </div>
+                <label className="absolute bottom-0 right-0 bg-[#8b72cc] text-white rounded-full p-2 cursor-pointer hover:bg-[#6a56b3] transition-colors">
+                  <FiCamera className="text-sm" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-sm text-[#8b72cc] font-medium">Upload Profile Picture (Optional)</p>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <InputField icon={<FiUser />} label="Full Name" name="name" value={formData.name} onChange={handleChange} placeholder="Jane Doe" />
               <InputField icon={<FiMail />} type="email" label="Email Address" name="email" value={formData.email} onChange={handleChange} placeholder="jane@example.com" />

@@ -62,7 +62,8 @@ const authController = {
         phone,
         position,
         company,
-        schedule
+        schedule,
+        profilePic: req.file ? req.file.path : null
       });
 
       await pending.save();

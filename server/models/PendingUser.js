@@ -8,6 +8,7 @@ const PendingUserSchema = new mongoose.Schema({
   position: String,
   company: String,
   schedule: Object,
+  profilePic: String,
   createdAt: {
     type: Date,
     default: Date.now

@@ -90,7 +90,8 @@ const adminController = {
         phone: pending.phone,
         position: pending.position,
         company: pending.company,
-        role: 'employee'
+        role: 'employee',
+        profilePic: pending.profilePic
       });
       await user.save();
 
