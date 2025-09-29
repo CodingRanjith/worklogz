@@ -12,7 +12,6 @@ app.use(cors({
   origin: true, // Accept all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // Allow cookies and credentials
 }));
 app.use(express.json());
 
