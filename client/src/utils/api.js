@@ -1,7 +1,7 @@
 
 
-// // src/utils/api.js
-// export const BASE_URL = 'https://worklogz.onrender.com';
+// src/utils/api.js
+export const BASE_URL = 'https://worklogz.onrender.com';
 
 // src/utils/api.js
 

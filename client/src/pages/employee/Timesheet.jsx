@@ -7,7 +7,7 @@ import { API_ENDPOINTS } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 import PromoTimer from '../../components/attendance/PromoTimer';
 
-const TaskManagerPage = () => {
+const Timesheet = () => {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [tasks, setTasks] = useState([]);
@@ -205,4 +205,4 @@ const TaskManagerPage = () => {
   );
 };
 
-export default TaskManagerPage;
+export default Timesheet;

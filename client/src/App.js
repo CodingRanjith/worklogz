@@ -28,7 +28,7 @@ import EditUser from './components/EditUser';
 import PendingUsers from './pages/admin/PendingUsers';
 import AllUsers from './pages/admin/AllUsers';
 import Holidays from './pages/admin/Holidays';
-import TaskManagerPage from './pages/employee/TaskManagerPage';
+import Timesheet from './pages/employee/Timesheet';
 import PayslipGenerator from './pages/admin/PayslipGenerator';
 import PayslipList from './pages/admin/PayslipList';
 // Layout
@@ -72,8 +72,7 @@ function App() {
         <Route path="/attendance" element={<AttendancePage />} />
         <Route path="/attendance/:userId" element={<AttendancePage />} />
         <Route path="/apply-leave" element={<Leave />} />
-        <Route path="/task-manager" element={<TaskManagerPage />} />
-        
+        <Route path="/timesheet" element={<Timesheet />} />
 
         {/* Protected Admin Layout Wrapper */}
         <Route element={<Layout />}>
