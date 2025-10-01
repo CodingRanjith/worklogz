@@ -65,7 +65,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         } md:translate-x-0`}
       >
         <div className="text-xl font-semibold text-center py-4 border-b border-gray-200">
-          INOUT HR Portal
+          Worklogz
         </div>
 
         <nav className="mt-4 px-2 flex flex-col gap-1 overflow-y-auto h-[calc(100vh-80px)]">
