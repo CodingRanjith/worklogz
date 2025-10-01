@@ -1,7 +1,7 @@
 
 
-// src/utils/api.js
-export const BASE_URL = 'https://worklogz.onrender.com';
+// // src/utils/api.js
+// export const BASE_URL = 'https://worklogz.onrender.com';
 
 // src/utils/api.js
 
@@ -86,7 +86,8 @@ export const API_ENDPOINTS = {
   deleteTask: (id) => `${BASE_URL}/api/tasks/${id}`,
   updateFullTask: (id) => `${BASE_URL}/api/tasks/${id}`,             // PUT full task (task name or date)
   getTasksByMonth: (year, month) => `${BASE_URL}/api/tasks/month/${year}/${month}`,
-  getTaskSummary: `${BASE_URL}/api/tasks/summary`,                   // Summary: total, done, pending
+  getTaskSummary: `${BASE_URL}/api/tasks/summary`,
+                     // Summary: total, done, pending
 
   // -----------------
   // Misc
