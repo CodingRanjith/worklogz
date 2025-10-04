@@ -7,12 +7,19 @@ require('dotenv').config();
 const authMiddleware = require('./middleware/auth');
 const app = express();
 
+
 // Middleware
 app.use(cors({
-  origin: ['https://worklogz.netlify.app', 'http://localhost:3000','https://worklogz.netlify.app/'],
+  origin: ['https://worklogz.netlify.app', 'http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
+
+// Handle preflight requests
+app.options('*', cors());
+
+// Parse JSON bodies
 app.use(express.json());
 
 // Static uploads folder
@@ -37,6 +44,7 @@ app.use('/api/leaves', require('./routes/leaveRoutes'));
 app.use('/api/holidays', require('./routes/holidayRoutes'));
 app.use('/schedules', require('./routes/scheduleRoutes'));
 app.use("/api/payslips", require("./routes/payslipRoutes"));
+
 // Default Admin Setup
 const User = require('./models/User');
 const bcrypt = require('bcryptjs');

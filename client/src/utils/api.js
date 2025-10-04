@@ -1,12 +1,12 @@
 
 
-// src/utils/api.js
-export const BASE_URL = 'https://worklogz.onrender.com';
+// // src/utils/api.js
+// export const BASE_URL = 'https://worklogz.onrender.com';
 
 // src/utils/api.js
 
 // // // Base URL
-// export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
+export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
 
 // -----------------
 // Auth & User APIs
@@ -77,17 +77,17 @@ export const API_ENDPOINTS = {
   deleteHoliday: (id) => `${BASE_URL}/api/holidays/delete/${id}`,
   editHoliday: (id) => `${BASE_URL}/api/holidays/update/${id}`,
 
-  // -----------------
-  // Tasks
-  // -----------------
-  getTasksByDate: (date) => `${BASE_URL}/api/tasks/${date}`,
-  addTask: `${BASE_URL}/api/tasks`,
-  updateTaskStatus: (id) => `${BASE_URL}/api/tasks/${id}`,
-  deleteTask: (id) => `${BASE_URL}/api/tasks/${id}`,
-  updateFullTask: (id) => `${BASE_URL}/api/tasks/${id}`,             // PUT full task (task name or date)
-  getTasksByMonth: (year, month) => `${BASE_URL}/api/tasks/month/${year}/${month}`,
-  getTaskSummary: `${BASE_URL}/api/tasks/summary`,
-                     // Summary: total, done, pending
+  // // -----------------
+  // // Tasks
+  // // -----------------
+  // getTasksByDate: (date) => `${BASE_URL}/api/tasks/${date}`,
+  // addTask: `${BASE_URL}/api/tasks`,
+  // updateTaskStatus: (id) => `${BASE_URL}/api/tasks/${id}`,
+  // deleteTask: (id) => `${BASE_URL}/api/tasks/${id}`,
+  // updateFullTask: (id) => `${BASE_URL}/api/tasks/${id}`,             // PUT full task (task name or date)
+  // getTasksByMonth: (year, month) => `${BASE_URL}/api/tasks/month/${year}/${month}`,
+  // getTaskSummary: `${BASE_URL}/api/tasks/summary`,
+  //                    // Summary: total, done, pending
 
   // -----------------
   // Misc
@@ -103,6 +103,9 @@ export const API_ENDPOINTS = {
   getPayslips: `${BASE_URL}/api/payslips`,               // GET all payslips
   // getPayslipById: (id) => `${BASE_URL}/api/payslips/${id}`, // GET payslip by ID
   // getPayslipsByUser: (userId) => `${BASE_URL}/api/payslips/user/${userId}`, // GET all payslips for one user
+
+
+
 };
 
 // -----------------
@@ -118,53 +121,53 @@ export const getPayslips = async () => {
   if (!response.ok) throw new Error('Failed to fetch payslips');
   return response.json();
 };
-// -----------------
-// Helper Functions (Optional)
-// -----------------
+// // -----------------
+// // Helper Functions (Optional)
+// // -----------------
 
-export const getAttendanceAll = async () => {
-  const response = await fetch(API_ENDPOINTS.getAttendanceAll);
-  if (!response.ok) throw new Error('Failed to fetch attendance data');
-  return response.json();
-};
+// export const getAttendanceAll = async () => {
+//   const response = await fetch(API_ENDPOINTS.getAttendanceAll);
+//   if (!response.ok) throw new Error('Failed to fetch attendance data');
+//   return response.json();
+// };
 
-export const getUsers = async () => {
-  const response = await fetch(API_ENDPOINTS.getUsers);
-  if (!response.ok) throw new Error('Failed to fetch users data');
-  return response.json();
-};
+// export const getUsers = async () => {
+//   const response = await fetch(API_ENDPOINTS.getUsers);
+//   if (!response.ok) throw new Error('Failed to fetch users data');
+//   return response.json();
+// };
 
-export const getAttendanceByDate = async (date) => {
-  const response = await fetch(API_ENDPOINTS.getAttendanceByDate(date));
-  if (!response.ok) throw new Error('Failed to fetch attendance data');
-  return response.json();
-};
+// export const getAttendanceByDate = async (date) => {
+//   const response = await fetch(API_ENDPOINTS.getAttendanceByDate(date));
+//   if (!response.ok) throw new Error('Failed to fetch attendance data');
+//   return response.json();
+// };
 
-export const getLastAttendance = async () => {
-  const response = await fetch(API_ENDPOINTS.getLastAttendanceGlobal);
-  if (!response.ok) throw new Error('Failed to fetch last attendance data');
-  return response.json();
-};
+// export const getLastAttendance = async () => {
+//   const response = await fetch(API_ENDPOINTS.getLastAttendanceGlobal);
+//   if (!response.ok) throw new Error('Failed to fetch last attendance data');
+//   return response.json();
+// };
 
-export const login = async (email, password) => {
-  const response = await fetch(API_ENDPOINTS.login, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!response.ok) throw new Error('Failed to login');
-  return response.json();
-};
+// export const login = async (email, password) => {
+//   const response = await fetch(API_ENDPOINTS.login, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ email, password }),
+//   });
+//   if (!response.ok) throw new Error('Failed to login');
+//   return response.json();
+// };
 
-export const register = async (userData) => {
-  const response = await fetch(API_ENDPOINTS.register, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(userData),
-  });
-  if (!response.ok) throw new Error('Failed to register');
-  return response.json();
-};
+// export const register = async (userData) => {
+//   const response = await fetch(API_ENDPOINTS.register, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(userData),
+//   });
+//   if (!response.ok) throw new Error('Failed to register');
+//   return response.json();
+// };
 
 export const logout = () => {
   localStorage.removeItem('token');
@@ -173,5 +176,55 @@ export const logout = () => {
 export const getSchedules = async () => {
   const response = await fetch(`${BASE_URL}/users/schedules`);
   if (!response.ok) throw new Error('Failed to fetch schedules');
+  return response.json();
+};
+
+// -----------------
+// Task Helper Functions (Dynamic CRUD)
+// -----------------
+export const getAllTasks = async (token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch tasks');
+  return response.json();
+};
+
+export const createTask = async (taskData, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(taskData),
+  });
+  if (!response.ok) throw new Error('Failed to create task');
+  return response.json();
+};
+
+export const updateTask = async (id, taskData, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(taskData),
+  });
+  if (!response.ok) throw new Error('Failed to update task');
+  return response.json();
+};
+
+export const deleteTask = async (id, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Failed to delete task');
   return response.json();
 };
