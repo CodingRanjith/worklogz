@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
-  FiFileText, FiDollarSign, FiCamera, FiChevronRight
+  FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard
 } from 'react-icons/fi';
 
 const menuItems = [
@@ -18,6 +18,7 @@ const menuItems = [
       { label: 'Pending Approvals', path: '/pending-users' }
     ]
   },
+  { label: 'Task Manager', icon: <FiClipboard />, path: '/task-manager' },
   {
     label: 'Leaves & Lates',
     icon: <FiCalendar />,
@@ -65,7 +66,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         } md:translate-x-0`}
       >
         <div className="text-xl font-semibold text-center py-4 border-b border-gray-200">
-          INOUT HR Portal
+         Worklogz
         </div>
 
         <nav className="mt-4 px-2 flex flex-col gap-1 overflow-y-auto h-[calc(100vh-80px)]">

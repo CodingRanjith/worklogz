@@ -317,7 +317,7 @@ function AttendancePage() {
                   />
                 </svg>
               </div>
-              <span>Add Timesheet</span>
+              <span>Task Manager</span>
             </span>
           </button>
 
