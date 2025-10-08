@@ -26,6 +26,9 @@ const UserTimesheet = () => {
   const [editTaskLoading, setEditTaskLoading] = useState(false);
   const [commentLoading, setCommentLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(null);
   const [taskForm, setTaskForm] = useState({
     title: '',
     description: '',
@@ -50,21 +53,54 @@ const UserTimesheet = () => {
     }
   }, [userId]);
 
-  const fetchUserTasks = async () => {
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (autoRefresh && !loading && userId) {
+      const interval = setInterval(() => {
+        fetchUserTasks(true); // Silent refresh
+        setLastUpdated(Date.now());
+      }, 15000); // Refresh every 15 seconds for more frequent updates
+
+      setRefreshInterval(interval);
+      return () => clearInterval(interval);
+    } else if (refreshInterval) {
+      clearInterval(refreshInterval);
+      setRefreshInterval(null);
+    }
+  }, [autoRefresh, loading, userId]);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, [refreshInterval]);
+
+  const fetchUserTasks = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const token = localStorage.getItem('token');
       if (!token) return;
 
       // Use the API function with user filter
       const response = await getAllTasksWithFilters({ userId: userId }, token);
       const tasksData = response.tasks || response;
-      setTasks(Array.isArray(tasksData) ? tasksData : []);
+      const newTasks = Array.isArray(tasksData) ? tasksData : [];
+      
+      // Only update if there are actual changes
+      setTasks(prevTasks => {
+        const hasChanges = JSON.stringify(prevTasks) !== JSON.stringify(newTasks);
+        return hasChanges ? newTasks : prevTasks;
+      });
     } catch (error) {
-      console.error('Error fetching user tasks:', error);
-      setTasks([]);
+      if (!silent) {
+        console.error('Error fetching user tasks:', error);
+        setTasks([]);
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -160,6 +196,20 @@ const UserTimesheet = () => {
     }
   };
 
+  const handleManualRefresh = async () => {
+    setLoading(true);
+    try {
+      await fetchUserTasks();
+      setLastUpdated(Date.now());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleAutoRefresh = () => {
+    setAutoRefresh(prev => !prev);
+  };
+
   const handleCreateTask = () => {
     const year = selectedDate.getFullYear();
     const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
@@ -210,15 +260,18 @@ const UserTimesheet = () => {
 
       const createdTask = await createTask(taskData, token);
       
-      // Add the new task to the local state
-      setTasks(prev => [...prev, createdTask]);
+      // Immediate refresh for real-time update
+      await fetchUserTasks();
+      setLastUpdated(Date.now());
       
       Swal.fire({
         icon: 'success',
         title: 'Success!',
         text: `Task created successfully for ${userName}`,
-        timer: 3000,
+        timer: 2000,
         showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
       });
 
       setShowCreateModal(false);
@@ -283,19 +336,20 @@ const UserTimesheet = () => {
         status: taskForm.status,
       };
 
-      const updatedTask = await updateTask(selectedTask._id, taskData, token);
+      await updateTask(selectedTask._id, taskData, token);
       
-      // Update the task in local state
-      setTasks(prev => prev.map(task => 
-        task._id === selectedTask._id ? updatedTask : task
-      ));
+      // Immediate refresh for real-time update
+      await fetchUserTasks();
+      setLastUpdated(Date.now());
       
       Swal.fire({
         icon: 'success',
         title: 'Success!',
         text: 'Task updated successfully',
-        timer: 3000,
+        timer: 2000,
         showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
       });
 
       setShowEditModal(false);
@@ -330,15 +384,18 @@ const UserTimesheet = () => {
         const token = localStorage.getItem('token');
         await deleteTask(taskId, token);
         
-        // Remove task from local state
-        setTasks(prev => prev.filter(task => task._id !== taskId));
+        // Immediate refresh for real-time update
+        await fetchUserTasks();
+        setLastUpdated(Date.now());
         
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
           text: 'Task has been deleted successfully.',
-          timer: 3000,
+          timer: 2000,
           showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
         });
         
       } catch (error) {
@@ -374,14 +431,17 @@ const UserTimesheet = () => {
       setCommentLoading(true);
       const token = localStorage.getItem('token');
       
-      const response = await addTaskComment(selectedTask._id, newComment.trim(), token);
+      await addTaskComment(selectedTask._id, newComment.trim(), token);
       
-      // Update the task with new comment in local state
-      const updatedTask = response.task;
-      setTasks(prev => prev.map(task => 
-        task._id === selectedTask._id ? updatedTask : task
-      ));
-      setSelectedTask(updatedTask);
+      // Immediate refresh for real-time update
+      await fetchUserTasks();
+      setLastUpdated(Date.now());
+      
+      // Update selected task for modal
+      const refreshedTasks = await getAllTasksWithFilters({ userId: userId }, token);
+      const updatedTask = (refreshedTasks.tasks || refreshedTasks).find(t => t._id === selectedTask._id);
+      if (updatedTask) setSelectedTask(updatedTask);
+      
       setNewComment('');
       
       Swal.fire({
@@ -390,6 +450,8 @@ const UserTimesheet = () => {
         text: 'Comment added successfully',
         timer: 2000,
         showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
       });
       
     } catch (error) {
@@ -408,12 +470,11 @@ const UserTimesheet = () => {
   const handleQuickStatusUpdate = async (taskId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      const updatedTask = await updateTask(taskId, { status: newStatus }, token);
+      await updateTask(taskId, { status: newStatus }, token);
       
-      // Update the task in local state
-      setTasks(prev => prev.map(task => 
-        task._id === taskId ? updatedTask : task
-      ));
+      // Immediate refresh for real-time update
+      await fetchUserTasks();
+      setLastUpdated(Date.now());
       
       Swal.fire({
         icon: 'success',
@@ -421,6 +482,8 @@ const UserTimesheet = () => {
         text: `Task status changed to ${newStatus}`,
         timer: 2000,
         showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
       });
       
     } catch (error) {
@@ -454,6 +517,40 @@ const UserTimesheet = () => {
               <p className="text-gray-600">
                 Tasks and activities for {formattedDate}
               </p>
+            </div>
+          </div>
+          
+          {/* Live Status & Controls */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 text-sm">
+              <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+              <span className="text-gray-600">
+                {autoRefresh ? 'Live Updates' : 'Manual'}
+              </span>
+              <button
+                onClick={toggleAutoRefresh}
+                className={`px-2 py-1 text-xs rounded ${
+                  autoRefresh 
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                } transition-colors`}
+              >
+                {autoRefresh ? 'ON' : 'OFF'}
+              </button>
+            </div>
+            
+            <button
+              onClick={handleManualRefresh}
+              disabled={loading}
+              className="flex items-center gap-1 px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors disabled:opacity-50"
+              title="Manual Refresh"
+            >
+              <div className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}>🔄</div>
+              Refresh
+            </button>
+            
+            <div className="text-xs text-gray-500">
+              Updated: {new Date(lastUpdated).toLocaleTimeString()}
             </div>
           </div>
         </div>

@@ -12,6 +12,9 @@ const TaskManager = () => {
   const [userTaskCounts, setUserTaskCounts] = useState({});
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createTaskLoading, setCreateTaskLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(null);
   const [taskForm, setTaskForm] = useState({
     title: '',
     description: '',
@@ -37,6 +40,31 @@ const TaskManager = () => {
     setFilteredUsers(filtered);
   }, [users, searchTerm]);
 
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (autoRefresh && !loading) {
+      const interval = setInterval(() => {
+        fetchUserTaskCounts(users, true); // Refresh task counts silently
+        setLastUpdated(Date.now());
+      }, 30000); // Refresh every 30 seconds
+
+      setRefreshInterval(interval);
+      return () => clearInterval(interval);
+    } else if (refreshInterval) {
+      clearInterval(refreshInterval);
+      setRefreshInterval(null);
+    }
+  }, [autoRefresh, loading, users]);
+
+  // Cleanup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+      }
+    };
+  }, [refreshInterval]);
+
   const fetchUsers = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.getUsers, {
@@ -59,7 +87,7 @@ const TaskManager = () => {
     }
   };
 
-  const fetchUserTaskCounts = async (usersData) => {
+  const fetchUserTaskCounts = async (usersData, silent = false) => {
     try {
       const token = localStorage.getItem('token');
       const taskCounts = {};
@@ -80,7 +108,9 @@ const TaskManager = () => {
               backlog: tasks.filter(t => t.status === 'backlog').length,
             };
           } catch (error) {
-            console.error(`Error fetching tasks for user ${user._id}:`, error);
+            if (!silent) {
+              console.error(`Error fetching tasks for user ${user._id}:`, error);
+            }
             taskCounts[user._id] = {
               total: 0, done: 0, pending: 0, todo: 0, doing: 0, backlog: 0
             };
@@ -88,9 +118,20 @@ const TaskManager = () => {
         })
       );
       
-      setUserTaskCounts(taskCounts);
+      // Only update if there are actual changes
+      setUserTaskCounts(prevCounts => {
+        const hasChanges = Object.keys(taskCounts).some(userId => {
+          const prev = prevCounts[userId] || {};
+          const current = taskCounts[userId] || {};
+          return JSON.stringify(prev) !== JSON.stringify(current);
+        });
+        
+        return hasChanges ? taskCounts : prevCounts;
+      });
     } catch (error) {
-      console.error('Error fetching user task counts:', error);
+      if (!silent) {
+        console.error('Error fetching user task counts:', error);
+      }
     }
   };
 
@@ -106,18 +147,32 @@ const TaskManager = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const getRandomGradient = (index) => {
-    const gradients = [
-      'bg-gradient-to-br from-blue-400 to-blue-600',
-      'bg-gradient-to-br from-green-400 to-green-600',
-      'bg-gradient-to-br from-purple-400 to-purple-600',
-      'bg-gradient-to-br from-pink-400 to-pink-600',
-      'bg-gradient-to-br from-yellow-400 to-yellow-600',
-      'bg-gradient-to-br from-red-400 to-red-600',
-      'bg-gradient-to-br from-indigo-400 to-indigo-600',
-      'bg-gradient-to-br from-teal-400 to-teal-600',
+  const getAvatarColor = (index) => {
+    const colors = [
+      'bg-indigo-500',
+      'bg-blue-500',
+      'bg-green-500',
+      'bg-yellow-500',
+      'bg-pink-500',
+      'bg-purple-500',
+      'bg-red-500',
+      'bg-teal-500',
     ];
-    return gradients[index % gradients.length];
+    return colors[index % colors.length];
+  };
+
+  const handleManualRefresh = async () => {
+    setLoading(true);
+    try {
+      await fetchUsers();
+      setLastUpdated(Date.now());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleAutoRefresh = () => {
+    setAutoRefresh(prev => !prev);
   };
 
   const handleCreateTask = () => {
@@ -178,15 +233,18 @@ const TaskManager = () => {
 
       await createTask(taskData, token);
       
-      // Refresh task counts for the assigned user
+      // Immediate refresh of task counts for real-time update
       await fetchUserTaskCounts(users);
+      setLastUpdated(Date.now());
       
       Swal.fire({
         icon: 'success',
         title: 'Success!',
         text: `Task created successfully for ${taskForm.assigneeName}`,
-        timer: 3000,
+        timer: 2000,
         showConfirmButton: false,
+        toast: true,
+        position: 'top-end'
       });
 
       setShowCreateModal(false);
@@ -259,6 +317,41 @@ const TaskManager = () => {
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
+            
+            {/* Live Status & Controls */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm">
+                <div className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
+                <span className="text-gray-600">
+                  {autoRefresh ? 'Live' : 'Manual'}
+                </span>
+                <button
+                  onClick={toggleAutoRefresh}
+                  className={`px-2 py-1 text-xs rounded ${
+                    autoRefresh 
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  } transition-colors`}
+                >
+                  {autoRefresh ? 'ON' : 'OFF'}
+                </button>
+              </div>
+              
+              <button
+                onClick={handleManualRefresh}
+                disabled={loading}
+                className="flex items-center gap-1 px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors disabled:opacity-50"
+                title="Manual Refresh"
+              >
+                <div className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}>🔄</div>
+                Refresh
+              </button>
+              
+              <div className="text-xs text-gray-500">
+                Updated: {new Date(lastUpdated).toLocaleTimeString()}
+              </div>
+            </div>
+            
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
                 Total Users: {users.length}
@@ -278,48 +371,15 @@ const TaskManager = () => {
               className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-200"
             >
               {/* Profile Header */}
-              <div className={`${getRandomGradient(index)} p-6 text-white relative`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-lg font-bold">
-                      {getInitials(user.name)}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{user.name || 'Unknown'}</h3>
-                      <p className="text-sm opacity-90">ID: {user.employeeId || 'N/A'}</p>
-                    </div>
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 border-b border-gray-200">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-16 h-16 ${getAvatarColor(index)} rounded-full flex items-center justify-center text-white text-xl font-bold shadow-md`}>
+                    {getInitials(user.name)}
                   </div>
-                </div>
-              </div>
-
-              {/* User Details */}
-              <div className="p-6">
-                <div className="space-y-3">
-                  <div className="flex items-center text-sm text-gray-600">
-                    <FiMail className="mr-3 text-gray-400" />
-                    <span className="truncate">{user.email || 'No email'}</span>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-gray-600">
-                    <FiPhone className="mr-3 text-gray-400" />
-                    <span>{user.phone || 'No phone'}</span>
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-gray-600">
-                    <FiUser className="mr-3 text-gray-400" />
-                    <span className="capitalize">{user.role || 'Employee'}</span>
-                  </div>
-
-                  {user.department && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <FiCalendar className="mr-3 text-gray-400" />
-                      <span>{user.department}</span>
-                    </div>
-                  )}
-
-                  {/* Status Badge */}
-                  <div className="flex items-center justify-between pt-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-gray-900">{user.name || 'Unknown'}</h3>
+                    <p className="text-sm text-gray-600">ID: {user.employeeId || 'N/A'}</p>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
                       user.isActive !== false 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-red-100 text-red-800'
@@ -327,6 +387,33 @@ const TaskManager = () => {
                       {user.isActive !== false ? 'Active' : 'Inactive'}
                     </span>
                   </div>
+                </div>
+              </div>
+
+              {/* User Details */}
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <FiMail className="mr-3 text-indigo-500 flex-shrink-0" />
+                    <span className="truncate">{user.email || 'No email'}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-600">
+                    <FiPhone className="mr-3 text-indigo-500 flex-shrink-0" />
+                    <span>{user.phone || 'No phone'}</span>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-600">
+                    <FiUser className="mr-3 text-indigo-500 flex-shrink-0" />
+                    <span className="capitalize">{user.role || 'Employee'}</span>
+                  </div>
+
+                  {user.department && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <FiCalendar className="mr-3 text-indigo-500 flex-shrink-0" />
+                      <span>{user.department}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Task Statistics */}
