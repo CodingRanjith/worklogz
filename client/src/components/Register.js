@@ -49,36 +49,71 @@ function Register() {
         }
       });
       
-      await axios.post(API_ENDPOINTS.register, submitData, {
+      const response = await axios.post(API_ENDPOINTS.register, submitData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      Swal.fire({
-        icon: 'success',
-        title: 'User Created!',
-        text: 'Employee registered successfully! Account will be activated once approved by admin side...',
-        confirmButtonColor: '#8b72cc'
-      });
-      setTimeout(() => {
+
+      if (response.data) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Registration Successful!',
+          html: `
+            <div class="text-center">
+              <p class="mb-2">Employee registered successfully!</p>
+              <p class="text-sm text-gray-600">Your account will be activated once approved by admin.</p>
+              <p class="text-sm text-gray-600 mt-2">Redirecting to login page...</p>
+            </div>
+          `,
+          timer: 3000,
+          timerProgressBar: true,
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          }
+        });
+
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          phone: '',
+          position: '',
+          company: '',
+          profilePic: null
+        });
+        setPreviewImage(null);
+        
+        // Navigate to login
         navigate('/login');
-      }, 3000);
-      setFormData({
-        name: '',
-        email: '',
-        password: '',
-        phone: '',
-        position: '',
-        company: '',
-        profilePic: null
-      });
-      setPreviewImage(null);
+      }
     } catch (error) {
-      Swal.fire({
+      console.error('Registration error:', error);
+      
+      let errorMessage = 'Failed to create user. Please try again.';
+      
+      if (error.response) {
+        // Server responded with an error
+        errorMessage = error.response.data.message || error.response.data.error || errorMessage;
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = 'No response from server. Please check your internet connection.';
+      }
+
+      await Swal.fire({
         icon: 'error',
-        title: 'Oops!',
-        text: error.response?.data?.message || '❌ Failed to create user',
-        confirmButtonColor: '#ef4444'
+        title: 'Registration Failed',
+        html: `
+          <div class="text-center">
+            <p class="text-red-600">${errorMessage}</p>
+            <p class="text-sm text-gray-600 mt-2">Please try again or contact support if the problem persists.</p>
+          </div>
+        `,
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Try Again'
       });
     } finally {
       setIsSubmitting(false);
