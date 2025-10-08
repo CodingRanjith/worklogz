@@ -28,9 +28,11 @@ import EditUser from './components/EditUser';
 import PendingUsers from './pages/admin/PendingUsers';
 import AllUsers from './pages/admin/AllUsers';
 import Holidays from './pages/admin/Holidays';
-import TimeSheet from './pages/employee/TimeSheet';
+import TimeSheet from './pages/employee/Timesheet';
 import PayslipGenerator from './pages/admin/PayslipGenerator';
 import PayslipList from './pages/admin/PayslipList';
+import TaskManager from './pages/admin/TaskManager';
+import UserTimesheet from './pages/admin/UserTimesheet';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 
@@ -88,6 +90,8 @@ function App() {
           <Route path="/holidays" element={<Holidays />} />
           <Route path="/payslip" element={<PayslipGenerator />} />
           <Route path="/leave-requests" element={<LeaveRequestsAdmin />} />
+          <Route path="/task-manager" element={<TaskManager />} />
+          <Route path="/user-timesheet/:userId" element={<UserTimesheet />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

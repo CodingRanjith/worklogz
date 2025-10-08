@@ -1,12 +1,12 @@
 
 
-// // src/utils/api.js
-// export const BASE_URL = 'https://worklogz.onrender.com';
+// src/utils/api.js
+export const BASE_URL = 'https://worklogz.onrender.com';
 
 // src/utils/api.js
 
-// // // Base URL
-export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
+// // // // Base URL
+// export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
 
 // -----------------
 // Auth & User APIs
@@ -226,5 +226,108 @@ export const deleteTask = async (id, token) => {
     headers: { 'Authorization': `Bearer ${token}` },
   });
   if (!response.ok) throw new Error('Failed to delete task');
+  return response.json();
+};
+
+// Get single task by ID
+export const getTaskById = async (id, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch task');
+  return response.json();
+};
+
+// Add comment to task
+export const addTaskComment = async (id, commentText, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/${id}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ text: commentText }),
+  });
+  if (!response.ok) throw new Error('Failed to add comment');
+  return response.json();
+};
+
+// Get tasks by date range
+export const getTasksByDateRange = async (startDate, endDate, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/date-range/${startDate}/${endDate}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch tasks by date range');
+  return response.json();
+};
+
+// Get task statistics
+export const getTaskStats = async (startDate, endDate, token) => {
+  let url = `${BASE_URL}/api/tasks/stats/summary`;
+  const params = new URLSearchParams();
+  
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  
+  if (params.toString()) {
+    url += `?${params.toString()}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch task statistics');
+  return response.json();
+};
+
+// Get all tasks with filters
+export const getAllTasksWithFilters = async (filters = {}, token) => {
+  const params = new URLSearchParams();
+  
+  Object.keys(filters).forEach(key => {
+    if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+      params.append(key, filters[key]);
+    }
+  });
+
+  let url = `${BASE_URL}/api/tasks`;
+  if (params.toString()) {
+    url += `?${params.toString()}`;
+  }
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    }
+  });
+  if (!response.ok) throw new Error('Failed to fetch tasks');
+  return response.json();
+};
+
+// Bulk update tasks
+export const bulkUpdateTasks = async (taskIds, updateData, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/bulk-update`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ taskIds, updateData }),
+  });
+  if (!response.ok) throw new Error('Failed to bulk update tasks');
   return response.json();
 };
