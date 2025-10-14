@@ -194,11 +194,14 @@ const CompanyDepartments = () => {
       );
       
       const statsObj = {};
-      response.data.forEach(stat => {
-        statsObj[stat._id] = stat;
+      const data = response.data || [];
+      data.forEach(stat => {
+        if (stat && stat._id) {
+          statsObj[stat._id] = stat;
+        }
       });
       setDepartmentStats(statsObj);
-      setDepartmentStatsArray(response.data);
+      setDepartmentStatsArray(data);
     } catch (error) {
       console.error('Error fetching department stats:', error);
     } finally {
