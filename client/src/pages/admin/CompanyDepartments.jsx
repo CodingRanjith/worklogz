@@ -10,14 +10,34 @@ import LoadingSkeleton from '../../components/admin-dashboard/common/LoadingSkel
 
 const DEPARTMENTS = [
   {
-    name: 'Marketing',
-    icon: <FiTarget className="text-3xl" />,
-    color: 'from-rose-400 to-rose-500',
-    bgColor: 'bg-rose-50',
-    textColor: 'text-rose-600',
-    borderColor: 'border-rose-200',
-    progressColor: 'bg-rose-500',
-    description: 'Social media, campaigns, branding'
+    name: 'Administration',
+    icon: <FiUsers className="text-3xl" />,
+    color: 'from-gray-400 to-gray-500',
+    bgColor: 'bg-gray-50',
+    textColor: 'text-gray-600',
+    borderColor: 'border-gray-200',
+    progressColor: 'bg-gray-500',
+    description: 'Manages overall company operations, office management, and coordination between departments.'
+  },
+  {
+    name: 'Human Resources (HR)',
+    icon: <FiUsers className="text-3xl" />,
+    color: 'from-slate-400 to-slate-500',
+    bgColor: 'bg-slate-50',
+    textColor: 'text-slate-600',
+    borderColor: 'border-slate-200',
+    progressColor: 'bg-slate-500',
+    description: 'Handles recruitment, employee relations, payroll, training, and performance management.'
+  },
+  {
+    name: 'Finance & Accounting',
+    icon: <FiDollarSign className="text-3xl" />,
+    color: 'from-teal-400 to-teal-500',
+    bgColor: 'bg-teal-50',
+    textColor: 'text-teal-600',
+    borderColor: 'border-teal-200',
+    progressColor: 'bg-teal-500',
+    description: 'Manages budgets, expenses, financial planning, billing, and reporting.'
   },
   {
     name: 'Sales',
@@ -27,77 +47,117 @@ const DEPARTMENTS = [
     textColor: 'text-emerald-600',
     borderColor: 'border-emerald-200',
     progressColor: 'bg-emerald-500',
-    description: 'Lead generation, client acquisition'
+    description: 'Focuses on generating revenue by selling the company’s products or services.'
   },
   {
-    name: 'IT',
-    icon: <FiMonitor className="text-3xl" />,
+    name: 'Marketing',
+    icon: <FiTarget className="text-3xl" />,
+    color: 'from-rose-400 to-rose-500',
+    bgColor: 'bg-rose-50',
+    textColor: 'text-rose-600',
+    borderColor: 'border-rose-200',
+    progressColor: 'bg-rose-500',
+    description: 'Promotes the brand, manages advertising, digital marketing, PR, and lead generation.'
+  },
+  {
+    name: 'Customer Support / Service',
+    icon: <FiUsers className="text-3xl" />,
     color: 'from-blue-400 to-blue-500',
     bgColor: 'bg-blue-50',
     textColor: 'text-blue-600',
     borderColor: 'border-blue-200',
     progressColor: 'bg-blue-500',
-    description: 'Infrastructure, support, maintenance'
+    description: 'Handles client queries, technical support, and after-sales assistance.'
   },
   {
-    name: 'Development',
+    name: 'Operations / Project Management',
+    icon: <FiActivity className="text-3xl" />,
+    color: 'from-orange-400 to-orange-500',
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-600',
+    borderColor: 'border-orange-200',
+    progressColor: 'bg-orange-500',
+    description: 'Ensures smooth workflow, process optimization, and timely project delivery.'
+  },
+  {
+    name: 'Legal & Compliance',
+    icon: <FiBookOpen className="text-3xl" />,
+    color: 'from-red-400 to-red-500',
+    bgColor: 'bg-red-50',
+    textColor: 'text-red-600',
+    borderColor: 'border-red-200',
+    progressColor: 'bg-red-500',
+    description: 'Manages contracts, legal issues, government regulations, and company policies.'
+  },
+  {
+    name: 'Procurement / Purchasing',
+    icon: <FiDollarSign className="text-3xl" />,
+    color: 'from-yellow-400 to-yellow-500',
+    bgColor: 'bg-yellow-50',
+    textColor: 'text-yellow-600',
+    borderColor: 'border-yellow-200',
+    progressColor: 'bg-yellow-500',
+    description: 'Responsible for sourcing materials, equipment, or third-party services.'
+  },
+  {
+    name: 'Research & Development (R&D)',
     icon: <FiCode className="text-3xl" />,
     color: 'from-purple-400 to-purple-500',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-600',
     borderColor: 'border-purple-200',
     progressColor: 'bg-purple-500',
-    description: 'Software development, coding'
+    description: 'Innovates and develops new products, technologies, or solutions.'
   },
   {
-    name: 'Testing',
+    name: 'Information Technology (IT)',
+    icon: <FiMonitor className="text-3xl" />,
+    color: 'from-blue-400 to-blue-500',
+    bgColor: 'bg-blue-50',
+    textColor: 'text-blue-600',
+    borderColor: 'border-blue-200',
+    progressColor: 'bg-blue-500',
+    description: 'Maintains internal systems, networks, cybersecurity, and tech infrastructure.'
+  },
+  {
+    name: 'Quality Assurance (QA)',
     icon: <FiCheckCircle className="text-3xl" />,
     color: 'from-amber-400 to-amber-500',
     bgColor: 'bg-amber-50',
     textColor: 'text-amber-600',
     borderColor: 'border-amber-200',
     progressColor: 'bg-amber-500',
-    description: 'Quality assurance, testing'
+    description: 'Ensures products, services, or processes meet company and industry standards.'
   },
   {
-    name: 'Accounts',
-    icon: <FiDollarSign className="text-3xl" />,
-    color: 'from-teal-400 to-teal-500',
-    bgColor: 'bg-teal-50',
-    textColor: 'text-teal-600',
-    borderColor: 'border-teal-200',
-    progressColor: 'bg-teal-500',
-    description: 'Finance, accounting, payroll'
-  },
-  {
-    name: 'Designing',
-    icon: <FiPenTool className="text-3xl" />,
-    color: 'from-indigo-400 to-indigo-500',
-    bgColor: 'bg-indigo-50',
-    textColor: 'text-indigo-600',
-    borderColor: 'border-indigo-200',
-    progressColor: 'bg-indigo-500',
-    description: 'UI/UX, graphics, creative design'
-  },
-  {
-    name: 'Resources',
-    icon: <FiUsers className="text-3xl" />,
-    color: 'from-slate-400 to-slate-500',
-    bgColor: 'bg-slate-50',
-    textColor: 'text-slate-600',
-    borderColor: 'border-slate-200',
-    progressColor: 'bg-slate-500',
-    description: 'HR, recruitment, employee relations'
-  },
-  {
-    name: 'Learning',
-    icon: <FiBookOpen className="text-3xl" />,
+    name: 'Business Development',
+    icon: <FiTrendingUp className="text-3xl" />,
     color: 'from-green-400 to-green-500',
     bgColor: 'bg-green-50',
     textColor: 'text-green-600',
     borderColor: 'border-green-200',
     progressColor: 'bg-green-500',
-    description: 'Training, development, knowledge sharing'
+    description: 'Builds partnerships, explores new markets, and drives company growth.'
+  },
+  {
+    name: 'Public Relations (PR)',
+    icon: <FiBarChart2 className="text-3xl" />,
+    color: 'from-indigo-400 to-indigo-500',
+    bgColor: 'bg-indigo-50',
+    textColor: 'text-indigo-600',
+    borderColor: 'border-indigo-200',
+    progressColor: 'bg-indigo-500',
+    description: 'Manages brand image, media communications, and public perception.'
+  },
+  {
+    name: 'Training & Development',
+    icon: <FiBookOpen className="text-3xl" />,
+    color: 'from-pink-400 to-pink-500',
+    bgColor: 'bg-pink-50',
+    textColor: 'text-pink-600',
+    borderColor: 'border-pink-200',
+    progressColor: 'bg-pink-500',
+    description: 'Upskills employees, conducts workshops, and improves organizational capability.'
   }
 ];
 
