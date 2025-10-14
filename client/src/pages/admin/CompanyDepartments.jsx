@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import {
   FiTarget, FiTrendingUp, FiMonitor, FiCode, FiCheckCircle,
@@ -106,11 +106,22 @@ const CompanyDepartments = () => {
   const [departmentStatsArray, setDepartmentStatsArray] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchDepartmentStats();
-  }, []);
+    
+    // Check for success message from navigation state
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+      // Clear the navigation state
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
 
   const fetchDepartmentStats = async () => {
     try {
@@ -317,6 +328,18 @@ const CompanyDepartments = () => {
           );
         })}
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center justify-between">
+          <span>{successMessage}</span>
+          <button
+            onClick={() => setSuccessMessage('')}
+            className="text-green-700 hover:text-green-900">
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Analytics Section */}
       {showAnalytics && (

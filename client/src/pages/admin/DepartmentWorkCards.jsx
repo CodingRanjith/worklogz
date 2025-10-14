@@ -7,6 +7,7 @@ import {
   FiCheckCircle, FiAlertCircle, FiPlay, FiPause, FiClipboard
 } from 'react-icons/fi';
 import AdvancedFilters from '../../components/admin-dashboard/common/AdvancedFilters';
+import EditWorkCardModal from '../../components/admin-dashboard/common/EditWorkCardModal';
 import LoadingSkeleton from '../../components/admin-dashboard/common/LoadingSkeleton';
 
 const STATUSES = ['Not Started', 'In Progress', 'Review', 'Completed', 'On Hold'];
@@ -39,6 +40,8 @@ const DepartmentWorkCards = () => {
   const [workCards, setWorkCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState(null);
+  const [editingCard, setEditingCard] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [filters, setFilters] = useState({
     search: '',
     status: 'all',
@@ -134,6 +137,24 @@ const DepartmentWorkCards = () => {
         console.error('Error deleting card:', error);
       }
     }
+  };
+
+  const handleEditCard = (card) => {
+    setEditingCard(card);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveCard = (updatedCard) => {
+    setWorkCards(prev => 
+      prev.map(card => 
+        card._id === updatedCard._id ? updatedCard : card
+      )
+    );
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingCard(null);
   };
 
   const formatDate = (dateString) => {
@@ -254,10 +275,35 @@ const DepartmentWorkCards = () => {
                 {/* Card Header */}
                 <div className="p-6 border-b border-gray-100">
                   <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-lg font-semibold text-gray-900 leading-tight">
-                      {card.title}
-                    </h3>
+                    <div className="flex items-start gap-3 flex-1">
+                      <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm font-mono font-medium">
+                        {card.serialNumber || `#${workCards.indexOf(card) + 1}`}
+                      </span>
+                      <h3 className="text-lg font-semibold text-gray-900 leading-tight flex-1">
+                        {card.title}
+                      </h3>
+                    </div>
                     <div className="flex gap-2 flex-shrink-0 ml-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditCard(card);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Edit"
+                      >
+                        <FiEdit3 className="text-sm" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCard(card._id);
+                        }}
+                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete"
+                      >
+                        <FiTrash2 className="text-sm" />
+                      </button>
                       <span className={`px-3 py-1 rounded-md text-xs font-medium ${getStatusColor(card.status)}`}>
                         {card.status}
                       </span>
@@ -371,27 +417,19 @@ const DepartmentWorkCards = () => {
                       </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-4 border-t">
+                    {/* Quick Status Update */}
+                    <div className="pt-4 border-t">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Quick Status Update:</label>
                       <select
                         value={card.status}
                         onChange={(e) => handleUpdateStatus(card._id, e.target.value)}
                         onClick={(e) => e.stopPropagation()}
-                        className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       >
                         {STATUSES.map(status => (
                           <option key={status} value={status}>{status}</option>
                         ))}
                       </select>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteCard(card._id);
-                        }}
-                        className="px-3 py-1 text-red-600 hover:bg-red-50 rounded border border-red-200 text-sm transition-colors"
-                      >
-                        <FiTrash2 />
-                      </button>
                     </div>
                   </div>
                 )}
@@ -400,6 +438,14 @@ const DepartmentWorkCards = () => {
           })}
         </div>
       )}
+
+      {/* Edit Work Card Modal */}
+      <EditWorkCardModal
+        workCard={editingCard}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onSave={handleSaveCard}
+      />
     </div>
   );
 };

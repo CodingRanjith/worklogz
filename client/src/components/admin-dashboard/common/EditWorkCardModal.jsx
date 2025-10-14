@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { FiX, FiSave, FiPlus, FiMinus } from 'react-icons/fi';
 import axios from 'axios';
-import { FiSave, FiX, FiPlus, FiMinus } from 'react-icons/fi';
 
 const DEPARTMENTS = [
   'Marketing', 'Sales', 'IT', 'Development', 'Testing', 
@@ -11,8 +10,7 @@ const DEPARTMENTS = [
 const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
 const STATUSES = ['Not Started', 'In Progress', 'Review', 'Completed', 'On Hold'];
 
-const CreateWorkCard = () => {
-  const navigate = useNavigate();
+const EditWorkCardModal = ({ workCard, isOpen, onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   
@@ -27,8 +25,28 @@ const CreateWorkCard = () => {
     dueDate: '',
     priority: 'Medium',
     status: 'Not Started',
+    progress: 0,
     tags: ['']
   });
+
+  useEffect(() => {
+    if (workCard && isOpen) {
+      setFormData({
+        department: workCard.department || '',
+        title: workCard.title || '',
+        description: workCard.description || '',
+        teamLead: workCard.teamLead || '',
+        teamMembers: workCard.teamMembers?.length > 0 ? workCard.teamMembers : [{ name: '', role: '' }],
+        startDate: workCard.startDate ? new Date(workCard.startDate).toISOString().split('T')[0] : '',
+        endDate: workCard.endDate ? new Date(workCard.endDate).toISOString().split('T')[0] : '',
+        dueDate: workCard.dueDate ? new Date(workCard.dueDate).toISOString().split('T')[0] : '',
+        priority: workCard.priority || 'Medium',
+        status: workCard.status || 'Not Started',
+        progress: workCard.progress || 0,
+        tags: workCard.tags?.length > 0 ? workCard.tags : ['']
+      });
+    }
+  }, [workCard, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,7 +55,6 @@ const CreateWorkCard = () => {
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -107,13 +124,11 @@ const CreateWorkCard = () => {
     if (!formData.teamLead.trim()) newErrors.teamLead = 'Team lead is required';
     if (!formData.startDate) newErrors.startDate = 'Start date is required';
 
-    // Validate team members
     const validMembers = formData.teamMembers.filter(member => member.name.trim());
     if (validMembers.length === 0) {
       newErrors.teamMembers = 'At least one team member is required';
     }
 
-    // Validate dates
     if (formData.startDate && formData.endDate) {
       if (new Date(formData.startDate) > new Date(formData.endDate)) {
         newErrors.endDate = 'End date must be after start date';
@@ -142,52 +157,55 @@ const CreateWorkCard = () => {
     try {
       const token = localStorage.getItem('token');
       
-      // Filter out empty team members and tags
       const cleanedData = {
         ...formData,
         teamMembers: formData.teamMembers.filter(member => member.name.trim()),
         tags: formData.tags.filter(tag => tag.trim())
       };
 
-      await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards`,
+      const response = await axios.put(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards/${workCard._id}`,
         cleanedData,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      const serialNumber = response.data.workCard?.serialNumber || '#New';
-      navigate('/company-departments', { 
-        state: { message: `Work card ${serialNumber} created successfully!` } 
-      });
+      onSave(response.data.workCard);
+      onClose();
     } catch (error) {
-      console.error('Error creating work card:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to create work card';
+      console.error('Error updating work card:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to update work card';
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCancel = () => {
-    navigate('/company-departments');
-  };
+  if (!isOpen) return null;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="bg-white rounded-xl shadow-lg">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-xl">
-          <h1 className="text-2xl font-bold">Create New Work Card</h1>
-          <p className="text-blue-100 mt-2">Add a new work item for your team</p>
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">Edit Work Card</h2>
+            <p className="text-sm text-gray-600 mt-1">Update work card details</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <FiX className="text-xl" />
+          </button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Error Message */}
           {errors.submit && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {errors.submit}
             </div>
           )}
@@ -243,7 +261,6 @@ const CreateWorkCard = () => {
               name="title"
               value={formData.title}
               onChange={handleChange}
-              placeholder="Enter work card title"
               className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.title ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -260,8 +277,7 @@ const CreateWorkCard = () => {
               name="description"
               value={formData.description}
               onChange={handleChange}
-              rows={4}
-              placeholder="Describe the work to be done..."
+              rows={3}
               className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.description ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -279,7 +295,6 @@ const CreateWorkCard = () => {
               name="teamLead"
               value={formData.teamLead}
               onChange={handleChange}
-              placeholder="Name of the team lead"
               className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.teamLead ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -287,166 +302,48 @@ const CreateWorkCard = () => {
             {errors.teamLead && <p className="text-red-500 text-sm mt-1">{errors.teamLead}</p>}
           </div>
 
-          {/* Team Members */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Team Members *
+          {/* Status and Progress */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
               </label>
-              <button
-                type="button"
-                onClick={addTeamMember}
-                className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <FiPlus /> Add Member
-              </button>
-            </div>
-            <div className="space-y-3">
-              {formData.teamMembers.map((member, index) => (
-                <div key={index} className="flex gap-3 items-center">
-                  <input
-                    type="text"
-                    placeholder="Member name"
-                    value={member.name}
-                    onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Role (optional)"
-                    value={member.role}
-                    onChange={(e) => handleTeamMemberChange(index, 'role', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {formData.teamMembers.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeTeamMember(index)}
-                      className="text-red-600 hover:text-red-700 p-2"
-                    >
-                      <FiMinus />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-            {errors.teamMembers && <p className="text-red-500 text-sm mt-1">{errors.teamMembers}</p>}
-          </div>
-
-          {/* Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date *
-              </label>
-              <input
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.startDate ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
+                {STATUSES.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                End Date
+                Progress (%)
               </label>
               <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
+                type="number"
+                name="progress"
+                min="0"
+                max="100"
+                value={formData.progress}
                 onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.endDate ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
-              {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Due Date
-              </label>
-              <input
-                type="date"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.dueDate ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate}</p>}
-            </div>
-          </div>
-
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {STATUSES.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Tags
-              </label>
-              <button
-                type="button"
-                onClick={addTag}
-                className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
-              >
-                <FiPlus /> Add Tag
-              </button>
-            </div>
-            <div className="space-y-2">
-              {formData.tags.map((tag, index) => (
-                <div key={index} className="flex gap-3 items-center">
-                  <input
-                    type="text"
-                    placeholder="Enter tag"
-                    value={tag}
-                    onChange={(e) => handleTagChange(index, e.target.value)}
-                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {formData.tags.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeTag(index)}
-                      className="text-red-600 hover:text-red-700 p-2"
-                    >
-                      <FiMinus />
-                    </button>
-                  )}
-                </div>
-              ))}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4 pt-6 border-t">
+          <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={handleCancel}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors"
+              onClick={onClose}
+              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              <FiX /> Cancel
+              Cancel
             </button>
             <button
               type="submit"
@@ -454,7 +351,7 @@ const CreateWorkCard = () => {
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors disabled:opacity-50"
             >
               <FiSave />
-              {loading ? 'Creating...' : 'Create Work Card'}
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
@@ -463,4 +360,4 @@ const CreateWorkCard = () => {
   );
 };
 
-export default CreateWorkCard;
+export default EditWorkCardModal;

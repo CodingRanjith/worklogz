@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const WorkCardSchema = new mongoose.Schema({
+  serialNumber: {
+    type: String,
+    unique: true,
+    required: true
+  },
   department: {
     type: String,
     required: true,
@@ -93,9 +98,23 @@ const WorkCardSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Pre-save hook to generate serial number
+WorkCardSchema.pre('save', async function(next) {
+  if (this.isNew && !this.serialNumber) {
+    try {
+      const count = await mongoose.model('WorkCard').countDocuments();
+      this.serialNumber = `#${count + 1}`;
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
+});
+
 // Index for better query performance
 WorkCardSchema.index({ department: 1, status: 1, createdAt: -1 });
 WorkCardSchema.index({ teamLead: 1 });
 WorkCardSchema.index({ 'teamMembers.name': 1 });
+WorkCardSchema.index({ serialNumber: 1 });
 
 module.exports = mongoose.model('WorkCard', WorkCardSchema);

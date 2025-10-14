@@ -116,6 +116,9 @@ const createWorkCard = async (req, res) => {
       });
     }
 
+    // Get the company from request body, user object, or use a default
+    const workCardCompany = company || req.user.company || 'Default Company';
+
     const workCard = new WorkCard({
       department,
       title,
@@ -128,8 +131,8 @@ const createWorkCard = async (req, res) => {
       priority: priority || 'Medium',
       status: status || 'Not Started',
       tags: tags || [],
-      createdBy: req.user.id,
-      company: company || req.user.company
+      createdBy: req.user._id,
+      company: workCardCompany
     });
 
     await workCard.save();
