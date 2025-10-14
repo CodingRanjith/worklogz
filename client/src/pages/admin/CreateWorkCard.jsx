@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FiSave, FiX, FiPlus, FiMinus } from 'react-icons/fi';
 
@@ -26,11 +26,12 @@ const STATUSES = ['Not Started', 'In Progress', 'Review', 'Completed', 'On Hold'
 
 const CreateWorkCard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   
   const [formData, setFormData] = useState({
-    department: '',
+    department: location.state?.selectedDepartment || '',
     title: '',
     description: '',
     teamLead: '',
@@ -40,6 +41,7 @@ const CreateWorkCard = () => {
     dueDate: '',
     priority: 'Medium',
     status: 'Not Started',
+    progress: 0,
     tags: ['']
   });
 
@@ -137,6 +139,11 @@ const CreateWorkCard = () => {
       if (new Date(formData.startDate) > new Date(formData.dueDate)) {
         newErrors.dueDate = 'Due date must be after start date';
       }
+    }
+
+    // Validate progress
+    if (formData.progress < 0 || formData.progress > 100) {
+      newErrors.progress = 'Progress must be between 0 and 100';
     }
 
     setErrors(newErrors);
@@ -397,21 +404,41 @@ const CreateWorkCard = () => {
             </div>
           </div>
 
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {STATUSES.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
+          {/* Status and Progress */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Status
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {STATUSES.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Progress (%)
+              </label>
+              <input
+                type="number"
+                name="progress"
+                value={formData.progress}
+                onChange={handleChange}
+                min="0"
+                max="100"
+                placeholder="0-100"
+                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.progress ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.progress && <p className="text-red-500 text-sm mt-1">{errors.progress}</p>}
+            </div>
           </div>
 
           {/* Tags */}

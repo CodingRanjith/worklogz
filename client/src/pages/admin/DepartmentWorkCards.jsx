@@ -69,7 +69,7 @@ const DepartmentWorkCards = () => {
         }
       );
       
-      setWorkCards(response.data.workCards || []);
+      setWorkCards(response.data?.workCards || []);
     } catch (error) {
       console.error('Error fetching work cards:', error);
     } finally {
@@ -159,7 +159,13 @@ const DepartmentWorkCards = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Not set';
-    return new Date(dateString).toLocaleDateString();
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      return date.toLocaleDateString();
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   const getDaysRemaining = (dueDate) => {
@@ -222,7 +228,9 @@ const DepartmentWorkCards = () => {
             </div>
           </div>
           <button
-            onClick={() => navigate('/company-departments/create')}
+            onClick={() => navigate('/company-departments/create', { 
+              state: { selectedDepartment: departmentName } 
+            })}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center gap-2 transition-colors"
           >
             <FiPlus className="text-lg" />
@@ -251,7 +259,9 @@ const DepartmentWorkCards = () => {
           <h3 className="text-xl font-semibold text-gray-600 mb-2">No work cards found</h3>
           <p className="text-gray-500 mb-6">Create your first work card to get started.</p>
           <button
-            onClick={() => navigate('/company-departments/create')}
+            onClick={() => navigate('/company-departments/create', { 
+              state: { selectedDepartment: departmentName } 
+            })}
             className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 mx-auto transition-colors"
           >
             <FiPlus /> Create Work Card
@@ -277,7 +287,7 @@ const DepartmentWorkCards = () => {
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-start gap-3 flex-1">
                       <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-sm font-mono font-medium">
-                        {card.serialNumber || `#${workCards.indexOf(card) + 1}`}
+                        {card.serialNumber || `#WC${String(workCards.indexOf(card) + 1).padStart(3, '0')}`}
                       </span>
                       <h3 className="text-lg font-semibold text-gray-900 leading-tight flex-1">
                         {card.title}
