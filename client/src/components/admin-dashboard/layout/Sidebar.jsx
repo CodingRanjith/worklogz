@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
-  FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard
+  FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase
 } from 'react-icons/fi';
 
 const menuItems = [
@@ -19,6 +19,7 @@ const menuItems = [
     ]
   },
   { label: 'Task Manager', icon: <FiClipboard />, path: '/task-manager' },
+  { label: 'Company Departments', icon: <FiBriefcase />, path: '/company-departments' },
   {
     label: 'Leaves & Lates',
     icon: <FiCalendar />,

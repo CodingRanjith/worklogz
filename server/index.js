@@ -10,7 +10,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: ['https://worklogz.netlify.app', 'http://localhost:3000'],
+  origin: ['https://worklogz.netlify.app', 'http://localhost:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -45,6 +45,7 @@ app.use('/api/leaves', require('./routes/leaveRoutes'));
 app.use('/api/holidays', require('./routes/holidayRoutes'));
 app.use('/schedules', require('./routes/scheduleRoutes'));
 app.use("/api/payslips", require("./routes/payslipRoutes"));
+app.use('/api/work-cards', require('./routes/workCardRoutes'));
 
 // Default Admin Setup
 const User = require('./models/User');
