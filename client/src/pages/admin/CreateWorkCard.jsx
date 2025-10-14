@@ -4,8 +4,21 @@ import axios from 'axios';
 import { FiSave, FiX, FiPlus, FiMinus } from 'react-icons/fi';
 
 const DEPARTMENTS = [
-  'Marketing', 'Sales', 'IT', 'Development', 'Testing', 
-  'Accounts', 'Designing', 'Resources', 'Learning'
+  'Administration',
+  'Human Resources (HR)',
+  'Finance & Accounting',
+  'Sales',
+  'Marketing',
+  'Customer Support / Service',
+  'Operations / Project Management',
+  'Legal & Compliance',
+  'Procurement / Purchasing',
+  'Research & Development (R&D)',
+  'Information Technology (IT)',
+  'Quality Assurance (QA)',
+  'Business Development',
+  'Public Relations (PR)',
+  'Training & Development'
 ];
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
