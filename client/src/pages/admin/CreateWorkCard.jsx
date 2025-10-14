@@ -162,7 +162,7 @@ const CreateWorkCard = () => {
         tags: formData.tags.filter(tag => tag.trim())
       };
 
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards`,
         cleanedData,
         {
