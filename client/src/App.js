@@ -33,6 +33,9 @@ import PayslipGenerator from './pages/admin/PayslipGenerator';
 import PayslipList from './pages/admin/PayslipList';
 import TaskManager from './pages/admin/TaskManager';
 import UserTimesheet from './pages/admin/UserTimesheet';
+import CompanyDepartments from './pages/admin/CompanyDepartments';
+import CreateWorkCard from './pages/admin/CreateWorkCard';
+import DepartmentWorkCards from './pages/admin/DepartmentWorkCards';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 
@@ -92,6 +95,9 @@ function App() {
           <Route path="/leave-requests" element={<LeaveRequestsAdmin />} />
           <Route path="/task-manager" element={<TaskManager />} />
           <Route path="/user-timesheet/:userId" element={<UserTimesheet />} />
+          <Route path="/company-departments" element={<CompanyDepartments />} />
+          <Route path="/company-departments/create" element={<CreateWorkCard />} />
+          <Route path="/company-departments/:department" element={<DepartmentWorkCards />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

@@ -90,6 +90,18 @@ export const API_ENDPOINTS = {
   //                    // Summary: total, done, pending
 
   // -----------------
+  // Work Cards
+  // -----------------
+  getWorkCards: `${BASE_URL}/api/work-cards`,
+  createWorkCard: `${BASE_URL}/api/work-cards`,
+  getWorkCardById: (id) => `${BASE_URL}/api/work-cards/${id}`,
+  updateWorkCard: (id) => `${BASE_URL}/api/work-cards/${id}`,
+  deleteWorkCard: (id) => `${BASE_URL}/api/work-cards/${id}`,
+  getWorkCardStats: `${BASE_URL}/api/work-cards/stats`,
+  addWorkCardComment: (id) => `${BASE_URL}/api/work-cards/${id}/comments`,
+  updateWorkCardProgress: (id) => `${BASE_URL}/api/work-cards/${id}/progress`,
+
+  // -----------------
   // Misc
   // -----------------
   uploadPath: `${BASE_URL}/uploads`,
