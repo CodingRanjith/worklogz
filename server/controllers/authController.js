@@ -21,7 +21,11 @@ const authController = {
         {
           userId: user._id,
           role: user.role,
-          name: user.name
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          company: user.company,
+          position: user.position
         },
         process.env.JWT_SECRET,
         { expiresIn: '30d' }
@@ -31,7 +35,10 @@ const authController = {
         token,
         userId: user._id,
         role: user.role,
-        name: user.name
+        name: user.name,
+        email: user.email,
+        company: user.company,
+        position: user.position
       });
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });

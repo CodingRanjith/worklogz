@@ -1,7 +1,10 @@
 // server/middleware/role.js
-module.exports = function(role) {
+module.exports = function(roles) {
   return function(req, res, next) {
-    if (req.user.role !== role) {
+    // Handle both single role (string) and multiple roles (array)
+    const allowedRoles = Array.isArray(roles) ? roles : [roles];
+    
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({ error: 'Forbidden - Insufficient permissions' });
     }
     next();
