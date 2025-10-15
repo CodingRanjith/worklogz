@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { FiSave, FiX, FiPlus, FiMinus } from 'react-icons/fi';
+import { FiSave, FiX, FiPlus, FiMinus, FiCheckCircle } from 'react-icons/fi';
+import SuccessNotification from '../../components/admin-dashboard/common/SuccessNotification';
 
 const DEPARTMENTS = [
   'Administration',
@@ -29,6 +30,8 @@ const CreateWorkCard = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   
   const [formData, setFormData] = useState({
     department: location.state?.selectedDepartment || '',
@@ -141,12 +144,11 @@ const CreateWorkCard = () => {
       }
     }
 
-    // Validate progress
-    if (formData.progress < 0 || formData.progress > 100) {
-      newErrors.progress = 'Progress must be between 0 and 100';
-    }
-
-    setErrors(newErrors);
+      // Validate progress
+      const progressValue = parseInt(formData.progress, 10);
+      if (progressValue < 0 || progressValue > 100 || isNaN(progressValue)) {
+        newErrors.progress = 'Progress must be a number between 0 and 100';
+      }    setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -162,11 +164,12 @@ const CreateWorkCard = () => {
     try {
       const token = localStorage.getItem('token');
       
-      // Filter out empty team members and tags
+      // Filter out empty team members and tags, convert progress to number
       const cleanedData = {
         ...formData,
         teamMembers: formData.teamMembers.filter(member => member.name.trim()),
-        tags: formData.tags.filter(tag => tag.trim())
+        tags: formData.tags.filter(tag => tag.trim()),
+        progress: parseInt(formData.progress, 10) || 0
       };
 
       const response = await axios.post(
@@ -178,12 +181,34 @@ const CreateWorkCard = () => {
       );
 
       const serialNumber = response.data.workCard?.serialNumber || '#New';
-      navigate('/company-departments', { 
-        state: { message: `Work card ${serialNumber} created successfully!` } 
-      });
+      
+      // Show success animation first
+      setSuccessMessage(`Work card ${serialNumber} created successfully!`);
+      setShowSuccess(true);
+      
+      // Navigate after a brief delay to show the animation
+      setTimeout(() => {
+        navigate('/company-departments', { 
+          state: { message: `Work card ${serialNumber} created successfully!` } 
+        });
+      }, 2000);
     } catch (error) {
       console.error('Error creating work card:', error);
-      const errorMessage = error.response?.data?.message || 'Failed to create work card';
+      console.error('Error response:', error.response?.data);
+      
+      let errorMessage = 'Failed to create work card';
+      
+      if (error.response?.data) {
+        const responseData = error.response.data;
+        if (responseData.errors && Array.isArray(responseData.errors)) {
+          errorMessage = `Validation errors: ${responseData.errors.join(', ')}`;
+        } else if (responseData.details) {
+          errorMessage = responseData.details;
+        } else if (responseData.message) {
+          errorMessage = responseData.message;
+        }
+      }
+      
       setErrors({ submit: errorMessage });
     } finally {
       setLoading(false);
@@ -195,12 +220,57 @@ const CreateWorkCard = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <>
+      <SuccessNotification
+        message={successMessage}
+        isVisible={showSuccess}
+        onClose={() => setShowSuccess(false)}
+        duration={4000}
+      />
+      
+      <style jsx>{`
+        @keyframes shake {
+          0%, 20%, 50%, 80%, 100% { transform: translateX(0); }
+          10% { transform: translateX(-5px); }
+          30% { transform: translateX(5px); }
+          60% { transform: translateX(-3px); }
+          90% { transform: translateX(3px); }
+        }
+        .shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
+      
+      <div className="p-6 max-w-4xl mx-auto">
       <div className="bg-white rounded-xl shadow-lg">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-xl">
           <h1 className="text-2xl font-bold">Create New Work Card</h1>
           <p className="text-blue-100 mt-2">Add a new work item for your team</p>
+        </div>
+
+        {/* Form Progress Indicator */}
+        <div className="px-6 pt-4">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Form Progress</span>
+            <span>{Math.round(((formData.department ? 1 : 0) + 
+                               (formData.title ? 1 : 0) + 
+                               (formData.description ? 1 : 0) + 
+                               (formData.teamLead ? 1 : 0) + 
+                               (formData.startDate ? 1 : 0)) / 5 * 100)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-500"
+              style={{ 
+                width: `${((formData.department ? 1 : 0) + 
+                          (formData.title ? 1 : 0) + 
+                          (formData.description ? 1 : 0) + 
+                          (formData.teamLead ? 1 : 0) + 
+                          (formData.startDate ? 1 : 0)) / 5 * 100}%` 
+              }}
+            ></div>
+          </div>
         </div>
 
         {/* Form */}
@@ -209,6 +279,41 @@ const CreateWorkCard = () => {
           {errors.submit && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               {errors.submit}
+            </div>
+          )}
+
+          {/* Serial Number Preview */}
+          {formData.department && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-mono font-semibold">
+                  {(() => {
+                    const prefixMap = {
+                      'Administration': 'ADMIN',
+                      'Human Resources (HR)': 'HR',
+                      'Finance & Accounting': 'FINANCE',
+                      'Sales': 'SALES',
+                      'Marketing': 'MARKETING',
+                      'Customer Support / Service': 'SUPPORT',
+                      'Operations / Project Management': 'OPS',
+                      'Legal & Compliance': 'LEGAL',
+                      'Procurement / Purchasing': 'PROCUREMENT',
+                      'Research & Development (R&D)': 'RND',
+                      'Information Technology (IT)': 'IT',
+                      'Quality Assurance (QA)': 'QA',
+                      'Business Development': 'BIZDEV',
+                      'Public Relations (PR)': 'PR',
+                      'Training & Development': 'TRAINING'
+                    };
+                    const prefix = prefixMap[formData.department] || formData.department.replace(/[^a-zA-Z]/g, '').substring(0, 8).toUpperCase();
+                    return `${prefix} #XX`;
+                  })()}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-blue-800">Work Card ID Preview</p>
+                  <p className="text-xs text-blue-600">The actual number will be assigned when created</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -264,8 +369,10 @@ const CreateWorkCard = () => {
               value={formData.title}
               onChange={handleChange}
               placeholder="Enter work card title"
-              className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.title ? 'border-red-500' : 'border-gray-300'
+              className={`w-full border rounded-lg px-3 py-2 transition-all duration-300 ${
+                errors.title 
+                  ? 'border-red-500 bg-red-50 shake focus:ring-2 focus:ring-red-500' 
+                  : 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-blue-50'
               }`}
             />
             {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
@@ -282,8 +389,10 @@ const CreateWorkCard = () => {
               onChange={handleChange}
               rows={4}
               placeholder="Describe the work to be done..."
-              className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.description ? 'border-red-500' : 'border-gray-300'
+              className={`w-full border rounded-lg px-3 py-2 transition-all duration-300 ${
+                errors.department 
+                  ? 'border-red-500 bg-red-50 shake focus:ring-2 focus:ring-red-500' 
+                  : 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
               }`}
             />
             {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
@@ -300,8 +409,10 @@ const CreateWorkCard = () => {
               value={formData.teamLead}
               onChange={handleChange}
               placeholder="Name of the team lead"
-              className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.teamLead ? 'border-red-500' : 'border-gray-300'
+              className={`w-full border rounded-lg px-3 py-2 transition-all duration-300 resize-none ${
+                errors.description 
+                  ? 'border-red-500 bg-red-50 shake focus:ring-2 focus:ring-red-500' 
+                  : 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-blue-50'
               }`}
             />
             {errors.teamLead && <p className="text-red-500 text-sm mt-1">{errors.teamLead}</p>}
@@ -491,15 +602,29 @@ const CreateWorkCard = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors disabled:opacity-50"
+              className={`px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-300 transform ${
+                loading 
+                  ? 'bg-blue-400 cursor-not-allowed scale-95' 
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 hover:shadow-lg'
+              } text-white font-medium`}
             >
-              <FiSave />
-              {loading ? 'Creating...' : 'Create Work Card'}
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating Work Card...
+                </>
+              ) : (
+                <>
+                  <FiSave />
+                  Create Work Card
+                </>
+              )}
             </button>
           </div>
         </form>
       </div>
     </div>
+    </>
   );
 };
 

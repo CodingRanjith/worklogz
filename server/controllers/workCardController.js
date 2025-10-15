@@ -94,6 +94,9 @@ const getWorkCardById = async (req, res) => {
 // Create new work card
 const createWorkCard = async (req, res) => {
   try {
+    console.log('Creating work card with data:', req.body);
+    console.log('User info:', req.user);
+
     const {
       department,
       title,
@@ -105,6 +108,7 @@ const createWorkCard = async (req, res) => {
       dueDate,
       priority,
       status,
+      progress,
       tags,
       company
     } = req.body;
@@ -116,10 +120,82 @@ const createWorkCard = async (req, res) => {
       });
     }
 
+    // Validate department is in allowed enum
+    const allowedDepartments = [
+      'Administration',
+      'Human Resources (HR)',
+      'Finance & Accounting',
+      'Sales',
+      'Marketing',
+      'Customer Support / Service',
+      'Operations / Project Management',
+      'Legal & Compliance',
+      'Procurement / Purchasing',
+      'Research & Development (R&D)',
+      'Information Technology (IT)',
+      'Quality Assurance (QA)',
+      'Business Development',
+      'Public Relations (PR)',
+      'Training & Development',
+      'Development', 'Testing', 'Accounts', 'Designing', 'Resources', 'Learning'
+    ];
+
+    if (!allowedDepartments.includes(department)) {
+      return res.status(400).json({ 
+        message: `Invalid department. Allowed departments: ${allowedDepartments.join(', ')}` 
+      });
+    }
+
     // Get the company from request body, user object, or use a default
-    const workCardCompany = company || req.user.company || 'Default Company';
+    const workCardCompany = company || req.user?.company || 'Default Company';
+
+    // Validate and convert progress
+    const progressValue = progress ? parseInt(progress, 10) : 0;
+    if (progressValue < 0 || progressValue > 100) {
+      return res.status(400).json({ 
+        message: 'Progress must be between 0 and 100' 
+      });
+    }
+
+    // Generate department-specific serial number
+    const departmentCount = await WorkCard.countDocuments({ department });
+    
+    // Create department prefix mapping
+    const getDepartmentPrefix = (dept) => {
+      const prefixMap = {
+        'Administration': 'ADMIN',
+        'Human Resources (HR)': 'HR',
+        'Finance & Accounting': 'FINANCE',
+        'Sales': 'SALES',
+        'Marketing': 'MARKETING',
+        'Customer Support / Service': 'SUPPORT',
+        'Operations / Project Management': 'OPS',
+        'Legal & Compliance': 'LEGAL',
+        'Procurement / Purchasing': 'PROCUREMENT',
+        'Research & Development (R&D)': 'RND',
+        'Information Technology (IT)': 'IT',
+        'Quality Assurance (QA)': 'QA',
+        'Business Development': 'BIZDEV',
+        'Public Relations (PR)': 'PR',
+        'Training & Development': 'TRAINING',
+        // Legacy departments
+        'Development': 'DEV',
+        'Testing': 'TEST',
+        'Accounts': 'ACCOUNTS',
+        'Designing': 'DESIGN',
+        'Resources': 'RESOURCES',
+        'Learning': 'LEARNING'
+      };
+      return prefixMap[dept] || dept.replace(/[^a-zA-Z]/g, '').substring(0, 8).toUpperCase();
+    };
+
+    const departmentPrefix = getDepartmentPrefix(department);
+    const serialNumber = `${departmentPrefix} #${String(departmentCount + 1).padStart(2, '0')}`;
+
+    console.log(`Generated serial number: ${serialNumber} for department: ${department}`);
 
     const workCard = new WorkCard({
+      serialNumber,
       department,
       title,
       description,
@@ -130,10 +206,13 @@ const createWorkCard = async (req, res) => {
       dueDate: dueDate ? new Date(dueDate) : null,
       priority: priority || 'Medium',
       status: status || 'Not Started',
+      progress: progressValue,
       tags: tags || [],
       createdBy: req.user._id,
       company: workCardCompany
     });
+
+    console.log('About to save work card:', workCard);
 
     await workCard.save();
     
@@ -146,7 +225,31 @@ const createWorkCard = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating work card:', error);
-    res.status(500).json({ message: 'Server error while creating work card' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    
+    // Send more detailed error information
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        errors: validationErrors,
+        details: error.message
+      });
+    }
+    
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        message: 'Duplicate entry error',
+        details: error.message
+      });
+    }
+    
+    res.status(500).json({ 
+      message: 'Server error while creating work card',
+      error: error.message,
+      details: error.stack
+    });
   }
 };
 
