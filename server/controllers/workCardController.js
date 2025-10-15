@@ -12,7 +12,7 @@ const getWorkCards = async (req, res) => {
       endDate, 
       priority,
       page = 1, 
-      limit = 10,
+      limit = 20, // Default 20 cards per page for better UI pagination
       search 
     } = req.query;
 
@@ -54,6 +54,13 @@ const getWorkCards = async (req, res) => {
 
     const skip = (page - 1) * limit;
     
+    console.log('📄 Pagination Debug:', { 
+      filter, 
+      page: parseInt(page), 
+      limit: parseInt(limit), 
+      skip 
+    });
+    
     const workCards = await WorkCard.find(filter)
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 })
@@ -61,6 +68,13 @@ const getWorkCards = async (req, res) => {
       .limit(parseInt(limit));
 
     const total = await WorkCard.countDocuments(filter);
+    
+    console.log('📄 Pagination Result:', { 
+      foundCards: workCards.length, 
+      total, 
+      totalPages: Math.ceil(total / limit), 
+      currentPage: parseInt(page) 
+    });
     
     res.json({
       workCards,
