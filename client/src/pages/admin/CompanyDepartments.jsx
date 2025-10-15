@@ -210,7 +210,31 @@ const CompanyDepartments = () => {
   };
 
   const handleDepartmentClick = (departmentName) => {
-    navigate(`/company-departments/${departmentName.toLowerCase()}`);
+    // Convert department name to URL slug
+    const getDepartmentSlug = (name) => {
+      const slugMap = {
+        'Administration': 'administration',
+        'Human Resources (HR)': 'human-resources-hr',
+        'Finance & Accounting': 'finance-accounting',
+        'Sales': 'sales',
+        'Marketing': 'marketing',
+        'Customer Support / Service': 'customer-support-service',
+        'Operations / Project Management': 'operations-project-management',
+        'Legal & Compliance': 'legal-compliance',
+        'Procurement / Purchasing': 'procurement-purchasing',
+        'Research & Development (R&D)': 'research-development-rd',
+        'Information Technology (IT)': 'information-technology-it',
+        'Quality Assurance (QA)': 'quality-assurance-qa',
+        'Business Development': 'business-development',
+        'Public Relations (PR)': 'public-relations-pr',
+        'Training & Development': 'training-development'
+      };
+      
+      return slugMap[name] || name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    };
+    
+    const slug = getDepartmentSlug(departmentName);
+    navigate(`/company-departments/${slug}`);
   };
 
   const handleCreateWorkCard = () => {
