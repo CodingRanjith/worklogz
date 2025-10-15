@@ -70,10 +70,16 @@ const DepartmentWorkCards = () => {
     startDate: '',
     endDate: ''
   });
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCards: 0,
+    cardsPerPage: 20
+  });
 
   useEffect(() => {
     fetchWorkCards();
-  }, [department, filters]);
+  }, [department, filters, pagination.currentPage]);
 
   const fetchWorkCards = async () => {
     try {
@@ -107,6 +113,8 @@ const DepartmentWorkCards = () => {
       
       const params = new URLSearchParams({
         department: fullDepartmentName,
+        page: pagination.currentPage,
+        limit: pagination.cardsPerPage,
         ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v && v !== 'all'))
       });
 
@@ -116,7 +124,31 @@ const DepartmentWorkCards = () => {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      setWorkCards(response.data?.workCards || []);
+      
+      const responseData = response.data;
+      const allWorkCards = responseData?.workCards || [];
+      
+      console.log('🔍 DEBUG: Department:', fullDepartmentName);
+      console.log('🔍 API URL:', `${process.env.REACT_APP_API_URL || 'https://worklogz.onrender.com'}/api/work-cards?${params}`);
+      console.log('🔍 Filters applied:', filters);
+      console.log('🔍 Pagination response:', responseData);
+      console.log('🔍 All work cards received:', allWorkCards);
+      console.log('🔍 Work cards by status:', allWorkCards.reduce((acc, card) => {
+        acc[card.status] = (acc[card.status] || 0) + 1;
+        return acc;
+      }, {}));
+      console.log('🔍 Completed cards:', allWorkCards.filter(card => card.status === 'Completed'));
+      console.log('🔍 Legal department cards:', allWorkCards.filter(card => card.department.includes('Legal')));
+      
+      // Update pagination state
+      setPagination(prev => ({
+        ...prev,
+        totalPages: responseData?.totalPages || 1,
+        totalCards: responseData?.total || allWorkCards.length,
+        currentPage: responseData?.currentPage || 1
+      }));
+      
+      setWorkCards(allWorkCards);
     } catch (error) {
       console.error('Error fetching work cards:', error);
     } finally {
@@ -202,6 +234,22 @@ const DepartmentWorkCards = () => {
   const handleCloseEditModal = () => {
     setIsEditModalOpen(false);
     setEditingCard(null);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({
+      ...prev,
+      currentPage: newPage
+    }));
+    setSelectedCard(null); // Clear selection when changing pages
+  };
+
+  const handleCardsPerPageChange = (newLimit) => {
+    setPagination(prev => ({
+      ...prev,
+      cardsPerPage: newLimit,
+      currentPage: 1 // Reset to first page when changing page size
+    }));
   };
 
   const formatDate = (dateString) => {
@@ -304,7 +352,29 @@ const DepartmentWorkCards = () => {
             </button>
             <div>
               <h1 className="text-2xl font-semibold text-gray-900">{departmentName} Department</h1>
-              <p className="text-gray-600 mt-1">{workCards.length} work cards</p>
+              <div className="flex items-center gap-4 mt-2">
+                <p className="text-gray-600">
+                  Showing {workCards.length} of {pagination.totalCards} work cards 
+                  (Page {pagination.currentPage} of {pagination.totalPages})
+                </p>
+                {workCards.length > 0 && (
+                  <div className="flex items-center gap-3 text-sm">
+                    {['Not Started', 'In Progress', 'Review', 'Completed', 'On Hold'].map(status => {
+                      const count = workCards.filter(card => card.status === status).length;
+                      if (count === 0) return null;
+                      return (
+                        <div key={status} className="flex items-center gap-1">
+                          <div className={`w-3 h-3 rounded-full ${getStatusColor(status).includes('emerald') ? 'bg-emerald-500' : 
+                            getStatusColor(status).includes('blue') ? 'bg-blue-500' :
+                            getStatusColor(status).includes('amber') ? 'bg-amber-500' :
+                            getStatusColor(status).includes('rose') ? 'bg-rose-500' : 'bg-slate-500'}`}></div>
+                          <span className="text-gray-600">{count} {status}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <button
@@ -331,6 +401,127 @@ const DepartmentWorkCards = () => {
           priority: PRIORITIES
         }}
       />
+
+      {/* Filter Status Indicator */}
+      {filters.status === 'all' && workCards.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+          <FiCheckCircle className="text-blue-600" />
+          <span className="font-medium">Showing all work cards including completed ones</span>
+          <span className="ml-2 text-blue-600">({workCards.filter(card => card.status === 'Completed').length} completed cards)</span>
+        </div>
+      )}
+
+      {filters.status !== 'all' && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+          <FiFilter className="text-amber-600" />
+          <span className="font-medium">Filtered by status: {filters.status}</span>
+          <button
+            onClick={() => handleFilterChange('status', 'all')}
+            className="ml-2 text-amber-700 hover:text-amber-900 underline"
+          >
+            Show all cards
+          </button>
+        </div>
+      )}
+
+      {/* Debug: Show Card Status Summary */}
+      {workCards.length > 0 && (
+        <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-6">
+          <h3 className="font-medium text-gray-800 mb-3">📊 Card Status Summary (Debug Info)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+            {STATUSES.map(status => {
+              const count = workCards.filter(card => card.status === status).length;
+              return (
+                <div key={status} className={`p-2 rounded ${getStatusColor(status)} text-center`}>
+                  <div className="font-semibold">{count}</div>
+                  <div className="text-xs">{status}</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 text-xs text-gray-600">
+            Current page: {workCards.length} cards | 
+            Completed on this page: {workCards.filter(card => card.status === 'Completed').length} | 
+            100% progress: {workCards.filter(card => card.progress === 100).length} |
+            <span className="text-blue-600 font-medium"> Total in department: {pagination.totalCards}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {pagination.totalCards > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+          <div className="flex justify-between items-center">
+            {/* Cards per page selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">Cards per page:</span>
+              <select
+                value={pagination.cardsPerPage}
+                onChange={(e) => handleCardsPerPageChange(parseInt(e.target.value))}
+                className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+
+            {/* Pagination controls */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.currentPage - 1)}
+                disabled={pagination.currentPage <= 1}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Previous
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (pagination.totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else {
+                    const start = Math.max(1, pagination.currentPage - 2);
+                    const end = Math.min(pagination.totalPages, start + 4);
+                    const adjustedStart = Math.max(1, end - 4);
+                    pageNum = adjustedStart + i;
+                  }
+                  
+                  if (pageNum > pagination.totalPages) return null;
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        pagination.currentPage === pageNum
+                          ? 'bg-blue-600 text-white'
+                          : 'border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              <button
+                onClick={() => handlePageChange(pagination.currentPage + 1)}
+                disabled={pagination.currentPage >= pagination.totalPages}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              >
+                Next
+              </button>
+            </div>
+
+            {/* Page info */}
+            <div className="text-sm text-gray-600">
+              Showing {((pagination.currentPage - 1) * pagination.cardsPerPage) + 1} - {Math.min(pagination.currentPage * pagination.cardsPerPage, pagination.totalCards)} of {pagination.totalCards} cards
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Work Cards Grid */}
       {workCards.length === 0 ? (
@@ -366,7 +557,9 @@ const DepartmentWorkCards = () => {
                 className={`bg-white border rounded-xl transition-all duration-300 cursor-pointer transform hover:scale-[1.02] hover:shadow-lg min-w-0 h-full ${
                   selectedCard?._id === card._id 
                     ? 'border-blue-400 shadow-xl ring-2 ring-blue-100 scale-[1.02]' 
-                    : 'border-gray-200 hover:border-blue-300 shadow-md'
+                    : card.status === 'Completed' || card.progress === 100
+                      ? 'border-emerald-300 hover:border-emerald-400 shadow-md ring-1 ring-emerald-100'
+                      : 'border-gray-200 hover:border-blue-300 shadow-md'
                 } relative overflow-hidden group flex flex-col`}
                 style={{ height: selectedCard?._id === card._id ? 'auto' : '480px' }}
               >
@@ -524,10 +717,10 @@ const DepartmentWorkCards = () => {
                         <span className="font-medium">Due in {daysRemaining} days</span>
                       </div>
                     )}
-                    {card.progress === 100 && (
-                      <div className="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 px-2 py-1.5 rounded text-xs">
-                        <FiCheckCircle className="text-green-500 flex-shrink-0" />
-                        <span className="font-medium">Completed!</span>
+                    {(card.progress === 100 || card.status === 'Completed') && (
+                      <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-1.5 rounded text-xs">
+                        <FiCheckCircle className="text-emerald-500 flex-shrink-0" />
+                        <span className="font-medium">✅ Task Completed!</span>
                       </div>
                     )}
                   </div>
@@ -611,6 +804,80 @@ const DepartmentWorkCards = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Bottom Pagination Controls */}
+      {pagination.totalCards > pagination.cardsPerPage && workCards.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-4 mt-6">
+          <div className="flex justify-center items-center gap-2">
+            <button
+              onClick={() => handlePageChange(1)}
+              disabled={pagination.currentPage <= 1}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              First
+            </button>
+            
+            <button
+              onClick={() => handlePageChange(pagination.currentPage - 1)}
+              disabled={pagination.currentPage <= 1}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              Previous
+            </button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(7, pagination.totalPages) }, (_, i) => {
+                let pageNum;
+                if (pagination.totalPages <= 7) {
+                  pageNum = i + 1;
+                } else {
+                  const start = Math.max(1, pagination.currentPage - 3);
+                  const end = Math.min(pagination.totalPages, start + 6);
+                  const adjustedStart = Math.max(1, end - 6);
+                  pageNum = adjustedStart + i;
+                }
+                
+                if (pageNum > pagination.totalPages) return null;
+                
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                      pagination.currentPage === pageNum
+                        ? 'bg-blue-600 text-white font-medium'
+                        : 'border border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <button
+              onClick={() => handlePageChange(pagination.currentPage + 1)}
+              disabled={pagination.currentPage >= pagination.totalPages}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              Next
+            </button>
+            
+            <button
+              onClick={() => handlePageChange(pagination.totalPages)}
+              disabled={pagination.currentPage >= pagination.totalPages}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+            >
+              Last
+            </button>
+          </div>
+          
+          <div className="text-center text-sm text-gray-600 mt-2">
+            Page {pagination.currentPage} of {pagination.totalPages} 
+            ({pagination.totalCards} total cards)
+          </div>
         </div>
       )}
 
