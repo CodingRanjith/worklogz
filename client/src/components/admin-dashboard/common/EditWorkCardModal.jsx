@@ -3,8 +3,23 @@ import { FiX, FiSave, FiPlus, FiMinus } from 'react-icons/fi';
 import axios from 'axios';
 
 const DEPARTMENTS = [
-  'Marketing', 'Sales', 'IT', 'Development', 'Testing', 
-  'Accounts', 'Designing', 'Resources', 'Learning'
+  'Administration',
+  'Human Resources (HR)',
+  'Finance & Accounting',
+  'Sales',
+  'Marketing',
+  'Customer Support / Service',
+  'Operations / Project Management',
+  'Legal & Compliance',
+  'Procurement / Purchasing',
+  'Research & Development (R&D)',
+  'Information Technology (IT)',
+  'Quality Assurance (QA)',
+  'Business Development',
+  'Public Relations (PR)',
+  'Training & Development',
+  // Legacy departments for backward compatibility
+  'Development', 'Testing', 'Accounts', 'Designing', 'Resources', 'Learning'
 ];
 
 const PRIORITIES = ['Low', 'Medium', 'High', 'Critical'];
@@ -141,6 +156,12 @@ const EditWorkCardModal = ({ workCard, isOpen, onClose, onSave }) => {
       }
     }
 
+    // Validate progress
+    const progressValue = parseInt(formData.progress, 10);
+    if (progressValue < 0 || progressValue > 100 || isNaN(progressValue)) {
+      newErrors.progress = 'Progress must be a number between 0 and 100';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -160,7 +181,8 @@ const EditWorkCardModal = ({ workCard, isOpen, onClose, onSave }) => {
       const cleanedData = {
         ...formData,
         teamMembers: formData.teamMembers.filter(member => member.name.trim()),
-        tags: formData.tags.filter(tag => tag.trim())
+        tags: formData.tags.filter(tag => tag.trim()),
+        progress: parseInt(formData.progress, 10) || 0
       };
 
       const response = await axios.put(
@@ -186,27 +208,35 @@ const EditWorkCardModal = ({ workCard, isOpen, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl max-w-5xl w-full max-h-[95vh] overflow-y-auto shadow-2xl">
         {/* Header */}
-        <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Edit Work Card</h2>
-            <p className="text-sm text-gray-600 mt-1">Update work card details</p>
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-xl">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-bold">Edit Work Card</h2>
+              <p className="text-blue-100 mt-1">Update work card details and information</p>
+              {workCard?.serialNumber && (
+                <p className="text-blue-200 text-sm mt-1">ID: {workCard.serialNumber}</p>
+              )}
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-blue-800 rounded-lg transition-colors text-blue-100 hover:text-white"
+            >
+              <FiX className="text-xl" />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <FiX className="text-xl" />
-          </button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* Error Message */}
           {errors.submit && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {errors.submit}
+            <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-red-500">⚠️</span>
+                <span>{errors.submit}</span>
+              </div>
             </div>
           )}
 
@@ -302,6 +332,103 @@ const EditWorkCardModal = ({ workCard, isOpen, onClose, onSave }) => {
             {errors.teamLead && <p className="text-red-500 text-sm mt-1">{errors.teamLead}</p>}
           </div>
 
+          {/* Team Members */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Team Members *
+              </label>
+              <button
+                type="button"
+                onClick={addTeamMember}
+                className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
+              >
+                <FiPlus /> Add Member
+              </button>
+            </div>
+            <div className="space-y-3">
+              {formData.teamMembers.map((member, index) => (
+                <div key={index} className="flex gap-3 items-center">
+                  <input
+                    type="text"
+                    placeholder="Member name"
+                    value={member.name}
+                    onChange={(e) => handleTeamMemberChange(index, 'name', e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Role (optional)"
+                    value={member.role}
+                    onChange={(e) => handleTeamMemberChange(index, 'role', e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {formData.teamMembers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeTeamMember(index)}
+                      className="text-red-600 hover:text-red-700 p-2"
+                    >
+                      <FiMinus />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {errors.teamMembers && <p className="text-red-500 text-sm mt-1">{errors.teamMembers}</p>}
+          </div>
+
+          {/* Dates */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Start Date *
+              </label>
+              <input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.startDate ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.startDate && <p className="text-red-500 text-sm mt-1">{errors.startDate}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                End Date
+              </label>
+              <input
+                type="date"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.endDate ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.endDate && <p className="text-red-500 text-sm mt-1">{errors.endDate}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Due Date
+              </label>
+              <input
+                type="date"
+                name="dueDate"
+                value={formData.dueDate}
+                onChange={handleChange}
+                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.dueDate ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate}</p>}
+            </div>
+          </div>
+
           {/* Status and Progress */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -331,27 +458,81 @@ const EditWorkCardModal = ({ workCard, isOpen, onClose, onSave }) => {
                 max="100"
                 value={formData.progress}
                 onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                  errors.progress ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
+              {errors.progress && <p className="text-red-500 text-sm mt-1">{errors.progress}</p>}
+            </div>
+          </div>
+
+          {/* Tags */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Tags
+              </label>
+              <button
+                type="button"
+                onClick={addTag}
+                className="text-blue-600 hover:text-blue-700 flex items-center gap-1 text-sm"
+              >
+                <FiPlus /> Add Tag
+              </button>
+            </div>
+            <div className="space-y-2">
+              {formData.tags.map((tag, index) => (
+                <div key={index} className="flex gap-3 items-center">
+                  <input
+                    type="text"
+                    placeholder="Enter tag"
+                    value={tag}
+                    onChange={(e) => handleTagChange(index, e.target.value)}
+                    className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {formData.tags.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeTag(index)}
+                      className="text-red-600 hover:text-red-700 p-2"
+                    >
+                      <FiMinus />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+          <div className="flex justify-end gap-4 pt-6 border-t border-gray-200 bg-gray-50 -mx-6 px-6 py-4 rounded-b-xl">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-white transition-colors font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 transition-colors disabled:opacity-50"
+              className={`px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-300 transform font-medium ${
+                loading 
+                  ? 'bg-blue-400 cursor-not-allowed scale-95' 
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:scale-105 hover:shadow-lg'
+              } text-white`}
             >
-              <FiSave />
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Saving Changes...
+                </>
+              ) : (
+                <>
+                  <FiSave />
+                  Save Changes
+                </>
+              )}
             </button>
           </div>
         </form>
