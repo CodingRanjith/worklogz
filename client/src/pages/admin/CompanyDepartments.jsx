@@ -284,7 +284,16 @@ const CompanyDepartments = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
+    <>
+      <style jsx>{`
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
+      <div className="p-6 max-w-7xl mx-auto bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
         <div className="flex justify-between items-center">
@@ -330,43 +339,46 @@ const CompanyDepartments = () => {
             <div
               key={dept.name}
               onClick={() => handleDepartmentClick(dept.name)}
-              className="cursor-pointer"
+              className="cursor-pointer h-full"
             >
-              <div className={`bg-white border ${dept.borderColor} rounded-lg hover:shadow-sm transition-all duration-200 overflow-hidden`}>
+              <div 
+                className={`bg-white border ${dept.borderColor} rounded-lg hover:shadow-sm transition-all duration-200 overflow-hidden h-full flex flex-col`}
+                style={{ height: '320px' }}
+              >
                 {/* Header */}
-                <div className={`${dept.bgColor} border-b ${dept.borderColor} p-6`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`${dept.textColor}`}>
+                <div className={`${dept.bgColor} border-b ${dept.borderColor} p-4 flex-shrink-0`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className={`${dept.textColor} flex-shrink-0`}>
                         {dept.icon}
                       </div>
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900">{dept.name}</h3>
-                        <p className="text-gray-600 text-sm mt-1">{dept.description}</p>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">{dept.name}</h3>
+                        <p className="text-gray-600 text-xs leading-tight line-clamp-2">{dept.description}</p>
                       </div>
                     </div>
-                    <div className={`text-2xl font-bold ${dept.textColor}`}>
+                    <div className={`text-xl font-bold ${dept.textColor} flex-shrink-0 ml-2`}>
                       {stats.total}
                     </div>
                   </div>
                 </div>
 
                 {/* Stats Body */}
-                <div className="p-6">
-                  <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="p-4 flex-grow flex flex-col justify-between">
+                  <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="text-center">
-                      <div className={`text-2xl font-bold ${dept.textColor}`}>{stats.completed}</div>
-                      <div className="text-sm text-gray-600">Completed</div>
+                      <div className={`text-xl font-bold ${dept.textColor}`}>{stats.completed}</div>
+                      <div className="text-xs text-gray-600">Completed</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">{stats.inProgress}</div>
-                      <div className="text-sm text-gray-600">In Progress</div>
+                      <div className="text-xl font-bold text-blue-600">{stats.inProgress}</div>
+                      <div className="text-xs text-gray-600">In Progress</div>
                     </div>
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs text-gray-600 mb-1">
                       <span>Overall Progress</span>
                       <span>{Math.round(stats.avgProgress || 0)}%</span>
                     </div>
@@ -379,7 +391,7 @@ const CompanyDepartments = () => {
                   </div>
 
                   {/* Bottom Stats */}
-                  <div className="flex justify-between items-center text-sm text-gray-600">
+                  <div className="flex justify-between items-center text-xs text-gray-600">
                     <span>{stats.notStarted} Not Started</span>
                     <span className={`${dept.textColor} hover:opacity-80 font-medium transition-opacity`}>
                       View Details →
@@ -443,6 +455,7 @@ const CompanyDepartments = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

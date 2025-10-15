@@ -9,7 +9,25 @@ const WorkCardSchema = new mongoose.Schema({
   department: {
     type: String,
     required: true,
-    enum: ['Marketing', 'Sales', 'IT', 'Development', 'Testing', 'Accounts', 'Designing', 'Resources', 'Learning']
+    enum: [
+      'Administration',
+      'Human Resources (HR)',
+      'Finance & Accounting',
+      'Sales',
+      'Marketing',
+      'Customer Support / Service',
+      'Operations / Project Management',
+      'Legal & Compliance',
+      'Procurement / Purchasing',
+      'Research & Development (R&D)',
+      'Information Technology (IT)',
+      'Quality Assurance (QA)',
+      'Business Development',
+      'Public Relations (PR)',
+      'Training & Development',
+      // Legacy departments for backward compatibility
+      'Development', 'Testing', 'Accounts', 'Designing', 'Resources', 'Learning'
+    ]
   },
   title: {
     type: String,
@@ -98,23 +116,11 @@ const WorkCardSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Pre-save hook to generate serial number
-WorkCardSchema.pre('save', async function(next) {
-  if (this.isNew && !this.serialNumber) {
-    try {
-      const count = await mongoose.model('WorkCard').countDocuments();
-      this.serialNumber = `#${count + 1}`;
-    } catch (error) {
-      return next(error);
-    }
-  }
-  next();
-});
+
 
 // Index for better query performance
 WorkCardSchema.index({ department: 1, status: 1, createdAt: -1 });
 WorkCardSchema.index({ teamLead: 1 });
 WorkCardSchema.index({ 'teamMembers.name': 1 });
-WorkCardSchema.index({ serialNumber: 1 });
 
 module.exports = mongoose.model('WorkCard', WorkCardSchema);
