@@ -187,7 +187,7 @@ const CompanyDepartments = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards/stats`,
+        `${process.env.REACT_APP_API_URL || 'https://worklogz.onrender.com'}/api/work-cards/stats`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }

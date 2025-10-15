@@ -173,7 +173,7 @@ const CreateWorkCard = () => {
       };
 
       const response = await axios.post(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards`,
+        `${process.env.REACT_APP_API_URL || 'https://worklogz.onrender.com'}/api/work-cards`,
         cleanedData,
         {
           headers: { Authorization: `Bearer ${token}` }
