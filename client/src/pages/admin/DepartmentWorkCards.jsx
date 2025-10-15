@@ -111,7 +111,7 @@ const DepartmentWorkCards = () => {
       });
 
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards?${params}`,
+        `${process.env.REACT_APP_API_URL || 'https://worklogz.onrender.com'}/api/work-cards?${params}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -156,7 +156,7 @@ const DepartmentWorkCards = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards/${cardId}`,
+        `${process.env.REACT_APP_API_URL || 'https://worklogz.onrender.com'}/api/work-cards/${cardId}`,
         { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -173,7 +173,7 @@ const DepartmentWorkCards = () => {
       try {
         const token = localStorage.getItem('token');
         await axios.delete(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards/${cardId}`,
+          `${process.env.REACT_APP_API_URL || 'https://worklogz.onrender.com'}/api/work-cards/${cardId}`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }

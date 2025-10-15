@@ -186,7 +186,7 @@ const EditWorkCardModal = ({ workCard, isOpen, onClose, onSave }) => {
       };
 
       const response = await axios.put(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/work-cards/${workCard._id}`,
+        `${process.env.REACT_APP_API_URL || 'https://worklogz.onrender.com'}/api/work-cards/${workCard._id}`,
         cleanedData,
         {
           headers: { Authorization: `Bearer ${token}` }
