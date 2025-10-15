@@ -78,8 +78,35 @@ const DepartmentWorkCards = () => {
   const fetchWorkCards = async () => {
     try {
       const token = localStorage.getItem('token');
+      
+      // Map URL department parameter to full department name
+      const getDepartmentName = (dept) => {
+        const departmentMap = {
+          'administration': 'Administration',
+          'human-resources-hr': 'Human Resources (HR)',
+          'finance-accounting': 'Finance & Accounting',
+          'sales': 'Sales',
+          'marketing': 'Marketing',
+          'customer-support-service': 'Customer Support / Service',
+          'operations-project-management': 'Operations / Project Management',
+          'legal-compliance': 'Legal & Compliance',
+          'procurement-purchasing': 'Procurement / Purchasing',
+          'research-development-rd': 'Research & Development (R&D)',
+          'information-technology-it': 'Information Technology (IT)',
+          'quality-assurance-qa': 'Quality Assurance (QA)',
+          'business-development': 'Business Development',
+          'public-relations-pr': 'Public Relations (PR)',
+          'training-development': 'Training & Development'
+        };
+        
+        const lowerDept = dept.toLowerCase();
+        return departmentMap[lowerDept] || dept.charAt(0).toUpperCase() + dept.slice(1);
+      };
+
+      const fullDepartmentName = getDepartmentName(department);
+      
       const params = new URLSearchParams({
-        department: department.charAt(0).toUpperCase() + department.slice(1),
+        department: fullDepartmentName,
         ...Object.fromEntries(Object.entries(filters).filter(([_, v]) => v && v !== 'all'))
       });
 
@@ -89,7 +116,6 @@ const DepartmentWorkCards = () => {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
-      
       setWorkCards(response.data?.workCards || []);
     } catch (error) {
       console.error('Error fetching work cards:', error);
@@ -229,11 +255,35 @@ const DepartmentWorkCards = () => {
     );
   }
 
-  const departmentName = department.charAt(0).toUpperCase() + department.slice(1);
+  // Get full department name for display
+  const getDepartmentDisplayName = (dept) => {
+    const departmentMap = {
+      'administration': 'Administration',
+      'human-resources-hr': 'Human Resources (HR)',
+      'finance-accounting': 'Finance & Accounting',
+      'sales': 'Sales',
+      'marketing': 'Marketing',
+      'customer-support-service': 'Customer Support / Service',
+      'operations-project-management': 'Operations / Project Management',
+      'legal-compliance': 'Legal & Compliance',
+      'procurement-purchasing': 'Procurement / Purchasing',
+      'research-development-rd': 'Research & Development (R&D)',
+      'information-technology-it': 'Information Technology (IT)',
+      'quality-assurance-qa': 'Quality Assurance (QA)',
+      'business-development': 'Business Development',
+      'public-relations-pr': 'Public Relations (PR)',
+      'training-development': 'Training & Development'
+    };
+    
+    const lowerDept = dept.toLowerCase();
+    return departmentMap[lowerDept] || dept.charAt(0).toUpperCase() + dept.slice(1);
+  };
+
+  const departmentName = getDepartmentDisplayName(department);
 
   return (
     <>
-      <style jsx>{`
+      <style>{`
         .line-clamp-3 {
           display: -webkit-box;
           -webkit-line-clamp: 3;
