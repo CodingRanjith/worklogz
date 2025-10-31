@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const DailySalaryConfig = require('../models/DailySalaryConfig');
 const User = require('../models/User');
+const DailyEarningTransaction = require('../models/DailyEarningTransaction');
 
 // Create a new daily salary configuration
 exports.createDailySalaryConfig = async (req, res) => {
@@ -178,22 +180,36 @@ const applyDailyCredits = async () => {
         query._id = { $in: config.users };
       }
 
-      // Update users
-      const result = await User.updateMany(
-        {
-          ...query,
-          $or: [
-            { lastDailyCreditDate: { $lt: today } },
-            { lastDailyCreditDate: null }
-          ]
-        },
-        {
-          $inc: { dailyEarnings: config.amount },
-          $set: { lastDailyCreditDate: today }
-        }
-      );
+      // Find users to update (avoid duplicates from today)
+      const users = await User.find({
+        ...query,
+        $or: [
+          { lastDailyCreditDate: { $lt: today } },
+          { lastDailyCreditDate: null }
+        ]
+      });
 
-      updatedUsersCount += result.modifiedCount;
+      // Create transaction and update user for each user
+      for (const user of users) {
+        // Create transaction record
+        await DailyEarningTransaction.create({
+          userId: user._id,
+          amount: config.amount,
+          date: today,
+          configsApplied: [{
+            configId: config._id,
+            configName: config.name,
+            amount: config.amount
+          }]
+        });
+
+        // Update user total
+        user.dailyEarnings = (user.dailyEarnings || 0) + config.amount;
+        user.lastDailyCreditDate = today;
+        await user.save();
+
+        updatedUsersCount++;
+      }
 
       // Update last applied date for this config
       config.lastAppliedDate = today;
@@ -202,7 +218,7 @@ const applyDailyCredits = async () => {
       updates.push({
         configName: config.name,
         amount: config.amount,
-        usersUpdated: result.modifiedCount
+        usersUpdated: users.length
       });
     }
 
@@ -266,7 +282,10 @@ exports.getUserDailyEarnings = async (req, res) => {
       }
     }
 
-    // Calculate weekly and monthly earnings based on actual daily rate
+    // Calculate date ranges
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999);
+
     const startOfWeek = new Date(today);
     const day = startOfWeek.getDay();
     const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
@@ -276,22 +295,57 @@ exports.getUserDailyEarnings = async (req, res) => {
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    // Count days with credits this week
-    const daysThisWeek = Math.floor((today - startOfWeek) / (1000 * 60 * 60 * 24)) + 1;
-    
-    // Count days with credits this month
-    const daysThisMonth = Math.floor((today - startOfMonth) / (1000 * 60 * 60 * 24)) + 1;
+    // Get TODAY'S actual transaction
+    const todayTransaction = await DailyEarningTransaction.findOne({
+      userId: userId,
+      date: { $gte: today, $lte: endOfToday }
+    });
+
+    // Get THIS WEEK's total (sum of all transactions)
+    const weekTransactions = await DailyEarningTransaction.aggregate([
+      {
+        $match: {
+          userId: mongoose.Types.ObjectId(userId),
+          date: { $gte: startOfWeek, $lte: endOfToday }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    // Get THIS MONTH's total (sum of all transactions)
+    const monthTransactions = await DailyEarningTransaction.aggregate([
+      {
+        $match: {
+          userId: mongoose.Types.ObjectId(userId),
+          date: { $gte: startOfMonth, $lte: endOfToday }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const todayEarnings = todayTransaction ? todayTransaction.amount : 0;
+    const weeklyEarnings = weekTransactions.length > 0 ? weekTransactions[0].total : 0;
+    const monthlyEarnings = monthTransactions.length > 0 ? monthTransactions[0].total : 0;
 
     res.status(200).json({ 
       success: true, 
       data: {
         ...user.toObject(),
         dailyRate: dailyRate,
-        weeklyEarnings: dailyRate * daysThisWeek,
-        monthlyEarnings: dailyRate * daysThisMonth,
-        applicableConfigs: applicableConfigs,
-        daysThisWeek: daysThisWeek,
-        daysThisMonth: daysThisMonth
+        todayEarnings: todayEarnings,
+        weeklyEarnings: weeklyEarnings,
+        monthlyEarnings: monthlyEarnings,
+        applicableConfigs: applicableConfigs
       }
     });
   } catch (error) {

@@ -30,12 +30,12 @@ const DailyEarningsCard = () => {
       if (data.success) {
         setEarnings(data.data);
         
-        // Use dynamic data from backend
+        // Use dynamic TRANSACTION-based data from backend
         setEarningBreakdown({
-          today: data.data.dailyRate || 0,  // Today's configured rate
-          thisWeek: data.data.weeklyEarnings || 0,  // Calculated by backend
-          thisMonth: data.data.monthlyEarnings || 0,  // Calculated by backend
-          total: data.data.dailyEarnings || 0  // Total accumulated
+          today: data.data.todayEarnings || 0,  // TODAY's actual earnings from transaction
+          thisWeek: data.data.weeklyEarnings || 0,  // THIS WEEK's accumulated total
+          thisMonth: data.data.monthlyEarnings || 0,  // THIS MONTH's accumulated total
+          total: data.data.dailyEarnings || 0  // TOTAL accumulated all-time
         });
       } else {
         setEarnings({
