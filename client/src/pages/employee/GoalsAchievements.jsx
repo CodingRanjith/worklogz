@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiTrophy, FiTarget, FiAward, FiPlus, FiTrash2, FiEdit, FiCheck, FiStar } from 'react-icons/fi';
+import { FiTarget, FiAward, FiPlus, FiTrash2, FiEdit, FiCheck, FiStar } from 'react-icons/fi';
 import { API_ENDPOINTS } from '../../utils/api';
 
 const GoalsAchievements = () => {
@@ -149,7 +149,7 @@ const GoalsAchievements = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-4 rounded-xl text-white">
-                <FiTrophy className="text-3xl" />
+                <FiAward className="text-3xl" />
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-800">Goals & Achievements</h1>
