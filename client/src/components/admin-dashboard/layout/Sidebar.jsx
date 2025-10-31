@@ -7,6 +7,7 @@ import {
 
 const menuItems = [
   { label: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
+  { label: 'Analytics', icon: <FiBarChart2 />, path: '/analytics' },
   { label: 'Monthly Reports', icon: <FiCamera />, path: '/reports' },
   {
     label: 'User Management',
