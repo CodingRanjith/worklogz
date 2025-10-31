@@ -16,7 +16,7 @@ exports.createDailySalaryConfig = async (req, res) => {
       startDate,
       endDate,
       autoApply,
-      createdBy: req.user.id
+      createdBy: req.user._id
     });
 
     await config.save();
@@ -221,7 +221,7 @@ const applyDailyCredits = async () => {
 // Get user's daily earnings
 exports.getUserDailyEarnings = async (req, res) => {
   try {
-    const userId = req.params.userId || req.user.id;
+    const userId = req.params.userId || req.user._id;
     const user = await User.findById(userId).select('name email dailyEarnings lastDailyCreditDate');
 
     if (!user) {
@@ -285,6 +285,4 @@ exports.resetUserDailyEarnings = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
-module.exports.applyDailyCredits = applyDailyCredits;
 

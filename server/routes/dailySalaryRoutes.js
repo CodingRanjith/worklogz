@@ -13,23 +13,23 @@ const {
   resetUserDailyEarnings
 } = require('../controllers/dailySalaryController');
 
-const { authenticate } = require('../middleware/auth');
-const { isAdmin } = require('../middleware/role');
+const authenticate = require('../middleware/auth');
+const roleMiddleware = require('../middleware/role');
 
 // Public/User routes (requires authentication)
 router.get('/earnings/me', authenticate, getUserDailyEarnings);
 router.get('/earnings/:userId', authenticate, getUserDailyEarnings);
 
 // Admin routes
-router.post('/config', authenticate, isAdmin, createDailySalaryConfig);
-router.get('/config', authenticate, isAdmin, getAllDailySalaryConfigs);
-router.get('/config/:id', authenticate, isAdmin, getDailySalaryConfigById);
-router.put('/config/:id', authenticate, isAdmin, updateDailySalaryConfig);
-router.delete('/config/:id', authenticate, isAdmin, deleteDailySalaryConfig);
-router.patch('/config/:id/toggle', authenticate, isAdmin, toggleConfigStatus);
-router.post('/apply-credits', authenticate, isAdmin, applyDailyCreditsManually);
-router.get('/stats', authenticate, isAdmin, getDailySalaryStats);
-router.post('/reset-earnings/:userId', authenticate, isAdmin, resetUserDailyEarnings);
+router.post('/config', authenticate, roleMiddleware('admin'), createDailySalaryConfig);
+router.get('/config', authenticate, roleMiddleware('admin'), getAllDailySalaryConfigs);
+router.get('/config/:id', authenticate, roleMiddleware('admin'), getDailySalaryConfigById);
+router.put('/config/:id', authenticate, roleMiddleware('admin'), updateDailySalaryConfig);
+router.delete('/config/:id', authenticate, roleMiddleware('admin'), deleteDailySalaryConfig);
+router.patch('/config/:id/toggle', authenticate, roleMiddleware('admin'), toggleConfigStatus);
+router.post('/apply-credits', authenticate, roleMiddleware('admin'), applyDailyCreditsManually);
+router.get('/stats', authenticate, roleMiddleware('admin'), getDailySalaryStats);
+router.post('/reset-earnings/:userId', authenticate, roleMiddleware('admin'), resetUserDailyEarnings);
 
 module.exports = router;
 

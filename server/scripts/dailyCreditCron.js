@@ -63,11 +63,77 @@ async function runCronJob() {
   try {
     await connectDB();
     
-    // Import the controller function
-    const { applyDailyCredits } = require('../controllers/dailySalaryController');
+    // Import required models and apply credits logic
+    const DailySalaryConfig = require('../models/DailySalaryConfig');
+    const User = require('../models/User');
     
-    // Apply daily credits
-    const result = await applyDailyCredits();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Get all active configurations
+    const activeConfigs = await DailySalaryConfig.find({
+      isActive: true,
+      autoApply: true,
+      startDate: { $lte: today },
+      $or: [
+        { endDate: null },
+        { endDate: { $gte: today } }
+      ]
+    });
+
+    let updatedUsersCount = 0;
+    const updates = [];
+
+    for (const config of activeConfigs) {
+      // Check if already applied today
+      if (config.lastAppliedDate) {
+        const lastApplied = new Date(config.lastAppliedDate);
+        lastApplied.setHours(0, 0, 0, 0);
+        if (lastApplied.getTime() === today.getTime()) {
+          continue;
+        }
+      }
+
+      let query = { isActive: true };
+
+      if (config.appliesTo === 'specific_departments' && config.departments.length > 0) {
+        query.department = { $in: config.departments };
+      } else if (config.appliesTo === 'specific_users' && config.users.length > 0) {
+        query._id = { $in: config.users };
+      }
+
+      const result = await User.updateMany(
+        {
+          ...query,
+          $or: [
+            { lastDailyCreditDate: { $lt: today } },
+            { lastDailyCreditDate: null }
+          ]
+        },
+        {
+          $inc: { dailyEarnings: config.amount },
+          $set: { lastDailyCreditDate: today }
+        }
+      );
+
+      updatedUsersCount += result.modifiedCount;
+
+      config.lastAppliedDate = today;
+      await config.save();
+
+      updates.push({
+        configName: config.name,
+        amount: config.amount,
+        usersUpdated: result.modifiedCount
+      });
+    }
+
+    const result = {
+      message: 'Daily credits applied successfully',
+      totalUsersUpdated: updatedUsersCount,
+      details: updates,
+      appliedAt: new Date()
+    };
     
     console.log('✅ Daily credits applied successfully!');
     console.log('Users updated:', result.totalUsersUpdated);
