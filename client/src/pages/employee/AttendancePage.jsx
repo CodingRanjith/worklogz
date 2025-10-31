@@ -15,6 +15,7 @@ import CameraView from "../../components/attendance/CameraView";
 import { compressImage } from "../../components/attendance/utils";
 import TimesheetModal from "../../components/timesheet/TimesheetModal";
 import HolidayModal from "../../components/holidays/HolidayModal";
+import DailyEarningsCard from "../../components/attendance/DailyEarningsCard";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -570,6 +571,14 @@ function AttendancePage() {
           </div>
         </div>
         <AttendanceCards attendanceData={attendanceHistory} />
+        
+        {/* Daily Earnings Card */}
+        {isSelf && (
+          <div className="mt-6">
+            <DailyEarningsCard />
+          </div>
+        )}
+        
         <div className="mt-6">
           <ActivityLog activities={filteredLogs} />
         </div>

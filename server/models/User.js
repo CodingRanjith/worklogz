@@ -48,6 +48,13 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  dailyEarnings: {
+    type: Number,
+    default: 0
+  },
+  lastDailyCreditDate: {
+    type: Date
+  },
   role: { 
     type: String, 
     enum: ['employee', 'admin', 'other'], 
