@@ -43,6 +43,7 @@ import OfferLetters from './pages/admin/OfferLetters';
 import RelievingLetters from './pages/admin/RelievingLetters';
 import UploadDocuments from './pages/admin/UploadDocuments';
 import Settings from './pages/admin/Settings';
+import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 
@@ -112,6 +113,7 @@ function App() {
           <Route path="/relieving-letters" element={<RelievingLetters />} />
           <Route path="/upload-documents" element={<UploadDocuments />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/analytics" element={<AnalyticsDashboard />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>
