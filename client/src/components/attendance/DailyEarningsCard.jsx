@@ -16,33 +16,7 @@ const DailyEarningsCard = () => {
     fetchEarnings();
   }, []);
 
-  const calculateEarningBreakdown = (dailyEarnings, lastCreditDate) => {
-    // For demo purposes, simulate breakdown
-    // In production, you'd track this in backend
-    const today = new Date();
-    const lastCredit = lastCreditDate ? new Date(lastCreditDate) : null;
-    
-    // Calculate days in current month until today
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const daysThisMonth = Math.floor((today - startOfMonth) / (1000 * 60 * 60 * 24)) + 1;
-    
-    // Calculate days in current week
-    const startOfWeek = new Date(today);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
-    const daysThisWeek = Math.floor((today - startOfWeek) / (1000 * 60 * 60 * 24)) + 1;
-    
-    // Assume 100 rupees per day (you can get this from config)
-    const dailyRate = 100;
-    
-    return {
-      today: dailyRate, // Today's earning
-      thisWeek: dailyRate * Math.min(daysThisWeek, 7), // This week
-      thisMonth: dailyRate * daysThisMonth, // This month
-      total: dailyEarnings || 0 // Total accumulated
-    };
-  };
+  // No longer needed - backend calculates everything dynamically
 
   const fetchEarnings = async () => {
     try {
@@ -55,15 +29,20 @@ const DailyEarningsCard = () => {
       
       if (data.success) {
         setEarnings(data.data);
-        const breakdown = calculateEarningBreakdown(
-          data.data.dailyEarnings,
-          data.data.lastDailyCreditDate
-        );
-        setEarningBreakdown(breakdown);
+        
+        // Use dynamic data from backend
+        setEarningBreakdown({
+          today: data.data.dailyRate || 0,  // Today's configured rate
+          thisWeek: data.data.weeklyEarnings || 0,  // Calculated by backend
+          thisMonth: data.data.monthlyEarnings || 0,  // Calculated by backend
+          total: data.data.dailyEarnings || 0  // Total accumulated
+        });
       } else {
         setEarnings({
           dailyEarnings: 0,
-          lastDailyCreditDate: null
+          lastDailyCreditDate: null,
+          dailyRate: 0,
+          applicableConfigs: []
         });
         setEarningBreakdown({
           today: 0,
@@ -76,7 +55,9 @@ const DailyEarningsCard = () => {
       console.error('Error fetching earnings:', error);
       setEarnings({
         dailyEarnings: 0,
-        lastDailyCreditDate: null
+        lastDailyCreditDate: null,
+        dailyRate: 0,
+        applicableConfigs: []
       });
       setEarningBreakdown({
         today: 0,
@@ -217,6 +198,27 @@ const DailyEarningsCard = () => {
             </div>
           </div>
         </div>
+
+        {/* Active Configurations Info */}
+        {earnings.applicableConfigs && earnings.applicableConfigs.length > 0 && (
+          <div className="mt-6 bg-indigo-50 border-l-4 border-indigo-400 p-4 rounded">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚙️</span>
+              <div className="flex-1">
+                <p className="text-sm text-indigo-800 font-semibold mb-2">Active Credit Configurations:</p>
+                {earnings.applicableConfigs.map((config, index) => (
+                  <div key={index} className="flex justify-between items-center bg-white rounded px-3 py-2 mb-1">
+                    <span className="text-xs text-indigo-700 font-medium">{config.name}</span>
+                    <span className="text-xs text-green-700 font-bold">+₹{config.amount}</span>
+                  </div>
+                ))}
+                <p className="text-xs text-indigo-600 mt-2">
+                  Total Daily Rate: <strong>₹{earnings.dailyRate}</strong> per day
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Info Section */}
         <div className="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">

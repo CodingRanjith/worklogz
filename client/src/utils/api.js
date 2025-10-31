@@ -117,6 +117,23 @@ export const API_ENDPOINTS = {
   // getPayslipsByUser: (userId) => `${BASE_URL}/api/payslips/user/${userId}`, // GET all payslips for one user
 
   // -----------------
+  // Employee Engagement APIs
+  // -----------------
+  getUserAchievements: `${BASE_URL}/api/engagement/achievements/me`,
+  getUserAchievementsById: (userId) => `${BASE_URL}/api/engagement/achievements/${userId}`,
+  awardAchievement: `${BASE_URL}/api/engagement/achievements/award`,
+  getLeaderboard: `${BASE_URL}/api/engagement/leaderboard`,
+  getUserGoals: `${BASE_URL}/api/engagement/goals/me`,
+  createGoal: `${BASE_URL}/api/engagement/goals`,
+  updateGoalProgress: (id) => `${BASE_URL}/api/engagement/goals/${id}/progress`,
+  deleteGoal: (id) => `${BASE_URL}/api/engagement/goals/${id}`,
+  getUserEvents: `${BASE_URL}/api/engagement/events`,
+  createEvent: `${BASE_URL}/api/engagement/events`,
+  updateEvent: (id) => `${BASE_URL}/api/engagement/events/${id}`,
+  deleteEvent: (id) => `${BASE_URL}/api/engagement/events/${id}`,
+  getEngagementDashboard: `${BASE_URL}/api/engagement/dashboard/stats`,
+
+  // -----------------
   // Daily Salary Credit APIs
   // -----------------
   createDailySalaryConfig: `${BASE_URL}/api/daily-salary/config`,

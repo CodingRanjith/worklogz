@@ -16,6 +16,7 @@ import { compressImage } from "../../components/attendance/utils";
 import TimesheetModal from "../../components/timesheet/TimesheetModal";
 import HolidayModal from "../../components/holidays/HolidayModal";
 import DailyEarningsCard from "../../components/attendance/DailyEarningsCard";
+import QuickAccessCard from "../../components/employee/QuickAccessCard";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -576,6 +577,13 @@ function AttendancePage() {
         {isSelf && (
           <div className="mt-6">
             <DailyEarningsCard />
+          </div>
+        )}
+        
+        {/* Quick Access Card */}
+        {isSelf && (
+          <div className="mt-6">
+            <QuickAccessCard />
           </div>
         )}
         

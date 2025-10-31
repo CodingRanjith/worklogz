@@ -218,17 +218,82 @@ const applyDailyCredits = async () => {
   }
 };
 
-// Get user's daily earnings
+// Get user's daily earnings with active config details
 exports.getUserDailyEarnings = async (req, res) => {
   try {
     const userId = req.params.userId || req.user._id;
-    const user = await User.findById(userId).select('name email dailyEarnings lastDailyCreditDate');
+    const user = await User.findById(userId).select('name email dailyEarnings lastDailyCreditDate department');
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.status(200).json({ success: true, data: user });
+    // Find active configurations that apply to this user
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const activeConfigs = await DailySalaryConfig.find({
+      isActive: true,
+      startDate: { $lte: today },
+      $or: [
+        { endDate: null },
+        { endDate: { $gte: today } }
+      ]
+    });
+
+    // Calculate applicable daily rate for this user
+    let dailyRate = 0;
+    const applicableConfigs = [];
+
+    for (const config of activeConfigs) {
+      let applies = false;
+
+      if (config.appliesTo === 'all') {
+        applies = true;
+      } else if (config.appliesTo === 'specific_departments' && config.departments.includes(user.department)) {
+        applies = true;
+      } else if (config.appliesTo === 'specific_users' && config.users.some(u => u.toString() === userId.toString())) {
+        applies = true;
+      }
+
+      if (applies) {
+        dailyRate += config.amount;
+        applicableConfigs.push({
+          name: config.name,
+          amount: config.amount,
+          description: config.description
+        });
+      }
+    }
+
+    // Calculate weekly and monthly earnings based on actual daily rate
+    const startOfWeek = new Date(today);
+    const day = startOfWeek.getDay();
+    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+    startOfWeek.setDate(diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Count days with credits this week
+    const daysThisWeek = Math.floor((today - startOfWeek) / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Count days with credits this month
+    const daysThisMonth = Math.floor((today - startOfMonth) / (1000 * 60 * 60 * 24)) + 1;
+
+    res.status(200).json({ 
+      success: true, 
+      data: {
+        ...user.toObject(),
+        dailyRate: dailyRate,
+        weeklyEarnings: dailyRate * daysThisWeek,
+        monthlyEarnings: dailyRate * daysThisMonth,
+        applicableConfigs: applicableConfigs,
+        daysThisWeek: daysThisWeek,
+        daysThisMonth: daysThisMonth
+      }
+    });
   } catch (error) {
     console.error('Error fetching user earnings:', error);
     res.status(500).json({ success: false, message: error.message });
