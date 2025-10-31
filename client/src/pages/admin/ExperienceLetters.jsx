@@ -76,55 +76,141 @@ const ExperienceLetters = () => {
   };
 
   const LetterPreview = () => (
-    <div id="letter-preview" className="bg-white p-12 max-w-4xl mx-auto" style={{ fontFamily: 'Times New Roman, serif' }}>
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">{letterData.companyName}</h1>
-        <p className="text-gray-600">Experience Certificate</p>
-      </div>
-
-      <div className="mb-6">
-        <p className="text-right text-gray-700">Date: {new Date(letterData.dateOfLeaving).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-      </div>
-
-      <div className="mb-6">
-        <p className="font-bold text-lg">TO WHOM IT MAY CONCERN</p>
-      </div>
-
-      <div className="space-y-4 text-justify leading-relaxed">
-        <p>
-          This is to certify that <strong>{letterData.employeeName}</strong> was employed with{' '}
-          <strong>{letterData.companyName}</strong> as <strong>{letterData.position}</strong> in the{' '}
-          <strong>{letterData.department}</strong> department from{' '}
-          <strong>{new Date(letterData.dateOfJoining).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>{' '}
-          to <strong>{new Date(letterData.dateOfLeaving).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
-        </p>
-
-        <p>
-          During their tenure of <strong>{letterData.duration}</strong>, {letterData.employeeName} demonstrated{' '}
-          {letterData.performance === 'excellent' ? 'excellent' : letterData.performance === 'good' ? 'good' : 'satisfactory'}{' '}
-          performance and professionalism.
-        </p>
-
-        {letterData.responsibilities && (
-          <p>
-            <strong>Key Responsibilities:</strong>
-            <br />
-            {letterData.responsibilities}
-          </p>
-        )}
-
-        <p>
-          We wish {letterData.employeeName} all the best for their future endeavors.
-        </p>
-      </div>
-
-      <div className="mt-12">
-        <p className="font-semibold">Sincerely,</p>
-        <div className="mt-8">
-          <p className="font-semibold">{letterData.signerName}</p>
-          <p className="text-gray-600">{letterData.signerDesignation}</p>
-          <p className="text-gray-600">{letterData.companyName}</p>
+    <div id="letter-preview" className="bg-white max-w-4xl mx-auto" style={{ fontFamily: 'Times New Roman, serif', minHeight: '297mm', width: '210mm' }}>
+      {/* Professional Letterhead - Using uploaded letterhead */}
+      <div className="relative">
+        {/* Letterhead Image Background */}
+        <div className="w-full h-auto">
+          <img 
+            src="/letterhead/letterhead.jpg" 
+            alt="Company Letterhead" 
+            className="w-full h-auto"
+            onError={(e) => {
+              // Fallback to gradient if image not found
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'block';
+            }}
+          />
         </div>
+        {/* Fallback gradient letterhead if image is not available */}
+        <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-8 relative overflow-hidden" style={{ display: 'none' }}>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-10 rounded-full -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-10 rounded-full -ml-24 -mb-24"></div>
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold mb-2">{letterData.companyName}</h1>
+            <div className="flex items-center gap-4 text-sm text-green-100">
+              <span>📧 info@company.com</span>
+              <span>|</span>
+              <span>📞 +91 1234567890</span>
+              <span>|</span>
+              <span>🌐 www.company.com</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-12">
+        <div className="text-center mb-8 border-b-2 border-green-600 pb-4">
+          <h2 className="text-3xl font-bold text-green-800">EXPERIENCE CERTIFICATE</h2>
+        </div>
+
+        <div className="mb-6 text-right bg-green-50 p-3 rounded">
+          <p className="text-gray-700 font-semibold">Date: {new Date(letterData.dateOfLeaving).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+          <p className="text-gray-600 text-sm">Ref: {letterData.companyName.substring(0, 3).toUpperCase()}/EXP/{new Date().getFullYear()}/{Math.floor(Math.random() * 1000)}</p>
+        </div>
+
+        <div className="mb-8 bg-green-100 border-l-4 border-green-600 p-4">
+          <p className="font-bold text-2xl text-green-800">TO WHOM IT MAY CONCERN</p>
+        </div>
+
+        <div className="space-y-6 text-justify leading-relaxed">
+          <div className="bg-white border-2 border-green-600 rounded-lg p-6">
+            <p className="leading-7 text-gray-800">
+              This is to certify that <strong className="text-green-700 text-lg">{letterData.employeeName}</strong> was employed with{' '}
+              <strong>{letterData.companyName}</strong> as <strong className="text-blue-700">{letterData.position}</strong> in the{' '}
+              <strong>{letterData.department}</strong> department.
+            </p>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <table className="w-full">
+              <tbody>
+                <tr className="border-b border-gray-200">
+                  <td className="p-4 bg-green-50 font-semibold w-1/3">📅 Date of Joining</td>
+                  <td className="p-4">{new Date(letterData.dateOfJoining).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="p-4 bg-green-50 font-semibold">📅 Date of Leaving</td>
+                  <td className="p-4">{new Date(letterData.dateOfLeaving).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                </tr>
+                <tr className="border-b border-gray-200">
+                  <td className="p-4 bg-green-50 font-semibold">⏱️ Total Duration</td>
+                  <td className="p-4 font-bold text-green-700">{letterData.duration}</td>
+                </tr>
+                <tr>
+                  <td className="p-4 bg-green-50 font-semibold">⭐ Performance</td>
+                  <td className="p-4">
+                    <span className={`px-3 py-1 rounded-full font-semibold ${
+                      letterData.performance === 'excellent' ? 'bg-green-100 text-green-800' :
+                      letterData.performance === 'good' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {letterData.performance.toUpperCase()}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+            <p className="font-semibold text-blue-800 text-lg mb-3">💼 Professional Conduct</p>
+            <p className="leading-7 text-gray-800">
+              During their tenure, <strong>{letterData.employeeName}</strong> demonstrated{' '}
+              {letterData.performance === 'excellent' ? 'exceptional' : letterData.performance === 'good' ? 'commendable' : 'satisfactory'}{' '}
+              performance and maintained high standards of professionalism throughout their employment.
+            </p>
+          </div>
+
+          {letterData.responsibilities && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-5">
+              <p className="font-semibold text-purple-800 text-lg mb-3">🎯 Key Responsibilities</p>
+              <p className="leading-7 text-gray-800 whitespace-pre-line">{letterData.responsibilities}</p>
+            </div>
+          )}
+
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-500 rounded-lg p-6 text-center">
+            <p className="text-lg font-semibold text-gray-800">
+              We wish <strong className="text-green-700">{letterData.employeeName}</strong> all the very best for their future endeavors and continued success! 🌟
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-12 flex justify-between items-end">
+          <div>
+            <p className="font-semibold text-gray-600">For {letterData.companyName},</p>
+            <div className="mt-8 border-t-2 border-green-600 pt-2 inline-block">
+              <p className="font-bold text-lg">{letterData.signerName}</p>
+              <p className="text-green-700 font-semibold">{letterData.signerDesignation}</p>
+              <p className="text-gray-600">{letterData.companyName}</p>
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 text-xs">
+              Company<br/>Seal
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-12 pt-6 border-t border-gray-300 text-sm text-gray-600 bg-gray-50 p-4 rounded">
+          <p className="text-center">✓ This is a computer-generated certificate and is valid without physical signature</p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="bg-gradient-to-r from-green-600 to-green-800 text-white p-6 mt-8 text-center text-sm">
+        <p>{letterData.companyName} | Empowering Careers, Building Excellence</p>
+        <p className="mt-1 text-green-200">Issued for official purposes only</p>
       </div>
     </div>
   );
