@@ -1,12 +1,12 @@
 
 
 // src/utils/api.js
-export const BASE_URL = 'https://worklogz.onrender.com';
+// export const BASE_URL = 'https://worklogz.onrender.com';
 
 // src/utils/api.js
 
 // // // // Base URL
-// export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
+export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
 
 // -----------------
 // Auth & User APIs
@@ -116,7 +116,20 @@ export const API_ENDPOINTS = {
   // getPayslipById: (id) => `${BASE_URL}/api/payslips/${id}`, // GET payslip by ID
   // getPayslipsByUser: (userId) => `${BASE_URL}/api/payslips/user/${userId}`, // GET all payslips for one user
 
-
+  // -----------------
+  // Daily Salary Credit APIs
+  // -----------------
+  createDailySalaryConfig: `${BASE_URL}/api/daily-salary/config`,
+  getDailySalaryConfigs: `${BASE_URL}/api/daily-salary/config`,
+  getDailySalaryConfigById: (id) => `${BASE_URL}/api/daily-salary/config/${id}`,
+  updateDailySalaryConfig: (id) => `${BASE_URL}/api/daily-salary/config/${id}`,
+  deleteDailySalaryConfig: (id) => `${BASE_URL}/api/daily-salary/config/${id}`,
+  toggleDailySalaryStatus: (id) => `${BASE_URL}/api/daily-salary/config/${id}/toggle`,
+  applyDailyCredits: `${BASE_URL}/api/daily-salary/apply-credits`,
+  getDailySalaryStats: `${BASE_URL}/api/daily-salary/stats`,
+  getUserDailyEarnings: `${BASE_URL}/api/daily-salary/earnings/me`,
+  getUserDailyEarningsById: (userId) => `${BASE_URL}/api/daily-salary/earnings/${userId}`,
+  resetUserEarnings: (userId) => `${BASE_URL}/api/daily-salary/reset-earnings/${userId}`,
 
 };
 

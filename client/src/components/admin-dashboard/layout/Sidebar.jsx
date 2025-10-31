@@ -40,6 +40,7 @@ const menuItems = [
   },
   { label: 'Pay History', icon: <FiDollarSign />, path: '/salaryhistory' },
   { label: 'Payslip Generator', icon: <FiBarChart2 />, path: '/payslip' },
+  { label: 'Daily Salary Credit', icon: <FiDollarSign />, path: '/daily-salary-credit' },
   { label: 'Holiday List', icon: <FiCalendar />, path: '/holidays' },
   { label: 'Settings', icon: <FiSettings />, path: '/settings' }
 ];

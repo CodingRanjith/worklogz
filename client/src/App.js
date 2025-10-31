@@ -36,6 +36,13 @@ import UserTimesheet from './pages/admin/UserTimesheet';
 import CompanyDepartments from './pages/admin/CompanyDepartments';
 import CreateWorkCard from './pages/admin/CreateWorkCard';
 import DepartmentWorkCards from './pages/admin/DepartmentWorkCards';
+import DailySalaryCredit from './pages/admin/DailySalaryCredit';
+import LateReports from './pages/admin/LateReports';
+import ExperienceLetters from './pages/admin/ExperienceLetters';
+import OfferLetters from './pages/admin/OfferLetters';
+import RelievingLetters from './pages/admin/RelievingLetters';
+import UploadDocuments from './pages/admin/UploadDocuments';
+import Settings from './pages/admin/Settings';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 
@@ -98,6 +105,13 @@ function App() {
           <Route path="/company-departments" element={<CompanyDepartments />} />
           <Route path="/company-departments/create" element={<CreateWorkCard />} />
           <Route path="/company-departments/:department" element={<DepartmentWorkCards />} />
+          <Route path="/daily-salary-credit" element={<DailySalaryCredit />} />
+          <Route path="/late-reports" element={<LateReports />} />
+          <Route path="/experience-letters" element={<ExperienceLetters />} />
+          <Route path="/offer-letters" element={<OfferLetters />} />
+          <Route path="/relieving-letters" element={<RelievingLetters />} />
+          <Route path="/upload-documents" element={<UploadDocuments />} />
+          <Route path="/settings" element={<Settings />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>
