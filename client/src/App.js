@@ -24,6 +24,9 @@ import LeaveRequestsAdmin from './pages/admin/LeaveRequests';
 
 import AttendancePage from './pages/employee/AttendancePage';
 import Leave from './pages/employee/ApplyLeaveForm';
+import GoalsAchievements from './pages/employee/GoalsAchievements';
+import CalendarView from './pages/employee/CalendarView';
+import PerformanceDashboard from './pages/employee/PerformanceDashboard';
 import EditUser from './components/EditUser';
 import PendingUsers from './pages/admin/PendingUsers';
 import AllUsers from './pages/admin/AllUsers';
@@ -86,6 +89,9 @@ function App() {
         <Route path="/attendance/:userId" element={<AttendancePage />} />
         <Route path="/apply-leave" element={<Leave />} />
         <Route path="/timesheet" element={<TimeSheet />} />
+        <Route path="/goals-achievements" element={<GoalsAchievements />} />
+        <Route path="/calendar" element={<CalendarView />} />
+        <Route path="/performance" element={<PerformanceDashboard />} />
         
 
         {/* Protected Admin Layout Wrapper */}

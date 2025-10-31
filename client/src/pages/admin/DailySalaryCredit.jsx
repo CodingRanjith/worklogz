@@ -211,6 +211,55 @@ const DailySalaryCredit = () => {
     setEditingConfig(null);
   };
 
+  // Calculate dynamic budget projections
+  const calculateBudgetProjections = () => {
+    if (!stats) return { daily: 0, weekly: 0, monthly: 0, yearly: 0 };
+
+    const activeAmount = configs
+      .filter(c => c.isActive)
+      .reduce((sum, c) => {
+        if (c.appliesTo === 'all') {
+          return sum + (c.amount * users.length);
+        } else if (c.appliesTo === 'specific_departments') {
+          const deptUsers = users.filter(u => c.departments?.includes(u.department));
+          return sum + (c.amount * deptUsers.length);
+        } else if (c.appliesTo === 'specific_users') {
+          return sum + (c.amount * (c.users?.length || 0));
+        }
+        return sum;
+      }, 0);
+
+    return {
+      daily: activeAmount,
+      weekly: activeAmount * 7,
+      monthly: activeAmount * 30,
+      yearly: activeAmount * 365
+    };
+  };
+
+  const budgetProjections = calculateBudgetProjections();
+  
+  // Calculate affected users count
+  const getAffectedUsersCount = () => {
+    const affectedUsers = new Set();
+    configs.filter(c => c.isActive).forEach(config => {
+      if (config.appliesTo === 'all') {
+        users.forEach(u => affectedUsers.add(u._id));
+      } else if (config.appliesTo === 'specific_departments') {
+        users.filter(u => config.departments?.includes(u.department))
+          .forEach(u => affectedUsers.add(u._id));
+      } else if (config.appliesTo === 'specific_users') {
+        config.users?.forEach(userId => {
+          if (typeof userId === 'object') affectedUsers.add(userId._id);
+          else affectedUsers.add(userId);
+        });
+      }
+    });
+    return affectedUsers.size;
+  };
+
+  const affectedUsersCount = getAffectedUsersCount();
+
   const departments = ['Engineering', 'Sales', 'Marketing', 'HR', 'Finance', 'Operations', 'Support'];
 
   return (
@@ -223,44 +272,90 @@ const DailySalaryCredit = () => {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Total Configs</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.totalConfigs}</p>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-6 rounded-lg shadow-lg text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm font-medium">Total Configs</p>
+                  <p className="text-3xl font-bold mt-2">{stats.totalConfigs}</p>
+                  <p className="text-blue-200 text-xs mt-1">{stats.activeConfigs} active</p>
+                </div>
+                <div className="bg-blue-400 bg-opacity-30 p-3 rounded-full">
+                  <FiActivity className="text-3xl" />
+                </div>
               </div>
-              <FiActivity className="text-blue-500 text-3xl" />
+            </div>
+            
+            <div className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-lg shadow-lg text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm font-medium">Affected Users</p>
+                  <p className="text-3xl font-bold mt-2">{affectedUsersCount}</p>
+                  <p className="text-green-200 text-xs mt-1">of {users.length} total</p>
+                </div>
+                <div className="bg-green-400 bg-opacity-30 p-3 rounded-full">
+                  <FiUsers className="text-3xl" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 rounded-lg shadow-lg text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm font-medium">Daily Budget</p>
+                  <p className="text-3xl font-bold mt-2">₹{budgetProjections.daily.toLocaleString()}</p>
+                  <p className="text-purple-200 text-xs mt-1">per day</p>
+                </div>
+                <div className="bg-purple-400 bg-opacity-30 p-3 rounded-full">
+                  <FiDollarSign className="text-3xl" />
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-6 rounded-lg shadow-lg text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm font-medium">Total Paid Out</p>
+                  <p className="text-3xl font-bold mt-2">₹{stats.totalEarnings.toLocaleString()}</p>
+                  <p className="text-orange-200 text-xs mt-1">all time</p>
+                </div>
+                <div className="bg-orange-400 bg-opacity-30 p-3 rounded-full">
+                  <FiToggleRight className="text-3xl" />
+                </div>
+              </div>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Active Configs</p>
-                <p className="text-2xl font-bold text-green-600">{stats.activeConfigs}</p>
+
+          {/* Budget Projections Card */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <FiDollarSign className="text-blue-600" />
+              Budget Projections (Based on Active Configs)
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <p className="text-blue-600 text-xs font-semibold uppercase mb-1">Daily</p>
+                <p className="text-2xl font-bold text-blue-900">₹{budgetProjections.daily.toLocaleString()}</p>
               </div>
-              <FiToggleRight className="text-green-500 text-3xl" />
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Users with Earnings</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.totalUsersWithEarnings}</p>
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                <p className="text-purple-600 text-xs font-semibold uppercase mb-1">Weekly</p>
+                <p className="text-2xl font-bold text-purple-900">₹{budgetProjections.weekly.toLocaleString()}</p>
               </div>
-              <FiUsers className="text-purple-500 text-3xl" />
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm">Total Earnings</p>
-                <p className="text-2xl font-bold text-green-600">₹{stats.totalEarnings.toFixed(2)}</p>
+              <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                <p className="text-orange-600 text-xs font-semibold uppercase mb-1">Monthly</p>
+                <p className="text-2xl font-bold text-orange-900">₹{budgetProjections.monthly.toLocaleString()}</p>
               </div>
-              <FiDollarSign className="text-green-500 text-3xl" />
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <p className="text-green-600 text-xs font-semibold uppercase mb-1">Yearly</p>
+                <p className="text-2xl font-bold text-green-900">₹{budgetProjections.yearly.toLocaleString()}</p>
+              </div>
             </div>
+            <p className="text-xs text-gray-500 mt-3">
+              💡 These are projected costs based on current active configurations and user counts.
+            </p>
           </div>
-        </div>
+        </>
       )}
 
       {/* Action Buttons */}
@@ -289,69 +384,121 @@ const DailySalaryCredit = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applies To</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Users Affected</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Daily Cost</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Auto Apply</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {configs.map((config) => (
-                <tr key={config._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{config.name}</div>
-                    <div className="text-sm text-gray-500">{config.description}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-semibold text-green-600">₹{config.amount}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-900 capitalize">{config.appliesTo.replace('_', ' ')}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(config.startDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      config.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {config.isActive ? 'Active' : 'Inactive'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      config.autoApply ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {config.autoApply ? 'Yes' : 'No'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleToggleStatus(config._id)}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="Toggle Status"
-                      >
-                        {config.isActive ? <FiToggleRight size={20} /> : <FiToggleLeft size={20} />}
-                      </button>
-                      <button
-                        onClick={() => handleEdit(config)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Edit"
-                      >
-                        <FiEdit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(config._id)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete"
-                      >
-                        <FiTrash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {configs.map((config) => {
+                // Calculate affected users for this config
+                let affectedCount = 0;
+                let dailyCost = 0;
+                
+                if (config.appliesTo === 'all') {
+                  affectedCount = users.length;
+                  dailyCost = config.amount * users.length;
+                } else if (config.appliesTo === 'specific_departments') {
+                  affectedCount = users.filter(u => config.departments?.includes(u.department)).length;
+                  dailyCost = config.amount * affectedCount;
+                } else if (config.appliesTo === 'specific_users') {
+                  affectedCount = config.users?.length || 0;
+                  dailyCost = config.amount * affectedCount;
+                }
+
+                return (
+                  <tr key={config._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`p-2 rounded-lg ${config.isActive ? 'bg-green-100' : 'bg-gray-100'}`}>
+                          <FiDollarSign className={config.isActive ? 'text-green-600' : 'text-gray-400'} />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-gray-900">{config.name}</div>
+                          <div className="text-xs text-gray-500">{config.description}</div>
+                          {config.autoApply && (
+                            <span className="inline-flex items-center gap-1 mt-1 text-xs text-blue-600">
+                              <FiActivity size={12} /> Auto-apply enabled
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-lg font-bold text-green-600">₹{config.amount}</div>
+                      <div className="text-xs text-gray-500">per user/day</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                        config.appliesTo === 'all' ? 'bg-blue-100 text-blue-800' :
+                        config.appliesTo === 'specific_departments' ? 'bg-purple-100 text-purple-800' :
+                        'bg-orange-100 text-orange-800'
+                      }`}>
+                        {config.appliesTo === 'all' ? '👥 All Employees' :
+                         config.appliesTo === 'specific_departments' ? '🏢 Departments' :
+                         '👤 Specific Users'}
+                      </span>
+                      {config.appliesTo === 'specific_departments' && config.departments && (
+                        <div className="text-xs text-gray-600 mt-1">
+                          {config.departments.slice(0, 2).join(', ')}
+                          {config.departments.length > 2 && ` +${config.departments.length - 2}`}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <FiUsers className="text-gray-400" size={16} />
+                        <span className="text-sm font-semibold text-gray-900">{affectedCount}</span>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {((affectedCount / users.length) * 100).toFixed(0)}% of users
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-bold text-indigo-600">₹{dailyCost.toLocaleString()}</div>
+                      <div className="text-xs text-gray-500">₹{(dailyCost * 30).toLocaleString()}/mo</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1 w-fit ${
+                        config.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {config.isActive ? '✓ Active' : '✕ Inactive'}
+                      </span>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Since {new Date(config.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleToggleStatus(config._id)}
+                          className={`p-2 rounded-lg transition ${
+                            config.isActive ? 'text-green-600 hover:bg-green-50' : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                          title="Toggle Status"
+                        >
+                          {config.isActive ? <FiToggleRight size={20} /> : <FiToggleLeft size={20} />}
+                        </button>
+                        <button
+                          onClick={() => handleEdit(config)}
+                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          title="Edit"
+                        >
+                          <FiEdit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(config._id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Delete"
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           {configs.length === 0 && (
