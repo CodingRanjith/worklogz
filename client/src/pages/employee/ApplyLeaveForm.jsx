@@ -9,7 +9,7 @@ const ApplyLeaveForm = () => {
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
-  const [leaveType, setLeaveType] = useState('Casual');
+  const [leaveType, setLeaveType] = useState('Casual Leave');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,8 +77,10 @@ const ApplyLeaveForm = () => {
               onChange={(e) => setLeaveType(e.target.value)}
               className="w-full rounded-xl border px-4 py-2 outline-indigo-500 shadow-sm"
             >
-              <option value="Casual">Casual</option>
-              <option value="Sick">Sick</option>
+              <option value="Casual Leave">Casual Leave</option>
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="Privileged Leave">Privileged Leave</option>
+              <option value="Compensation Off">Compensation Off</option>
               <option value="Emergency">Emergency</option>
             </select>
           </div>
