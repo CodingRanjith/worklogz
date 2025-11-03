@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const DailySalaryConfig = require('../models/DailySalaryConfig');
 const User = require('../models/User');
 const DailyEarningTransaction = require('../models/DailyEarningTransaction');
+const SalaryHistory = require('../models/SalaryHistory');
 
 // Create a new daily salary configuration
 exports.createDailySalaryConfig = async (req, res) => {
@@ -305,7 +306,7 @@ exports.getUserDailyEarnings = async (req, res) => {
     const weekTransactions = await DailyEarningTransaction.aggregate([
       {
         $match: {
-          userId: mongoose.Types.ObjectId(userId),
+          userId: new mongoose.Types.ObjectId(userId),
           date: { $gte: startOfWeek, $lte: endOfToday }
         }
       },
@@ -321,7 +322,7 @@ exports.getUserDailyEarnings = async (req, res) => {
     const monthTransactions = await DailyEarningTransaction.aggregate([
       {
         $match: {
-          userId: mongoose.Types.ObjectId(userId),
+          userId: new mongoose.Types.ObjectId(userId),
           date: { $gte: startOfMonth, $lte: endOfToday }
         }
       },
@@ -401,6 +402,256 @@ exports.resetUserDailyEarnings = async (req, res) => {
     res.status(200).json({ success: true, message: 'User earnings reset successfully', data: user });
   } catch (error) {
     console.error('Error resetting user earnings:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Manual credit to user (admin only)
+exports.manualCredit = async (req, res) => {
+  try {
+    const { userId, amount, date, description } = req.body;
+
+    if (!userId || !amount) {
+      return res.status(400).json({ success: false, message: 'User ID and amount are required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const creditDate = date ? new Date(date) : new Date();
+    creditDate.setHours(0, 0, 0, 0);
+
+    // Create transaction record
+    await DailyEarningTransaction.create({
+      userId: userId,
+      amount: parseFloat(amount),
+      date: creditDate,
+      configsApplied: [{
+        configName: 'Manual Credit by Admin',
+        amount: parseFloat(amount),
+        description: description || 'Manual credit'
+      }]
+    });
+
+    // Update user total
+    user.dailyEarnings = (user.dailyEarnings || 0) + parseFloat(amount);
+    user.lastDailyCreditDate = creditDate;
+    await user.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Credit added successfully',
+      data: {
+        amount: parseFloat(amount),
+        newTotal: user.dailyEarnings
+      }
+    });
+  } catch (error) {
+    console.error('Error adding manual credit:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Update user salary and track history (admin only)
+exports.updateUserSalary = async (req, res) => {
+  try {
+    const { userId, salary, notes } = req.body;
+
+    if (!userId || salary === undefined) {
+      return res.status(400).json({ success: false, message: 'User ID and salary are required' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const oldSalary = user.salary || 0;
+    const newSalary = parseFloat(salary);
+
+    // Determine change type
+    let changeType = 'Manual Adjustment';
+    if (oldSalary === 0) {
+      changeType = 'Initial Setup';
+    } else if (newSalary > oldSalary) {
+      changeType = 'Salary Increase';
+    } else if (newSalary < oldSalary) {
+      changeType = 'Salary Decrease';
+    }
+
+    // Create salary history record
+    await SalaryHistory.create({
+      user: userId,
+      oldSalary: oldSalary,
+      newSalary: newSalary,
+      changedBy: req.user._id,
+      changeType: changeType,
+      notes: notes || '',
+      effectiveDate: new Date()
+    });
+
+    // Update user salary
+    user.salary = newSalary;
+    await user.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Salary updated successfully',
+      data: {
+        oldSalary: oldSalary,
+        newSalary: newSalary,
+        changeType: changeType
+      }
+    });
+  } catch (error) {
+    console.error('Error updating salary:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get salary history for a user (admin)
+exports.getUserSalaryHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const history = await SalaryHistory.find({ user: userId })
+      .populate('changedBy', 'name email')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ 
+      success: true, 
+      data: history
+    });
+  } catch (error) {
+    console.error('Error fetching salary history:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get own salary history (employee)
+exports.getMySalaryHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const history = await SalaryHistory.find({ user: userId })
+      .populate('changedBy', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ 
+      success: true, 
+      data: history
+    });
+  } catch (error) {
+    console.error('Error fetching salary history:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get credit history for user (admin)
+exports.getUserCreditHistory = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const credits = await DailyEarningTransaction.find({ userId })
+      .sort({ date: -1, createdAt: -1 })
+      .limit(100);
+
+    res.status(200).json({ 
+      success: true, 
+      data: credits
+    });
+  } catch (error) {
+    console.error('Error fetching credit history:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Get own credit history (employee)
+exports.getMyCreditHistory = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const credits = await DailyEarningTransaction.find({ userId })
+      .sort({ date: -1, createdAt: -1 })
+      .limit(100);
+
+    res.status(200).json({ 
+      success: true, 
+      data: credits
+    });
+  } catch (error) {
+    console.error('Error fetching credit history:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Edit credit transaction (admin only)
+exports.editCreditTransaction = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { amount, date, description } = req.body;
+
+    const transaction = await DailyEarningTransaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Transaction not found' });
+    }
+
+    const oldAmount = transaction.amount;
+    const newAmount = parseFloat(amount);
+
+    // Update transaction
+    transaction.amount = newAmount;
+    if (date) transaction.date = new Date(date);
+    if (description) {
+      transaction.configsApplied[0].description = description;
+    }
+    await transaction.save();
+
+    // Update user's total earnings
+    const user = await User.findById(transaction.userId);
+    if (user) {
+      user.dailyEarnings = (user.dailyEarnings || 0) - oldAmount + newAmount;
+      await user.save();
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Credit updated successfully',
+      data: transaction
+    });
+  } catch (error) {
+    console.error('Error editing credit:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Delete credit transaction (admin only)
+exports.deleteCreditTransaction = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+
+    const transaction = await DailyEarningTransaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Transaction not found' });
+    }
+
+    // Update user's total earnings
+    const user = await User.findById(transaction.userId);
+    if (user) {
+      user.dailyEarnings = (user.dailyEarnings || 0) - transaction.amount;
+      await user.save();
+    }
+
+    await DailyEarningTransaction.findByIdAndDelete(transactionId);
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Credit deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting credit:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 };

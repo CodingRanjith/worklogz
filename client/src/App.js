@@ -27,6 +27,7 @@ import Leave from './pages/employee/ApplyLeaveForm';
 import GoalsAchievements from './pages/employee/GoalsAchievements';
 import CalendarView from './pages/employee/CalendarView';
 import PerformanceDashboard from './pages/employee/PerformanceDashboard';
+import MyEarnings from './pages/employee/MyEarnings';
 import EditUser from './components/EditUser';
 import PendingUsers from './pages/admin/PendingUsers';
 import AllUsers from './pages/admin/AllUsers';
@@ -92,6 +93,7 @@ function App() {
         <Route path="/goals-achievements" element={<GoalsAchievements />} />
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/performance" element={<PerformanceDashboard />} />
+        <Route path="/my-earnings" element={<MyEarnings />} />
         
 
         {/* Protected Admin Layout Wrapper */}
