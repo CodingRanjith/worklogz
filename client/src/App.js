@@ -24,6 +24,7 @@ import LeaveRequestsAdmin from './pages/admin/LeaveRequests';
 
 import AttendancePage from './pages/employee/AttendancePage';
 import Leave from './pages/employee/ApplyLeaveForm';
+import LeaveManagement from './pages/employee/LeaveManagement';
 import GoalsAchievements from './pages/employee/GoalsAchievements';
 import CalendarView from './pages/employee/CalendarView';
 import PerformanceDashboard from './pages/employee/PerformanceDashboard';
@@ -88,7 +89,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/attendance" element={<AttendancePage />} />
         <Route path="/attendance/:userId" element={<AttendancePage />} />
-        <Route path="/apply-leave" element={<Leave />} />
+        <Route path="/apply-leave" element={<LeaveManagement />} />
         <Route path="/timesheet" element={<TimeSheet />} />
         <Route path="/goals-achievements" element={<GoalsAchievements />} />
         <Route path="/calendar" element={<CalendarView />} />

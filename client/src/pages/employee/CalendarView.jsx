@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FiCalendar, FiPlus, FiTrash2, FiEdit, FiClock, FiMapPin } from 'react-icons/fi';
 import { API_ENDPOINTS } from '../../utils/api';
+import axios from 'axios';
 
 const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState([]);
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [showEventForm, setShowEventForm] = useState(false);
   const [viewMode, setViewMode] = useState('month'); // month, week, day
@@ -21,6 +23,7 @@ const CalendarView = () => {
 
   useEffect(() => {
     fetchEvents();
+    fetchAttendance();
   }, [currentDate]);
 
   const fetchEvents = async () => {
@@ -37,6 +40,49 @@ const CalendarView = () => {
     } catch (error) {
       console.error('Error fetching events:', error);
     }
+  };
+
+  const fetchAttendance = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.get(API_ENDPOINTS.getMyAttendance, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAttendanceHistory(response.data || []);
+    } catch (error) {
+      console.error('Error fetching attendance:', error);
+    }
+  };
+
+  // Build attendance map for quick lookup
+  const getAttendanceMap = () => {
+    const attendanceMap = {};
+    attendanceHistory.forEach((entry) => {
+      const dateKey = new Date(entry.timestamp).toDateString();
+      if (!attendanceMap[dateKey]) {
+        attendanceMap[dateKey] = { checkin: false, checkout: false };
+      }
+      if (entry.type === 'check-in') attendanceMap[dateKey].checkin = true;
+      if (entry.type === 'check-out') attendanceMap[dateKey].checkout = true;
+    });
+    return attendanceMap;
+  };
+
+  // Get attendance status for a date
+  const getAttendanceStatus = (date) => {
+    const attendanceMap = getAttendanceMap();
+    const key = date.toDateString();
+    const record = attendanceMap[key];
+    
+    // Don't show status for future dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (date > today) return null;
+    
+    if (record?.checkin && record?.checkout) return 'present';
+    if (record?.checkin && !record?.checkout) return 'partial';
+    if (!record) return 'absent';
+    return null;
   };
 
   const handleCreateEvent = async (e) => {
@@ -326,20 +372,54 @@ const CalendarView = () => {
               {days.map((dayInfo, index) => {
                 const dayEvents = getEventsForDate(dayInfo.date);
                 const isTodayDate = isToday(dayInfo.date);
+                const attendanceStatus = dayInfo.isCurrentMonth ? getAttendanceStatus(dayInfo.date) : null;
+                
+                // Get background color based on attendance
+                let dayBgClass = '';
+                if (dayInfo.isCurrentMonth) {
+                  if (attendanceStatus === 'present') {
+                    dayBgClass = 'bg-green-200 border-green-400';
+                  } else if (attendanceStatus === 'partial') {
+                    dayBgClass = 'bg-yellow-200 border-yellow-400';
+                  } else if (attendanceStatus === 'absent') {
+                    dayBgClass = 'bg-red-200 border-red-400';
+                  } else if (isTodayDate) {
+                    dayBgClass = 'bg-blue-100 border-blue-500';
+                  } else {
+                    dayBgClass = 'bg-white border-gray-100';
+                  }
+                } else {
+                  dayBgClass = 'bg-gray-50 border-gray-100';
+                }
                 
                 return (
                   <div
                     key={index}
-                    className={`min-h-24 p-2 border border-gray-100 cursor-pointer transition-all hover:bg-blue-50 ${
-                      !dayInfo.isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''
-                    } ${isTodayDate ? 'bg-blue-100 border-blue-500' : ''}`}
+                    className={`min-h-24 p-2 border cursor-pointer transition-all hover:shadow-md ${dayBgClass} ${
+                      !dayInfo.isCurrentMonth ? 'text-gray-400' : ''
+                    } ${isTodayDate && attendanceStatus === null ? 'ring-2 ring-blue-300' : ''}`}
                     onClick={() => setSelectedDate(dayInfo.date)}
                   >
-                    <div className={`font-semibold mb-1 ${isTodayDate ? 'text-blue-600' : ''}`}>
+                    <div className={`font-semibold mb-1 ${
+                      isTodayDate ? 'text-blue-600' : 
+                      attendanceStatus === 'present' ? 'text-green-800' :
+                      attendanceStatus === 'partial' ? 'text-yellow-800' :
+                      attendanceStatus === 'absent' ? 'text-red-800' : 
+                      'text-gray-700'
+                    }`}>
                       {dayInfo.day}
                     </div>
                     <div className="space-y-1">
-                      {dayEvents.slice(0, 2).map((event, i) => (
+                      {attendanceStatus && dayInfo.isCurrentMonth && (
+                        <div className={`text-xs px-1.5 py-0.5 rounded text-center font-medium ${
+                          attendanceStatus === 'present' ? 'bg-green-500 text-white' :
+                          attendanceStatus === 'partial' ? 'bg-yellow-500 text-white' :
+                          'bg-red-500 text-white'
+                        }`}>
+                          {attendanceStatus === 'present' ? '✓' : attendanceStatus === 'partial' ? '~' : '✗'}
+                        </div>
+                      )}
+                      {dayEvents.slice(0, attendanceStatus ? 1 : 2).map((event, i) => (
                         <div
                           key={i}
                           className="text-xs px-2 py-1 rounded truncate text-white"
@@ -349,8 +429,8 @@ const CalendarView = () => {
                           {getEventTypeIcon(event.eventType)} {event.title}
                         </div>
                       ))}
-                      {dayEvents.length > 2 && (
-                        <div className="text-xs text-gray-500">+{dayEvents.length - 2} more</div>
+                      {dayEvents.length > (attendanceStatus ? 1 : 2) && (
+                        <div className="text-xs text-gray-500">+{dayEvents.length - (attendanceStatus ? 1 : 2)} more</div>
                       )}
                     </div>
                   </div>
@@ -403,6 +483,25 @@ const CalendarView = () => {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Attendance Legend */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">Attendance Status</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50 border border-green-200">
+                  <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-semibold text-green-700">Present</span>
+                </div>
+                <div className="flex items-center gap-3 p-2 rounded-lg bg-yellow-50 border border-yellow-200">
+                  <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>
+                  <span className="text-sm font-semibold text-yellow-700">Partial</span>
+                </div>
+                <div className="flex items-center gap-3 p-2 rounded-lg bg-red-50 border border-red-200">
+                  <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                  <span className="text-sm font-semibold text-red-700">Absent</span>
+                </div>
+              </div>
             </div>
 
             {/* Event Types Legend */}
