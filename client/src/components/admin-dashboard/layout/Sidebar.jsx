@@ -25,6 +25,7 @@ const menuItems = [
     label: 'Leaves & Lates',
     icon: <FiCalendar />,
     subItems: [
+      { label: 'Leave Management', path: '/apply-leave' },
       { label: 'Leave Records', path: '/leave-requests' },
       { label: 'Late Reports', path: '/late-reports' }
     ]
