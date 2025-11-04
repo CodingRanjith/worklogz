@@ -308,20 +308,20 @@ function AttendancePage() {
   const absentDays = Math.max(0, currentDayOfMonth - presentDays);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-green-50 px-4 py-6 md:py-10 w-full font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-green-50 px-2 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 lg:py-10 w-full font-sans">
       <ProfileHeader />
 
       {/* Light Multi-Color Action Controls */}
-      <div className="flex flex-col lg:flex-row lg:justify-between items-stretch lg:items-center gap-6 mb-8 px-2 sm:px-0">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 w-full lg:w-auto">
+      <div className="flex flex-col xl:flex-row xl:justify-between items-stretch xl:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4 w-full xl:w-auto">
           <button
             onClick={() => navigate("/my-earnings")}
-            className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-sm sm:text-base"
+            className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
           >
-            <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-green-100 rounded-lg">
+            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="p-1 sm:p-1.5 bg-green-100 rounded-lg">
                 <svg
-                  className="w-4 h-4 text-green-600"
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -334,18 +334,19 @@ function AttendancePage() {
                   />
                 </svg>
               </div>
-              <span>My Earnings</span>
+              <span className="hidden sm:inline">My Earnings</span>
+              <span className="sm:hidden">Earnings</span>
             </span>
           </button>
 
           <button
             onClick={() => navigate("/timesheet")}
-            className="group relative overflow-hidden bg-white hover:bg-emerald-50 text-emerald-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-emerald-200/60 transition-all duration-300 text-sm sm:text-base"
+            className="group relative overflow-hidden bg-white hover:bg-emerald-50 text-emerald-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-emerald-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
           >
-            <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-emerald-100 rounded-lg">
+            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="p-1 sm:p-1.5 bg-emerald-100 rounded-lg">
                 <svg
-                  className="w-4 h-4 text-emerald-600"
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-emerald-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -358,18 +359,19 @@ function AttendancePage() {
                   />
                 </svg>
               </div>
-              <span>Task Manager</span>
+              <span className="hidden sm:inline">Task Manager</span>
+              <span className="sm:hidden">Tasks</span>
             </span>
           </button>
 
           <button
             onClick={() => navigate("/apply-leave")}
-            className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-sm sm:text-base"
+            className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
           >
-            <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-green-100 rounded-lg">
+            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="p-1 sm:p-1.5 bg-green-100 rounded-lg">
                 <svg
-                  className="w-4 h-4 text-green-600"
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -382,18 +384,19 @@ function AttendancePage() {
                   />
                 </svg>
               </div>
-              <span>Apply Leave</span>
+              <span className="hidden sm:inline">Apply Leave</span>
+              <span className="sm:hidden">Leave</span>
             </span>
           </button>
 
           <button
             onClick={() => setShowCalendarModal(true)}
-            className="group relative overflow-hidden bg-white hover:bg-orange-50 text-orange-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-orange-200/60 transition-all duration-300 text-sm sm:text-base"
+            className="group relative overflow-hidden bg-white hover:bg-orange-50 text-orange-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-orange-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
           >
-            <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-orange-100 rounded-lg">
+            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="p-1 sm:p-1.5 bg-orange-100 rounded-lg">
                 <svg
-                  className="w-4 h-4 text-orange-600"
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-orange-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -406,18 +409,19 @@ function AttendancePage() {
                   />
                 </svg>
               </div>
-              <span>Calendar View</span>
+              <span className="hidden sm:inline">Calendar View</span>
+              <span className="sm:hidden">Calendar</span>
             </span>
           </button>
 
           <button
             onClick={() => setShowHolidayModal(true)}
-            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-6 py-3 rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-sm sm:text-base"
+            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
           >
-            <span className="relative z-10 flex items-center justify-center gap-3">
-              <div className="p-1.5 bg-purple-100 rounded-lg">
+            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className="p-1 sm:p-1.5 bg-purple-100 rounded-lg">
                 <svg
-                  className="w-4 h-4 text-purple-600"
+                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-purple-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -430,19 +434,20 @@ function AttendancePage() {
                   />
                 </svg>
               </div>
-              <span>Holiday List</span>
+              <span className="hidden sm:inline">Holiday List</span>
+              <span className="sm:hidden">Holidays</span>
             </span>
           </button>
         </div>
 
         <button
           onClick={onLogout}
-          className="group relative overflow-hidden bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full lg:w-auto text-sm sm:text-base"
+          className="group relative overflow-hidden bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full xl:w-auto text-xs sm:text-sm md:text-base"
         >
-          <span className="relative z-10 flex items-center justify-center gap-3">
-            <div className="p-1.5 bg-pink-300/50 rounded-lg">
+          <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
+            <div className="p-1 sm:p-1.5 bg-pink-300/50 rounded-lg">
               <svg
-                className="w-4 h-4 text-white"
+                className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -461,20 +466,20 @@ function AttendancePage() {
       </div>
 
       {showCalendarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 relative border border-gray-200">
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full relative border border-gray-200 max-h-[95vh] overflow-y-auto">
             <button
-              className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+              className="absolute -top-2 -right-2 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg text-sm sm:text-base"
               onClick={() => setShowCalendarModal(false)}
             >
               ✕
             </button>
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 calendar-modal-header mb-2">
+            <div className="p-4 sm:p-6">
+              <div className="text-center mb-4 sm:mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 calendar-modal-header mb-2">
                   Attendance Calendar
                 </h2>
-                <p className="text-gray-700 calendar-modal-subtitle">
+                <p className="text-sm sm:text-base text-gray-700 calendar-modal-subtitle">
                   {calendarViewDate.toLocaleString("default", {
                     month: "long",
                   })}{" "}
@@ -499,9 +504,9 @@ function AttendancePage() {
                   }
                   return "";
                 }}
-                className="w-full rounded-2xl border-none shadow-inner"
+                className="w-full rounded-xl sm:rounded-2xl border-none shadow-inner"
               />
-              <div className="grid grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
                 <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-green-100">
                   <div className="w-4 h-4 bg-green-500 rounded-full shadow-md"></div>
                   <span className="text-xs font-semibold text-green-700">
@@ -527,15 +532,15 @@ function AttendancePage() {
       )}
 
       {/* Light Multi-Color Stats Cards */}
-      <div className="grid grid-cols-3 gap-6 mb-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-green-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm font-medium text-green-700 uppercase tracking-wide">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-green-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
+            <span className="text-xs sm:text-sm font-medium text-green-700 uppercase tracking-wide">
               Present Days
             </span>
           </div>
-          <p className="text-3xl font-bold text-green-800 mb-2">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-800 mb-2">
             {presentDays}
           </p>
           <div className="w-full bg-green-200 h-1.5 rounded-full">
@@ -547,14 +552,14 @@ function AttendancePage() {
           <p className="text-xs text-green-600 mt-2">Days Attended</p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-            <span className="text-sm font-medium text-orange-700 uppercase tracking-wide">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full"></div>
+            <span className="text-xs sm:text-sm font-medium text-orange-700 uppercase tracking-wide">
               Absent Days
             </span>
           </div>
-          <p className="text-3xl font-bold text-orange-800 mb-2">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-800 mb-2">
             {absentDays}
           </p>
           <div className="w-full bg-orange-200 h-1.5 rounded-full">
@@ -566,14 +571,14 @@ function AttendancePage() {
           <p className="text-xs text-orange-600 mt-2">Days Missed</p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-            <span className="text-sm font-medium text-blue-700 uppercase tracking-wide">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full"></div>
+            <span className="text-xs sm:text-sm font-medium text-blue-700 uppercase tracking-wide">
               Total Days
             </span>
           </div>
-          <p className="text-3xl font-bold text-blue-800 mb-2">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-800 mb-2">
             {currentDayOfMonth}
           </p>
           <div className="w-full bg-blue-200 h-1.5 rounded-full">
@@ -584,11 +589,11 @@ function AttendancePage() {
       </div>
 
       {/* Today's Attendance Analytics */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-teal-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 bg-teal-100 rounded-lg">
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-teal-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
+        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
+          <div className="p-2 sm:p-2.5 md:p-3 bg-teal-100 rounded-lg">
             <svg
-              className="w-6 h-6 text-teal-700"
+              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-teal-700"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -602,10 +607,10 @@ function AttendancePage() {
             </svg>
           </div>
           <div>
-            <h3 className="text-xl font-semibold text-teal-900">
+            <h3 className="text-lg sm:text-xl font-semibold text-teal-900">
               Daily Attendance
             </h3>
-            <p className="text-sm text-teal-600">
+            <p className="text-xs sm:text-sm text-teal-600">
               Monitor your daily work activities and time tracking
             </p>
           </div>
@@ -614,24 +619,24 @@ function AttendancePage() {
         
         {/* Daily Earnings Card */}
         {isSelf && (
-          <div className="mt-6">
+          <div className="mt-4 sm:mt-6">
             <DailyEarningsCard />
           </div>
         )}
         
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <ActivityLog activities={filteredLogs} />
         </div>
       </div>
 
       {/* Light Multi-Color Weekly Analytics */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-indigo-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6">
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-indigo-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
         {/* Header Section */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-indigo-100 rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+            <div className="p-1.5 sm:p-2 bg-indigo-100 rounded-lg">
               <svg
-                className="w-5 h-5 text-indigo-700"
+                className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-indigo-700"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -645,23 +650,23 @@ function AttendancePage() {
               </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-indigo-900">
+              <h3 className="text-base sm:text-lg font-semibold text-indigo-900">
                 Weekly Performance
               </h3>
-              <p className="text-sm text-indigo-600">
+              <p className="text-xs sm:text-sm text-indigo-600">
                 Track your weekly productivity metrics
               </p>
             </div>
           </div>
 
           {/* Week Navigation Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             <button
               onClick={goToPreviousWeek}
-              className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors duration-200"
+              className="p-1.5 sm:p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors duration-200"
             >
               <svg
-                className="w-4 h-4 text-purple-600"
+                className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -675,12 +680,12 @@ function AttendancePage() {
               </svg>
             </button>
 
-            <div className="px-4 py-2 bg-purple-50 rounded-lg border border-purple-200">
+            <div className="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-purple-50 rounded-lg border border-purple-200">
               <div className="text-center">
-                <div className="text-xs font-medium text-purple-600 mb-1">
+                <div className="text-xs font-medium text-purple-600 mb-0.5 sm:mb-1">
                   Week Period
                 </div>
-                <div className="text-sm font-semibold text-purple-800">
+                <div className="text-xs sm:text-sm font-semibold text-purple-800">
                   {(() => {
                     const { startOfWeek, endOfWeek } = getCurrentWeekDates();
                     return `${startOfWeek.toLocaleDateString(
@@ -693,10 +698,10 @@ function AttendancePage() {
 
             <button
               onClick={goToNextWeek}
-              className="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors duration-200"
+              className="p-1.5 sm:p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 transition-colors duration-200"
             >
               <svg
-                className="w-4 h-4 text-purple-600"
+                className="w-3 h-3 sm:w-4 sm:h-4 text-purple-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -713,7 +718,7 @@ function AttendancePage() {
             {currentWeekOffset !== 0 && (
               <button
                 onClick={goToCurrentWeek}
-                className="ml-2 px-3 py-1.5 text-xs font-medium bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-colors duration-200"
+                className="ml-1 sm:ml-2 px-2 sm:px-3 py-1 sm:py-1.5 text-xs font-medium bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-lg transition-colors duration-200"
               >
                 Current Week
               </button>
@@ -722,16 +727,16 @@ function AttendancePage() {
         </div>
 
         {/* Light Multi-Color Metrics Grid */}
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {/* Expected Hours */}
-          <div className="bg-cyan-50/80 backdrop-blur-sm rounded-2xl p-4 border border-cyan-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-cyan-50/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-cyan-100">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
               <div className="text-xs font-medium text-cyan-600 uppercase tracking-wide">
                 Expected Hours
               </div>
-              <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-cyan-400 rounded-full"></div>
             </div>
-            <div className="text-2xl font-bold text-cyan-800 mb-2">
+            <div className="text-xl sm:text-2xl font-bold text-cyan-800 mb-2">
               {(() => {
                 const { workingDays } = calculateWeeklyHours();
                 const expectedHours = Math.max(workingDays * 8, 40);
@@ -745,14 +750,14 @@ function AttendancePage() {
           </div>
 
           {/* Worked Hours */}
-          <div className="bg-emerald-50/80 backdrop-blur-sm rounded-2xl p-4 border border-emerald-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-emerald-50/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-emerald-100">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
               <div className="text-xs font-medium text-emerald-600 uppercase tracking-wide">
                 Worked Hours
               </div>
-              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full"></div>
             </div>
-            <div className="text-2xl font-bold text-emerald-800 mb-2">
+            <div className="text-xl sm:text-2xl font-bold text-emerald-800 mb-2">
               {(() => {
                 const { totalWorkedHours } = calculateWeeklyHours();
                 const hours = Math.floor(totalWorkedHours);
@@ -779,15 +784,15 @@ function AttendancePage() {
           </div>
 
           {/* Efficiency Score */}
-          <div className="bg-amber-50/80 backdrop-blur-sm rounded-2xl p-4 border border-amber-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-amber-50/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-amber-100">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
               <div className="text-xs font-medium text-amber-600 uppercase tracking-wide">
                 Efficiency
               </div>
-              <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-amber-500 rounded-full"></div>
             </div>
             <div className="flex items-center justify-between mb-2">
-              <div className="text-2xl font-bold text-amber-800">
+              <div className="text-xl sm:text-2xl font-bold text-amber-800">
                 {(() => {
                   const { totalWorkedHours, workingDays } =
                     calculateWeeklyHours();
@@ -800,9 +805,9 @@ function AttendancePage() {
                 })()}
                 %
               </div>
-              <div className="relative w-8 h-8">
+              <div className="relative w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8">
                 <svg
-                  className="w-8 h-8 transform -rotate-90"
+                  className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 transform -rotate-90"
                   viewBox="0 0 32 32"
                 >
                   <circle
@@ -859,13 +864,13 @@ function AttendancePage() {
           </div>
 
           {/* Performance Status */}
-          <div className="bg-violet-50/80 backdrop-blur-sm rounded-2xl p-4 border border-violet-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-violet-50/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-violet-100">
+            <div className="flex items-center justify-between mb-2 sm:mb-3">
               <div className="text-xs font-medium text-violet-600 uppercase tracking-wide">
                 Status
               </div>
               <div
-                className={`w-2 h-2 rounded-full ${(() => {
+                className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${(() => {
                   const { totalWorkedHours, workingDays } =
                     calculateWeeklyHours();
                   const expectedHours = Math.max(workingDays * 8, 40);
@@ -877,7 +882,7 @@ function AttendancePage() {
                 })()}`}
               ></div>
             </div>
-            <div className="text-lg font-semibold text-violet-800 mb-2">
+            <div className="text-base sm:text-lg font-semibold text-violet-800 mb-2">
               {(() => {
                 const { totalWorkedHours, workingDays } =
                   calculateWeeklyHours();
@@ -918,7 +923,7 @@ function AttendancePage() {
       </div>
 
       {/* Monthly Effort Tracker */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <DateStrip
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
@@ -926,13 +931,13 @@ function AttendancePage() {
         />
       </div>
       {isSelf && type && !isCapturing && (
-        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-30">
+        <div className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-30 px-4 w-full max-w-xs sm:max-w-none">
           <button
             onClick={() => {
               getLocation();
               startCamera();
             }}
-            className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-4 px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4"
+            className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4 w-full text-sm sm:text-base"
           >
             <span className="relative z-10 flex items-center gap-2">
               {type === "check-in" ? (
@@ -973,34 +978,34 @@ function AttendancePage() {
       )}
 
       {isCapturing && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="glass w-full max-w-sm rounded-3xl shadow-2xl space-y-6 text-center elevation-4 border border-white/20">
-            <div className="p-6">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+          <div className="glass w-full max-w-sm rounded-2xl sm:rounded-3xl shadow-2xl space-y-4 sm:space-y-6 text-center elevation-4 border border-white/20 max-h-[95vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
               {!image ? (
                 <>
-                  <div className="mb-4">
-                    <h3 className="text-xl font-bold gradient-text mb-2">
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold gradient-text mb-2">
                       Take Attendance Photo
                     </h3>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-xs sm:text-sm text-slate-600">
                       Position your face in the center
                     </p>
                   </div>
-                  <div className="relative rounded-2xl overflow-hidden shadow-inner mb-6">
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-inner mb-4 sm:mb-6">
                     <CameraView ref={videoRef} />
-                    <div className="absolute inset-0 border-4 border-white/30 rounded-2xl pointer-events-none"></div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-blue-500 rounded-full pointer-events-none animate-pulse"></div>
+                    <div className="absolute inset-0 border-2 sm:border-4 border-white/30 rounded-xl sm:rounded-2xl pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 border-2 border-blue-500 rounded-full pointer-events-none animate-pulse"></div>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <button
                       onClick={stopCamera}
-                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple"
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={captureImage}
-                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg"
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg text-sm sm:text-base"
                     >
                       📸 Capture
                     </button>
@@ -1008,27 +1013,27 @@ function AttendancePage() {
                 </>
               ) : (
                 <>
-                  <div className="mb-4">
-                    <h3 className="text-xl font-bold gradient-text mb-2">
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold gradient-text mb-2">
                       Confirm Photo
                     </h3>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-xs sm:text-sm text-slate-600">
                       Review your attendance photo
                     </p>
                   </div>
-                  <div className="relative rounded-2xl overflow-hidden shadow-lg mb-6">
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg mb-4 sm:mb-6">
                     <img
                       src={image}
                       alt="Captured"
-                      className="rounded-2xl w-full object-cover"
+                      className="rounded-xl sm:rounded-2xl w-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </div>
                   {capturedTime && (
-                    <div className="glass rounded-xl p-4 mb-6 text-sm text-slate-600 space-y-1">
+                    <div className="glass rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 text-xs sm:text-sm text-slate-600 space-y-1">
                       <div className="flex items-center justify-center gap-2 mb-2">
                         <svg
-                          className="w-4 h-4 text-blue-500"
+                          className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500"
                           fill="currentColor"
                           viewBox="0 0 20 20"
                         >
@@ -1058,7 +1063,7 @@ function AttendancePage() {
                       )}
                     </div>
                   )}
-                  <div className="flex gap-3">
+                  <div className="flex gap-2 sm:gap-3">
                     <button
                       onClick={() => {
                         URL.revokeObjectURL(image);
@@ -1066,13 +1071,13 @@ function AttendancePage() {
                         setCompressedBlob(null);
                         startCamera();
                       }}
-                      className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple"
+                      className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
                     >
                       🔄 Retake
                     </button>
                     <button
                       onClick={submitAttendance}
-                      className={`flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg ${
+                      className={`flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg text-sm sm:text-base ${
                         isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                       }`}
                       disabled={isSubmitting}
@@ -1080,7 +1085,7 @@ function AttendancePage() {
                       {isSubmitting ? (
                         <span className="flex items-center gap-2">
                           <svg
-                            className="w-4 h-4 animate-spin"
+                            className="w-3 h-3 sm:w-4 sm:h-4 animate-spin"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
