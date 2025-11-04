@@ -44,7 +44,7 @@ const DailySalaryCredit = () => {
   const fetchUserEarnings = async (userId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_ENDPOINTS.getUserDailyEarnings}/${userId}`, {
+      const response = await fetch(API_ENDPOINTS.getUserDailyEarningsById(userId), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -82,18 +82,27 @@ const DailySalaryCredit = () => {
       return;
     }
 
-    const salary = salaryMode === 'monthly' ? parseFloat(monthlySalary) : parseFloat(dailySalary) * 30;
-    const daily = salaryMode === 'monthly' ? parseFloat(dailySalary) : parseFloat(dailySalary);
-
-    if (isNaN(salary) || salary <= 0) {
-      Swal.fire('Error', 'Please enter a valid salary amount', 'error');
-      return;
+    // Calculate monthly salary based on mode
+    let salary = 0;
+    if (salaryMode === 'monthly') {
+      salary = parseFloat(monthlySalary);
+      if (!monthlySalary || isNaN(salary) || salary <= 0) {
+        Swal.fire('Error', 'Please enter a valid monthly salary amount', 'error');
+        return;
+      }
+    } else {
+      const daily = parseFloat(dailySalary);
+      if (!dailySalary || isNaN(daily) || daily <= 0) {
+        Swal.fire('Error', 'Please enter a valid daily rate', 'error');
+        return;
+      }
+      salary = Math.round(daily * 30); // Convert daily to monthly
     }
 
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_ENDPOINTS.baseURL}/api/daily-salary/update-salary`, {
+      const response = await fetch(API_ENDPOINTS.updateUserSalary, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,8 +116,26 @@ const DailySalaryCredit = () => {
       });
 
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      }
+
       if (data.success) {
-        Swal.fire('Success', `Salary updated successfully!\nOld: ₹${data.data.oldSalary.toLocaleString()}\nNew: ₹${data.data.newSalary.toLocaleString()}\nType: ${data.data.changeType}`, 'success');
+        Swal.fire({
+          icon: 'success',
+          title: 'Salary Updated!',
+          html: `
+            <div style="text-align: left;">
+              <p><strong>Old Salary:</strong> ₹${(data.data?.oldSalary || 0).toLocaleString('en-IN')}</p>
+              <p><strong>New Salary:</strong> ₹${(data.data?.newSalary || salary).toLocaleString('en-IN')}</p>
+              <p><strong>Type:</strong> ${data.data?.changeType || 'Manual Adjustment'}</p>
+            </div>
+          `,
+          showConfirmButton: true
+        });
+        setMonthlySalary('');
+        setDailySalary('');
         fetchUserEarnings(selectedUser);
         fetchUsers();
       } else {
@@ -116,7 +143,7 @@ const DailySalaryCredit = () => {
       }
     } catch (error) {
       console.error('Error updating salary:', error);
-      Swal.fire('Error', 'Failed to update salary', 'error');
+      Swal.fire('Error', error.message || 'Failed to update salary', 'error');
     } finally {
       setLoading(false);
     }
@@ -138,7 +165,7 @@ const DailySalaryCredit = () => {
     try {
       const token = localStorage.getItem('token');
       // Create a transaction for manual credit
-      const response = await fetch(`${API_ENDPOINTS.baseURL}/api/daily-salary/manual-credit`, {
+      const response = await fetch(API_ENDPOINTS.manualCredit, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,16 +180,27 @@ const DailySalaryCredit = () => {
       });
 
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      }
+
       if (data.success) {
-        Swal.fire('Success', `₹${amount.toLocaleString()} credited successfully!`, 'success');
+        Swal.fire({
+          icon: 'success',
+          title: 'Credit Added!',
+          text: `₹${amount.toLocaleString('en-IN')} credited successfully for ${new Date(manualDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`,
+          showConfirmButton: true
+        });
         setManualAmount('');
+        setManualDate(new Date().toISOString().split('T')[0]);
         fetchUserEarnings(selectedUser);
       } else {
         Swal.fire('Error', data.message || 'Failed to credit amount', 'error');
       }
     } catch (error) {
       console.error('Error crediting amount:', error);
-      Swal.fire('Error', 'Failed to credit amount', 'error');
+      Swal.fire('Error', error.message || 'Failed to credit amount', 'error');
     } finally {
       setLoading(false);
     }
