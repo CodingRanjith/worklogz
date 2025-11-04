@@ -418,78 +418,125 @@ const DailySalaryCredit = () => {
           )}
         </div>
 
-        {/* Right Panel - Employee Earnings */}
+        {/* Right Panel - Employee Current Earnings */}
         <div className="lg:col-span-1">
-          {userEarnings && (
+          {selectedUser && userEarnings ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-6">
-              <h2 className="text-xl font-semibold mb-4">
-                {userEarnings.name}'s Earnings
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Current Earnings
+                </h2>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              </div>
 
-              <div className="space-y-4">
-                {/* Total Earnings */}
-                <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg text-white">
-                  <p className="text-sm opacity-90">Total Earnings</p>
-                  <p className="text-3xl font-bold mt-1">
-                    ₹{(userEarnings.dailyEarnings || 0).toLocaleString()}
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-xs text-gray-600 mb-1">Employee</p>
+                <p className="text-base font-semibold text-blue-900">{userEarnings.name || 'Unknown'}</p>
+                {userEarnings.department && (
+                  <p className="text-xs text-gray-500 mt-1">{userEarnings.department}</p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {/* Total Current Earnings - Most Prominent */}
+                <div className="p-5 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl text-white shadow-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm font-medium opacity-90">Total Current Earnings</p>
+                    <FiDollarSign className="text-2xl opacity-80" />
+                  </div>
+                  <p className="text-4xl font-black mt-2">
+                    ₹{(userEarnings.dailyEarnings || 0).toLocaleString('en-IN')}
                   </p>
+                  <p className="text-xs opacity-75 mt-2">All-time accumulated earnings</p>
                 </div>
 
-                {/* Today */}
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm text-gray-600">Today</p>
-                  <p className="text-2xl font-bold text-green-900">
-                    ₹{(userEarnings.todayEarnings || 0).toLocaleString()}
-                  </p>
+                {/* Today's Earnings */}
+                <div className="p-4 bg-green-50 rounded-lg border-2 border-green-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-green-700 mb-1">Today</p>
+                      <p className="text-2xl font-bold text-green-900">
+                        ₹{(userEarnings.todayEarnings || 0).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                      <FiCalendar className="text-white text-xl" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* This Week */}
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <p className="text-sm text-gray-600">This Week</p>
-                  <p className="text-2xl font-bold text-purple-900">
-                    ₹{(userEarnings.weeklyEarnings || 0).toLocaleString()}
-                  </p>
+                <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-purple-700 mb-1">This Week</p>
+                      <p className="text-2xl font-bold text-purple-900">
+                        ₹{(userEarnings.weeklyEarnings || 0).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+                      <FiCalendar className="text-white text-xl" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* This Month */}
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <p className="text-sm text-gray-600">This Month</p>
-                  <p className="text-2xl font-bold text-orange-900">
-                    ₹{(userEarnings.monthlyEarnings || 0).toLocaleString()}
-                  </p>
+                <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-300">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-medium text-orange-700 mb-1">This Month</p>
+                      <p className="text-2xl font-bold text-orange-900">
+                        ₹{(userEarnings.monthlyEarnings || 0).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                      <FiCalendar className="text-white text-xl" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Daily Rate */}
                 {userEarnings.dailyRate > 0 && (
-                  <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <p className="text-sm text-gray-600">Active Daily Rate</p>
+                  <div className="p-4 bg-indigo-50 rounded-lg border-2 border-indigo-300">
+                    <p className="text-xs font-medium text-indigo-700 mb-1">Active Daily Rate</p>
                     <p className="text-2xl font-bold text-indigo-900">
-                      ₹{userEarnings.dailyRate.toLocaleString()}/day
+                      ₹{userEarnings.dailyRate.toLocaleString('en-IN')}/day
                     </p>
+                    <p className="text-xs text-gray-600 mt-1">Auto-calculated monthly: ₹{(userEarnings.dailyRate * 30).toLocaleString('en-IN')}</p>
                   </div>
                 )}
 
                 {/* Last Credit Date */}
                 {userEarnings.lastDailyCreditDate && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-500">Last Credit</p>
-                    <p className="text-sm font-medium text-gray-700">
+                  <div className="pt-4 border-t-2 border-gray-300">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FiClock className="text-gray-500" />
+                      <p className="text-xs font-semibold text-gray-700 uppercase">Last Credit Date</p>
+                    </div>
+                    <p className="text-sm font-medium text-gray-800">
                       {new Date(userEarnings.lastDailyCreditDate).toLocaleDateString('en-IN', {
                         day: 'numeric',
                         month: 'short',
-                        year: 'numeric'
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
                       })}
                     </p>
                   </div>
                 )}
               </div>
             </div>
-          )}
-
-          {!selectedUser && (
+          ) : selectedUser && !userEarnings ? (
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading earnings data...</p>
+            </div>
+          ) : (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
               <FiUsers className="mx-auto text-6xl text-gray-300 mb-4" />
-              <p className="text-gray-500">Select an employee to view their earnings</p>
+              <p className="text-gray-500 font-medium mb-2">No Employee Selected</p>
+              <p className="text-sm text-gray-400">Select an employee from the list to view their current earnings</p>
             </div>
           )}
         </div>
