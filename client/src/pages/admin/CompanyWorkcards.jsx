@@ -3,6 +3,25 @@ import { FiCalendar, FiEye, FiX, FiRefreshCw, FiUser, FiChevronLeft, FiChevronRi
 import Swal from 'sweetalert2';
 import { getAllTasksWithFilters, getTaskById, updateTask, deleteTask, API_ENDPOINTS } from '../../utils/api';
 
+// Company departments list (matching CompanyDepartments.jsx)
+const COMPANY_DEPARTMENTS = [
+  'Administration',
+  'Human Resources (HR)',
+  'Finance & Accounting',
+  'Sales',
+  'Marketing',
+  'Customer Support / Service',
+  'Operations / Project Management',
+  'Legal & Compliance',
+  'Procurement / Purchasing',
+  'Research & Development (R&D)',
+  'Information Technology (IT)',
+  'Quality Assurance (QA)',
+  'Business Development',
+  'Public Relations (PR)',
+  'Training & Development'
+];
+
 const CompanyWorkcards = () => {
   const [tasks, setTasks] = useState([]);
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -545,7 +564,7 @@ const CompanyWorkcards = () => {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                 >
                   <option value="">All Departments</option>
-                  {Array.from(new Set(users.map(u => u.department).filter(Boolean))).sort().map((dept) => (
+                  {COMPANY_DEPARTMENTS.map((dept) => (
                     <option key={dept} value={dept}>
                       {dept}
                     </option>
