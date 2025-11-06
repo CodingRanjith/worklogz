@@ -132,6 +132,7 @@ const taskController = {
         status = 'backlog',
         reporter,
         assignee,
+        department,
         startTime,
         endTime,
         comments = [],
@@ -170,6 +171,7 @@ const taskController = {
         user: taskUserId, // Use the determined user ID
         reporter: reporter || req.user.name || 'Unknown',
         assignee: assignee || 'Unassigned',
+        department: department || undefined,
         startTime: taskStartTime,
         endTime: taskEndTime,
         comments,

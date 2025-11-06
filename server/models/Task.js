@@ -8,6 +8,28 @@ const TaskSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   reporter: { type: String, default: 'Unknown' },
   assignee: { type: String, default: 'Unassigned' },
+  department: { 
+    type: String,
+    enum: [
+      'Administration',
+      'Human Resources (HR)',
+      'Finance & Accounting',
+      'Sales',
+      'Marketing',
+      'Customer Support / Service',
+      'Operations / Project Management',
+      'Legal & Compliance',
+      'Procurement / Purchasing',
+      'Research & Development (R&D)',
+      'Information Technology (IT)',
+      'Quality Assurance (QA)',
+      'Business Development',
+      'Public Relations (PR)',
+      'Training & Development',
+      // Legacy departments for backward compatibility
+      'Development', 'Testing', 'Accounts', 'Designing', 'Resources', 'Learning'
+    ]
+  },
   startTime: { type: String },
   endTime: { type: String },
   comments: { type: Array, default: [] },
