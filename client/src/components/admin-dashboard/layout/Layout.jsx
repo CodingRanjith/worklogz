@@ -5,14 +5,21 @@ import { Outlet } from 'react-router-dom';
 
 const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        setIsOpen={setSidebarOpen}
+        onCollapseChange={setSidebarCollapsed}
+      />
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col transition-all duration-300 md:ml-64"> {/* ml-64 matches sidebar width */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${
+        sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
+      }`}>
         {/* Top navbar - fixed position */}
         <TopNavbar setSidebarOpen={setSidebarOpen} />
         
