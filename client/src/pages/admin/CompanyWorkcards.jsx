@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiCalendar, FiEye, FiX, FiRefreshCw, FiUser, FiChevronLeft, FiChevronRight, FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiCalendar, FiEye, FiX, FiRefreshCw, FiUser, FiChevronLeft, FiChevronRight, FiEdit, FiTrash2, FiBriefcase } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import { getAllTasksWithFilters, getTaskById, updateTask, deleteTask, API_ENDPOINTS } from '../../utils/api';
 
@@ -10,6 +10,7 @@ const CompanyWorkcards = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -67,7 +68,7 @@ const CompanyWorkcards = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedDate, selectedEmployee, statusFilter, tasks]);
+  }, [selectedDate, selectedEmployee, selectedDepartment, statusFilter, tasks]);
 
   const fetchAllTasksForUsers = async (usersList, token) => {
     try {
@@ -162,6 +163,15 @@ const CompanyWorkcards = () => {
       });
     }
 
+    // Filter by department
+    if (selectedDepartment) {
+      filtered = filtered.filter(task => {
+        const userId = task.user?._id || task.user;
+        const user = users.find(u => u._id === userId);
+        return user && user.department === selectedDepartment;
+      });
+    }
+
     // Filter by date
     if (selectedDate) {
       filtered = filtered.filter(task => {
@@ -193,6 +203,7 @@ const CompanyWorkcards = () => {
   const handleClearFilters = () => {
     setSelectedDate('');
     setSelectedEmployee('');
+    setSelectedDepartment('');
     setStatusFilter('done'); // Reset to default (show done tasks)
   };
 
@@ -512,12 +523,43 @@ const CompanyWorkcards = () => {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                 >
                   <option value="">All Employees</option>
-                  {users.map((user) => (
-                    <option key={user._id} value={user._id}>
-                      {user.name} {user.employeeId ? `(${user.employeeId})` : ''}
+                  {users
+                    .filter(user => !selectedDepartment || user.department === selectedDepartment)
+                    .map((user) => (
+                      <option key={user._id} value={user._id}>
+                        {user.name} {user.employeeId ? `(${user.employeeId})` : ''}
+                      </option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Department Filter */}
+              <div className="flex items-center gap-2">
+                <FiBriefcase className="text-gray-500" />
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => {
+                    setSelectedDepartment(e.target.value);
+                    setSelectedEmployee(''); // Clear employee filter when department changes
+                  }}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                >
+                  <option value="">All Departments</option>
+                  {Array.from(new Set(users.map(u => u.department).filter(Boolean))).sort().map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
                     </option>
                   ))}
                 </select>
+                {selectedDepartment && (
+                  <button
+                    onClick={() => setSelectedDepartment('')}
+                    className="px-2 py-1 text-xs text-red-600 hover:text-red-700 underline"
+                    title="Clear Department Filter"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
 
               {/* Date Filter */}
@@ -560,7 +602,7 @@ const CompanyWorkcards = () => {
               </div>
 
               {/* Clear Filters */}
-              {(selectedDate || selectedEmployee || (statusFilter && statusFilter !== 'done')) && (
+              {(selectedDate || selectedEmployee || selectedDepartment || (statusFilter && statusFilter !== 'done')) && (
                 <button
                   onClick={handleClearFilters}
                   className="px-4 py-2 text-sm text-red-600 hover:text-red-700 underline"
@@ -649,7 +691,7 @@ const CompanyWorkcards = () => {
                       <div className="text-gray-400 text-4xl mb-4">📋</div>
                       <h3 className="text-lg font-semibold text-gray-600 mb-2">No tasks found</h3>
                       <p className="text-gray-500">
-                        {selectedDate || selectedEmployee || (statusFilter && statusFilter !== 'all')
+                        {selectedDate || selectedEmployee || selectedDepartment || (statusFilter && statusFilter !== 'all')
                           ? 'No tasks match the selected filters'
                           : 'No tasks available at the moment'}
                       </p>
