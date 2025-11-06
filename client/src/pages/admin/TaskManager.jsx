@@ -4,6 +4,25 @@ import { FiUser, FiMail, FiPhone, FiCalendar, FiEye, FiSearch, FiPlus, FiX, FiBr
 import Swal from 'sweetalert2';
 import { API_ENDPOINTS, createTask, getAllTasksWithFilters } from '../../utils/api';
 
+// Company departments list (matching CompanyDepartments.jsx)
+const COMPANY_DEPARTMENTS = [
+  'Administration',
+  'Human Resources (HR)',
+  'Finance & Accounting',
+  'Sales',
+  'Marketing',
+  'Customer Support / Service',
+  'Operations / Project Management',
+  'Legal & Compliance',
+  'Procurement / Purchasing',
+  'Research & Development (R&D)',
+  'Information Technology (IT)',
+  'Quality Assurance (QA)',
+  'Business Development',
+  'Public Relations (PR)',
+  'Training & Development'
+];
+
 const TaskManager = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -335,7 +354,7 @@ const TaskManager = () => {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm min-w-[180px]"
                 >
                   <option value="">All Departments</option>
-                  {Array.from(new Set(users.map(u => u.department).filter(Boolean))).sort().map((dept) => (
+                  {COMPANY_DEPARTMENTS.map((dept) => (
                     <option key={dept} value={dept}>
                       {dept}
                     </option>
