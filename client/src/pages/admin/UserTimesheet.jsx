@@ -3,10 +3,29 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import './UserTimesheet.css';
-import { FiArrowLeft, FiUser, FiCalendar, FiClock, FiList, FiPlus, FiX, FiEdit2, FiTrash2, FiEye, FiMessageCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiUser, FiCalendar, FiClock, FiList, FiPlus, FiX, FiEdit2, FiTrash2, FiEye, FiMessageCircle, FiBriefcase } from 'react-icons/fi';
 import { MdDone, MdPending, MdInsertChart } from 'react-icons/md';
 import Swal from 'sweetalert2';
 import { getAllTasksWithFilters, createTask, updateTask, deleteTask, addTaskComment } from '../../utils/api';
+
+// Company departments list (matching CompanyDepartments.jsx)
+const COMPANY_DEPARTMENTS = [
+  'Administration',
+  'Human Resources (HR)',
+  'Finance & Accounting',
+  'Sales',
+  'Marketing',
+  'Customer Support / Service',
+  'Operations / Project Management',
+  'Legal & Compliance',
+  'Procurement / Purchasing',
+  'Research & Development (R&D)',
+  'Information Technology (IT)',
+  'Quality Assurance (QA)',
+  'Business Development',
+  'Public Relations (PR)',
+  'Training & Development'
+];
 
 const UserTimesheet = () => {
   const { userId } = useParams();
@@ -32,6 +51,7 @@ const UserTimesheet = () => {
   const [taskForm, setTaskForm] = useState({
     title: '',
     description: '',
+    department: '',
     reporter: '',
     startTime: '',
     endTime: '',
@@ -219,6 +239,7 @@ const UserTimesheet = () => {
     setTaskForm({
       title: '',
       description: '',
+      department: '',
       reporter: '',
       startTime: dateStr,
       endTime: dateStr,
@@ -250,6 +271,7 @@ const UserTimesheet = () => {
       const taskData = {
         title: taskForm.title,
         description: taskForm.description,
+        department: taskForm.department || '',
         assignee: userName,
         reporter: taskForm.reporter || 'Admin',
         startTime: taskForm.startTime,
@@ -279,6 +301,7 @@ const UserTimesheet = () => {
       setTaskForm({
         title: '',
         description: '',
+        department: '',
         reporter: '',
         startTime: formattedDate,
         endTime: formattedDate,
@@ -303,6 +326,7 @@ const UserTimesheet = () => {
     setTaskForm({
       title: task.title,
       description: task.description || '',
+      department: task.department || '',
       reporter: task.reporter || '',
       startTime: task.startTime || '',
       endTime: task.endTime || '',
@@ -330,6 +354,7 @@ const UserTimesheet = () => {
       const taskData = {
         title: taskForm.title,
         description: taskForm.description,
+        department: taskForm.department || '',
         reporter: taskForm.reporter,
         startTime: taskForm.startTime,
         endTime: taskForm.endTime,
@@ -975,6 +1000,25 @@ const UserTimesheet = () => {
                 />
               </div>
 
+              {/* Department */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Department
+                </label>
+                <select
+                  value={taskForm.department}
+                  onChange={(e) => handleFormChange('department', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="">Select Department (Optional)</option>
+                  {COMPANY_DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Reporter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1111,6 +1155,25 @@ const UserTimesheet = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="Enter task description..."
                 />
+              </div>
+
+              {/* Department */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Department
+                </label>
+                <select
+                  value={taskForm.department}
+                  onChange={(e) => handleFormChange('department', e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="">Select Department (Optional)</option>
+                  {COMPANY_DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* Reporter */}

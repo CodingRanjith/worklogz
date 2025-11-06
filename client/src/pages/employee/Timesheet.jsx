@@ -14,10 +14,29 @@ import 'react-calendar/dist/Calendar.css';
 
 import Swal from 'sweetalert2';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit, FiTrash2 } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiBriefcase } from 'react-icons/fi';
 import { AiOutlinePlus } from 'react-icons/ai';
 import { MdDone, MdPending, MdInsertChart } from 'react-icons/md';
 import './TimeSheet.css'; // ensure this import comes AFTER react-calendar css
+
+// Company departments list (matching CompanyDepartments.jsx)
+const COMPANY_DEPARTMENTS = [
+  'Administration',
+  'Human Resources (HR)',
+  'Finance & Accounting',
+  'Sales',
+  'Marketing',
+  'Customer Support / Service',
+  'Operations / Project Management',
+  'Legal & Compliance',
+  'Procurement / Purchasing',
+  'Research & Development (R&D)',
+  'Information Technology (IT)',
+  'Quality Assurance (QA)',
+  'Business Development',
+  'Public Relations (PR)',
+  'Training & Development'
+];
 
 const IconButton = ({ children, onClick, title = '' }) => (
   <button
@@ -172,6 +191,22 @@ const TaskDetailModal = ({ task, open, onClose, onSaveComment, onUpdate, onDelet
                 placeholder="Assignee name"
               />
             </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm text-gray-600">Department</h4>
+            <select
+              value={localTask.department || ''}
+              onChange={e => handleUpdateField('department', e.target.value)}
+              className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">Select Department (Optional)</option>
+              {COMPANY_DEPARTMENTS.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -532,6 +567,24 @@ export default function TimesheetFullPage() {
           <input id="swal-title" class="w-full rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 px-4 py-3" placeholder="Task Title *" required>
           <input id="swal-reporter" class="w-full rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 px-4 py-3" placeholder="Reporter">
           <input id="swal-assignee" class="w-full rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 px-4 py-3" placeholder="Assignee">
+          <select id="swal-department" class="w-full rounded-lg border border-gray-300 bg-white text-gray-900 px-4 py-3">
+            <option value="">Select Department (Optional)</option>
+            <option value="Administration">Administration</option>
+            <option value="Human Resources (HR)">Human Resources (HR)</option>
+            <option value="Finance & Accounting">Finance & Accounting</option>
+            <option value="Sales">Sales</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Customer Support / Service">Customer Support / Service</option>
+            <option value="Operations / Project Management">Operations / Project Management</option>
+            <option value="Legal & Compliance">Legal & Compliance</option>
+            <option value="Procurement / Purchasing">Procurement / Purchasing</option>
+            <option value="Research & Development (R&D)">Research & Development (R&D)</option>
+            <option value="Information Technology (IT)">Information Technology (IT)</option>
+            <option value="Quality Assurance (QA)">Quality Assurance (QA)</option>
+            <option value="Business Development">Business Development</option>
+            <option value="Public Relations (PR)">Public Relations (PR)</option>
+            <option value="Training & Development">Training & Development</option>
+          </select>
           <textarea id="swal-description" class="w-full rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 p-3 h-28 resize-none" placeholder="Description"></textarea>
           <div class="grid grid-cols-2 gap-4">
             <input type="date" id="swal-start" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3">
@@ -555,6 +608,7 @@ export default function TimesheetFullPage() {
           title,
           reporter: document.getElementById('swal-reporter').value,
           assignee: document.getElementById('swal-assignee').value,
+          department: document.getElementById('swal-department').value,
           description: document.getElementById('swal-description').value,
           startTime: start,
           endTime: end,
