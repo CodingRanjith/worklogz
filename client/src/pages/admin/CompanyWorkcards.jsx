@@ -734,6 +734,9 @@ const CompanyWorkcards = () => {
                     Work Title
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Department
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -744,7 +747,7 @@ const CompanyWorkcards = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {currentTasks.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center">
+                    <td colSpan="8" className="px-6 py-12 text-center">
                       <div className="text-gray-400 text-4xl mb-4">📋</div>
                       <h3 className="text-lg font-semibold text-gray-600 mb-2">No tasks found</h3>
                       <p className="text-gray-500">
@@ -779,6 +782,9 @@ const CompanyWorkcards = () => {
                         <div className="truncate" title={task.title || 'N/A'}>
                           {task.title || 'N/A'}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {task.department || task.user?.department || 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         {getStatusBadge(task.status)}
