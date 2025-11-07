@@ -45,6 +45,7 @@ const CompanyWorkcards = () => {
   const [editForm, setEditForm] = useState({
     title: '',
     description: '',
+    department: '',
     status: 'backlog',
     startTime: '',
     endTime: '',
@@ -56,6 +57,7 @@ const CompanyWorkcards = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [tasksPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState('done'); // Default to showing done tasks
+  const [sortOrder, setSortOrder] = useState('desc');
 
   useEffect(() => {
     // Fetch users first, then use them to fetch all tasks
@@ -87,7 +89,7 @@ const CompanyWorkcards = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [selectedDate, selectedEmployee, selectedDepartment, statusFilter, tasks]);
+  }, [selectedDate, selectedEmployee, selectedDepartment, statusFilter, sortOrder, tasks]);
 
   const fetchAllTasksForUsers = async (usersList, token) => {
     try {
@@ -161,6 +163,22 @@ const CompanyWorkcards = () => {
     }
   };
 
+  const getTaskDateValue = (task) => {
+    if (!task) return -Infinity;
+
+    const endValue = task.endTime ? new Date(task.endTime).getTime() : NaN;
+    if (!Number.isNaN(endValue)) {
+      return endValue;
+    }
+
+    const startValue = task.startTime ? new Date(task.startTime).getTime() : NaN;
+    if (!Number.isNaN(startValue)) {
+      return startValue;
+    }
+
+    return -Infinity;
+  };
+
   const applyFilters = () => {
     let filtered = [...tasks];
 
@@ -210,6 +228,15 @@ const CompanyWorkcards = () => {
       });
     }
 
+    filtered.sort((a, b) => {
+      const dateDiff = getTaskDateValue(b) - getTaskDateValue(a);
+      const directionalDiff = sortOrder === 'desc' ? dateDiff : -dateDiff;
+      if (directionalDiff !== 0) {
+        return directionalDiff;
+      }
+      return (a.title || '').localeCompare(b.title || '');
+    });
+
     setFilteredTasks(filtered);
     setCurrentPage(1); // Reset to first page when filters change
   };
@@ -224,6 +251,7 @@ const CompanyWorkcards = () => {
     setSelectedEmployee('');
     setSelectedDepartment('');
     setStatusFilter('done'); // Reset to default (show done tasks)
+    setSortOrder('desc');
   };
 
   // Pagination calculations
@@ -322,6 +350,7 @@ const CompanyWorkcards = () => {
     setEditForm({
       title: task.title || '',
       description: task.description || '',
+      department: task.department || '',
       status: task.status || 'backlog',
       startTime: task.startTime ? new Date(task.startTime).toISOString().split('T')[0] : '',
       endTime: task.endTime ? new Date(task.endTime).toISOString().split('T')[0] : '',
@@ -619,6 +648,15 @@ const CompanyWorkcards = () => {
                   <option value="backlog">Backlog</option>
                 </select>
               </div>
+
+              {/* Sort Order Toggle */}
+              <button
+                onClick={() => setSortOrder(prev => (prev === 'desc' ? 'asc' : 'desc'))}
+                className="px-4 py-2 border border-indigo-200 bg-indigo-50 text-indigo-700 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors"
+                title={`Toggle end date sorting (${sortOrder === 'desc' ? 'Latest first' : 'Earliest first'})`}
+              >
+                Sort: End Date {sortOrder === 'desc' ? '↓' : '↑'}
+              </button>
 
               {/* Clear Filters */}
               {(selectedDate || selectedEmployee || selectedDepartment || (statusFilter && statusFilter !== 'done')) && (
@@ -1133,6 +1171,25 @@ const CompanyWorkcards = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter task description..."
                   />
+                </div>
+
+                {/* Department */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Department
+                  </label>
+                  <select
+                    value={editForm.department}
+                    onChange={(e) => handleEditFormChange('department', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">Select Department (Optional)</option>
+                    {COMPANY_DEPARTMENTS.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Reporter */}
