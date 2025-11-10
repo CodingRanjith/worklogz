@@ -5,6 +5,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Schedule = require('../models/Schedule');
+const Task = require('../models/Task');
+const WorkCard = require('../models/WorkCard');
+const Attendance = require('../models/Attendance');
+const LeaveRequest = require('../models/LeaveRequest');
+const CRMLead = require('../models/CRMLead');
+const DailyEarningTransaction = require('../models/DailyEarningTransaction');
+const SalaryHistory = require('../models/SalaryHistory');
+const Payslip = require('../models/Payslip');
 
 
 const userController = {
@@ -131,6 +139,34 @@ const userController = {
     } catch (error) {
       console.error('Error updating salary:', error);
       res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  deleteUser: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      await Promise.all([
+        Task.deleteMany({ user: id }),
+        WorkCard.deleteMany({ createdBy: id }),
+        Schedule.deleteOne({ user: id }),
+        Attendance.deleteMany({ user: id }),
+        LeaveRequest.deleteMany({ user: id }),
+        CRMLead.deleteMany({ createdBy: id }),
+        CRMLead.updateMany({ leadOwner: id }, { $set: { leadOwner: null } }),
+        CRMLead.updateMany({ assignedUsers: id }, { $pull: { assignedUsers: id } }),
+      ]);
+
+      await User.findByIdAndDelete(id);
+
+      res.json({ message: 'User and related data deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      res.status(500).json({ error: 'Failed to delete user' });
     }
   },
 

@@ -385,7 +385,11 @@ const CRMBoard = ({ pipelineType = 'course' }) => {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
-                    {pipelineType === 'course' ? 'Course CRM Pipeline' : 'Internship CRM Pipeline'}
+                    {pipelineType === 'course'
+                      ? 'Course CRM Pipeline'
+                      : pipelineType === 'internship'
+                        ? 'Internship CRM Pipeline'
+                        : 'IT Projects CRM Pipeline'}
                   </h1>
                   <p className="text-sm text-gray-500">Track leads across every stage and never miss a follow-up.</p>
                 </div>
@@ -488,7 +492,6 @@ const CRMBoard = ({ pipelineType = 'course' }) => {
                       leads={leadsByStage.get(stage._id) || []}
                       onAddLead={openAddLeadModal}
                       onEditLead={openEditLeadModal}
-                      onDeleteLead={handleLeadDelete}
                       onEditStage={() => setStageManagerOpen(true)}
                     />
                   ))}

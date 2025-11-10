@@ -13,12 +13,13 @@ import {
   CreditCard,
   User,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Trash2,
 } from 'lucide-react';
 import urbancodeLogoSrc from '../../../assets/uclogo.png';
 import jobzenterLogoSrc from '../../../assets/jzlogo.png';
 
-const UserCard = ({ user, className = '', onEdit }) => {
+const UserCard = ({ user, className = '', onEdit, onDelete, isDeleting = false }) => {
   const [showBankingDetails, setShowBankingDetails] = useState(false);
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -137,16 +138,43 @@ const UserCard = ({ user, className = '', onEdit }) => {
              
             </div>
           </div>
-          {onEdit && (
-            <button
-              onClick={() => onEdit(user._id)}
-              className="mt-8 border-2 text-sm text-gray-600 px-2 py-1 rounded-xl hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors font-medium"
-            >
-              <div className="flex items-center justify-center gap-3">
-                <Edit3 className="w-4 h-4" />
-                <span>Edit Profile</span>
-              </div>
-            </button>
+          {(onEdit || onDelete) && (
+            <div className="mt-8 flex flex-col gap-3 w-full">
+              {onEdit && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onEdit(user._id);
+                  }}
+                  className="border-2 text-sm text-gray-600 px-2 py-2 rounded-xl hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors font-medium"
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <Edit3 className="w-4 h-4" />
+                    <span>Edit Profile</span>
+                  </div>
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onDelete(user._id);
+                  }}
+                  disabled={isDeleting}
+                  className={`border-2 text-sm px-2 py-2 rounded-xl transition-colors font-medium ${
+                    isDeleting
+                      ? 'border-red-200 bg-red-100 text-red-400 cursor-not-allowed'
+                      : 'border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <span>{isDeleting ? 'Deleting…' : 'Delete User'}</span>
+                  </div>
+                </button>
+              )}
+            </div>
           )}
         </div>
 

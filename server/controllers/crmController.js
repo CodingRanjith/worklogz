@@ -26,6 +26,15 @@ const DEFAULT_STAGE_CONFIG = {
     { name: 'CV Build', color: '#f97316' },
     { name: 'Job Placement', color: '#facc15' },
   ],
+  'it-project': [
+    { name: 'Enquiry', color: '#6366f1' },
+    { name: 'Requirement Collected', color: '#0ea5e9' },
+    { name: 'Proposal Sent', color: '#22c55e' },
+    { name: 'Negotiation', color: '#f97316' },
+    { name: 'Closed / Won', color: '#16a34a' },
+    { name: 'Closed / Lost', color: '#ef4444' },
+    { name: 'On Hold', color: '#facc15' },
+  ],
 };
 
 const normalizeStagePositions = async (stageId) => {
@@ -104,12 +113,10 @@ const ensureDefaultStages = async (pipelineType = 'course', userId) => {
 };
 
 const generateLeadCode = async (pipelineType = 'course') => {
-  const prefix = pipelineType === 'internship' ? 'IC' : 'CC';
-
   for (let attempts = 0; attempts < 5; attempts += 1) {
     const count = await CRMLead.countDocuments({ pipelineType });
     const nextNumber = count + 1 + attempts;
-    const code = `${prefix}-${String(nextNumber).padStart(3, '0')}`;
+    const code = `#${String(nextNumber).padStart(3, '0')}`;
 
     const exists = await CRMLead.exists({ leadCode: code });
     if (!exists) {
@@ -117,7 +124,16 @@ const generateLeadCode = async (pipelineType = 'course') => {
     }
   }
 
-  return `${prefix}-${Date.now()}`;
+  return `#${String(Date.now()).slice(-3)}`;
+};
+
+const assignLeadCodeIfMissing = async (lead) => {
+  if (!lead?.leadCode) {
+    const code = await generateLeadCode(lead.pipelineType || 'course');
+    await CRMLead.findByIdAndUpdate(lead._id, { leadCode: code });
+    lead.leadCode = code;
+  }
+  return lead;
 };
 
 // Stage Controllers
@@ -312,6 +328,8 @@ const getLeads = async (req, res) => {
       .populate('createdBy', 'name email phone profilePic')
       .sort({ stage: 1, stagePosition: 1, createdAt: -1 });
 
+    await Promise.all(leads.map(assignLeadCodeIfMissing));
+
     res.json(leads);
   } catch (error) {
     console.error('Error fetching CRM leads:', error);
@@ -331,6 +349,8 @@ const getLeadById = async (req, res) => {
     if (!lead) {
       return res.status(404).json({ message: 'Lead not found' });
     }
+
+    await assignLeadCodeIfMissing(lead);
 
     res.json(lead);
   } catch (error) {
@@ -363,6 +383,131 @@ const createLead = async (req, res) => {
       combinedAssigned.add(resolvedLeadOwner.toString());
     }
     const assignedUsersFinal = Array.from(combinedAssigned);
+
+    const interestedPrograms = Array.isArray(rest.interestedProgramType)
+      ? rest.interestedProgramType.filter(Boolean)
+      : rest.interestedProgramType
+        ? [rest.interestedProgramType].filter(Boolean)
+        : [];
+    delete rest.interestedProgramType;
+
+    const domainInterests = Array.isArray(rest.domainInterests)
+      ? rest.domainInterests.filter(Boolean)
+      : rest.domainInterests
+        ? [rest.domainInterests].filter(Boolean)
+        : [];
+    delete rest.domainInterests;
+
+    const projectCategory = Array.isArray(rest.projectCategory)
+      ? rest.projectCategory.filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+      : rest.projectCategory
+        ? [rest.projectCategory].filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+        : [];
+    delete rest.projectCategory;
+
+    const projectKeyFeatures = Array.isArray(rest.projectKeyFeatures)
+      ? rest.projectKeyFeatures.filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+      : rest.projectKeyFeatures
+        ? [rest.projectKeyFeatures].filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+        : [];
+    delete rest.projectKeyFeatures;
+
+    const projectPreferredTechStack = Array.isArray(rest.projectPreferredTechStack)
+      ? rest.projectPreferredTechStack.filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+      : rest.projectPreferredTechStack
+        ? [rest.projectPreferredTechStack].filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+        : [];
+    delete rest.projectPreferredTechStack;
+
+    const projectSupportType = Array.isArray(rest.projectSupportType)
+      ? rest.projectSupportType.filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+      : rest.projectSupportType
+        ? [rest.projectSupportType].filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+        : [];
+    delete rest.projectSupportType;
+
+    const projectAssignedTeam = Array.isArray(rest.projectAssignedTeam)
+      ? rest.projectAssignedTeam.filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+      : rest.projectAssignedTeam
+        ? [rest.projectAssignedTeam].filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+        : [];
+    delete rest.projectAssignedTeam;
+
+    const projectAttachments = Array.isArray(rest.projectAttachments)
+      ? rest.projectAttachments.filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+      : rest.projectAttachments
+        ? [rest.projectAttachments].filter(Boolean).map((value) => (typeof value === 'string' ? value.trim() : value))
+        : [];
+    delete rest.projectAttachments;
+
+    const documentsPayload = rest.documents && typeof rest.documents === 'object'
+      ? {
+          resumeUrl: rest.documents.resumeUrl || '',
+          idProofUrl: rest.documents.idProofUrl || '',
+          requirementDocUrl: rest.documents.requirementDocUrl || '',
+          studentPhotoUrl: rest.documents.studentPhotoUrl || '',
+          addressProofUrl: rest.documents.addressProofUrl || '',
+          projectProposalUrl: rest.documents.projectProposalUrl || '',
+          projectDocumentationUrl: rest.documents.projectDocumentationUrl || '',
+        }
+      : {
+          resumeUrl: rest.resumeUrl || '',
+          idProofUrl: rest.idProofUrl || '',
+          requirementDocUrl: rest.requirementDocUrl || '',
+          studentPhotoUrl: rest.studentPhotoUrl || '',
+          addressProofUrl: rest.addressProofUrl || '',
+          projectProposalUrl: rest.projectProposalUrl || '',
+          projectDocumentationUrl: rest.projectDocumentationUrl || '',
+        };
+    delete rest.documents;
+    delete rest.resumeUrl;
+    delete rest.idProofUrl;
+    delete rest.requirementDocUrl;
+    delete rest.studentPhotoUrl;
+    delete rest.addressProofUrl;
+    delete rest.projectProposalUrl;
+    delete rest.projectDocumentationUrl;
+
+    rest.projectProposalDocumentUrl = documentsPayload.projectProposalUrl || '';
+    rest.projectDocumentationUrl = documentsPayload.projectDocumentationUrl || '';
+    rest.projectClientName = rest.projectClientName ? rest.projectClientName.trim() : fullName.trim();
+    rest.projectCompanyName = rest.projectCompanyName ? rest.projectCompanyName.trim() : '';
+    rest.projectWebsiteUrl = rest.projectWebsiteUrl ? rest.projectWebsiteUrl.trim() : '';
+    rest.projectBudgetExpectation = rest.projectBudgetExpectation ? rest.projectBudgetExpectation.trim() : '';
+    rest.projectDecisionMakerName = rest.projectDecisionMakerName ? rest.projectDecisionMakerName.trim() : '';
+    rest.projectExistingSystemDetails = rest.projectExistingSystemDetails ? rest.projectExistingSystemDetails.trim() : '';
+    rest.projectFilesUrl = rest.projectFilesUrl ? rest.projectFilesUrl.trim() : '';
+    rest.projectVersionControlLink = rest.projectVersionControlLink ? rest.projectVersionControlLink.trim() : '';
+    rest.projectMeetingNotes = rest.projectMeetingNotes ? rest.projectMeetingNotes.trim() : '';
+    rest.projectClientFeedback = rest.projectClientFeedback ? rest.projectClientFeedback.trim() : '';
+    rest.projectInternalNotes = rest.projectInternalNotes ? rest.projectInternalNotes.trim() : '';
+    rest.projectClientNotes = rest.projectClientNotes ? rest.projectClientNotes.trim() : '';
+
+    if (rest.age !== undefined && rest.age !== null && rest.age !== '') {
+      rest.age = Number(rest.age);
+    } else {
+      delete rest.age;
+    }
+
+    if (rest.certificateNeeded !== undefined) {
+      rest.certificateNeeded = Boolean(rest.certificateNeeded);
+    }
+
+    const booleanFields = ['courseDemoCompleted', 'courseInvoiceUploaded', 'courseFollowUpRequired', 'courseCertificateIssued', 'projectExistingSystem', 'projectAdvancePaid'];
+    booleanFields.forEach((field) => {
+      if (rest[field] !== undefined) {
+        rest[field] = typeof rest[field] === 'string'
+          ? ['true', '1', 'yes', 'on'].includes(rest[field].toLowerCase())
+          : Boolean(rest[field]);
+      }
+    });
+
+    const numberFields = ['courseFee', 'courseDiscountApplied', 'courseFinalFeePayable', 'projectStakeholdersCount', 'projectProposalAmount', 'projectMaintenanceFee'];
+    numberFields.forEach((field) => {
+      if (rest[field] !== undefined && rest[field] !== null && rest[field] !== '') {
+        rest[field] = Number(rest[field]);
+      }
+    });
 
     const leadCode = await generateLeadCode(pipelineType);
 
@@ -397,6 +542,15 @@ const createLead = async (req, res) => {
       followUpDate,
       leadOwner: resolvedLeadOwner,
       assignedUsers: assignedUsersFinal,
+      interestedProgramType: interestedPrograms,
+      domainInterests,
+      projectCategory,
+      projectKeyFeatures,
+      projectPreferredTechStack,
+      projectSupportType,
+      projectAssignedTeam,
+      documents: documentsPayload,
+      projectAttachments,
       pipelineType,
       leadCode,
       stage: stageId,
@@ -422,6 +576,8 @@ const createLead = async (req, res) => {
       .populate('leadOwner', 'name email phone profilePic')
       .populate('assignedUsers', 'name email phone profilePic')
       .populate('createdBy', 'name email phone profilePic');
+
+    await assignLeadCodeIfMissing(populatedLead);
 
     res.status(201).json(populatedLead);
   } catch (error) {
@@ -455,7 +611,7 @@ const updateLead = async (req, res) => {
       lead.email = updates.email.trim().toLowerCase();
     }
 
-    const allowedFields = ['course', 'source', 'status', 'followUpDate', 'leadOwner', 'notes', 'tags', 'enrollmentValue', 'preferredBatch', 'experienceLevel', 'currentStatus', 'pipelineType', 'alternatePhone', 'specialization', 'assignedUsers'];
+    const allowedFields = ['course', 'source', 'status', 'followUpDate', 'leadOwner', 'notes', 'tags', 'enrollmentValue', 'preferredBatch', 'experienceLevel', 'currentStatus', 'pipelineType', 'alternatePhone', 'specialization', 'assignedUsers', 'leadSource', 'enquiryDate', 'gender', 'age', 'city', 'address', 'profileType', 'educationQualification', 'currentStatusDetail', 'organizationName', 'interestedProgramType', 'domainInterests', 'trainingMode', 'durationRequired', 'preferredStartDate', 'urgencyLevel', 'interestLevel', 'budgetExpectation', 'decisionMaker', 'followUpNotes', 'lastContactedDate', 'communicationType', 'documents', 'paymentStatus', 'programBatch', 'certificateNeeded', 'finalRemarks', 'dateOfBirth', 'courseSelected', 'courseProgramType', 'courseMode', 'courseBatchType', 'courseBatchTimeSlot', 'courseDuration', 'courseStartDate', 'courseDemoCompleted', 'courseTrainerAssigned', 'courseFee', 'courseDiscountApplied', 'courseFinalFeePayable', 'coursePaymentMethod', 'coursePaymentStatus', 'courseTransactionId', 'courseInvoiceUploaded', 'courseEmiDetails', 'courseCounselorAssigned', 'courseEnrollmentNotes', 'courseFollowUpRequired', 'courseNextFollowUpDate', 'courseCompletionStatus', 'courseCertificateIssued', 'courseCertificateId', 'courseCertificateIssueDate', 'courseTrainerNotes', 'projectClientName', 'projectCompanyName', 'projectWebsiteUrl', 'projectClientType', 'projectIndustryType', 'projectAnnualBudgetRange', 'projectCategory', 'projectName', 'projectDescription', 'projectKeyFeatures', 'projectUrgency', 'projectTimelineExpectation', 'projectBudgetExpectation', 'projectPreferredTechStack', 'projectHostingPreference', 'projectExistingSystem', 'projectExistingSystemDetails', 'projectFilesUrl', 'projectLeadStage', 'projectInterestLevel', 'projectDecisionMakerName', 'projectStakeholdersCount', 'projectProposalAmount', 'projectProposalDocumentUrl', 'projectPaymentTerms', 'projectAdvancePaid', 'projectPaymentStatus', 'projectStatus', 'projectAssignedTeam', 'projectStartDate', 'projectDeadline', 'projectDeliveryDate', 'projectVersionControlLink', 'projectDocumentationUrl', 'projectCommunicationMode', 'projectMeetingNotes', 'projectClientFeedback', 'projectSupportType', 'projectSupportExpiryDate', 'projectMaintenanceFee', 'projectInternalNotes', 'projectClientNotes', 'projectAttachments'];
     allowedFields.forEach((field) => {
       if (updates[field] !== undefined) {
         lead[field] = updates[field];
@@ -464,6 +620,94 @@ const updateLead = async (req, res) => {
 
     if (updates.leadOwner !== undefined) {
       lead.leadOwner = updates.leadOwner || null;
+    }
+
+    if (Array.isArray(updates.interestedProgramType)) {
+      lead.interestedProgramType = updates.interestedProgramType.filter(Boolean);
+    }
+
+    if (Array.isArray(updates.domainInterests)) {
+      lead.domainInterests = updates.domainInterests.filter(Boolean);
+    }
+
+    if (Array.isArray(updates.projectCategory)) {
+      lead.projectCategory = updates.projectCategory.filter(Boolean);
+    }
+
+    if (Array.isArray(updates.projectKeyFeatures)) {
+      lead.projectKeyFeatures = updates.projectKeyFeatures.filter(Boolean);
+    }
+
+    if (Array.isArray(updates.projectPreferredTechStack)) {
+      lead.projectPreferredTechStack = updates.projectPreferredTechStack.filter(Boolean);
+    }
+
+    if (Array.isArray(updates.projectSupportType)) {
+      lead.projectSupportType = updates.projectSupportType.filter(Boolean);
+    }
+
+    if (Array.isArray(updates.projectAssignedTeam)) {
+      lead.projectAssignedTeam = updates.projectAssignedTeam.filter(Boolean);
+    }
+
+    if (updates.projectAttachments !== undefined) {
+      if (Array.isArray(updates.projectAttachments)) {
+        lead.projectAttachments = updates.projectAttachments
+          .filter(Boolean)
+          .map((value) => (typeof value === 'string' ? value.trim() : value));
+      } else if (updates.projectAttachments) {
+        lead.projectAttachments = [
+          typeof updates.projectAttachments === 'string'
+            ? updates.projectAttachments.trim()
+            : updates.projectAttachments,
+        ];
+      } else {
+        lead.projectAttachments = [];
+      }
+    }
+
+    if (updates.documents && typeof updates.documents === 'object') {
+      lead.documents = {
+        resumeUrl: updates.documents.resumeUrl || '',
+        idProofUrl: updates.documents.idProofUrl || '',
+        requirementDocUrl: updates.documents.requirementDocUrl || '',
+        studentPhotoUrl: updates.documents.studentPhotoUrl || '',
+        addressProofUrl: updates.documents.addressProofUrl || '',
+        projectProposalUrl: updates.documents.projectProposalUrl || '',
+        projectDocumentationUrl: updates.documents.projectDocumentationUrl || '',
+      };
+    }
+
+    if (updates.age !== undefined && updates.age !== null && updates.age !== '') {
+      lead.age = Number(updates.age);
+    }
+
+    if (updates.certificateNeeded !== undefined) {
+      lead.certificateNeeded = Boolean(updates.certificateNeeded);
+    }
+
+    if (updates.courseFee !== undefined && updates.courseFee !== null && updates.courseFee !== '') {
+      lead.courseFee = Number(updates.courseFee);
+    }
+
+    if (updates.courseDiscountApplied !== undefined && updates.courseDiscountApplied !== null && updates.courseDiscountApplied !== '') {
+      lead.courseDiscountApplied = Number(updates.courseDiscountApplied);
+    }
+
+    if (updates.courseFinalFeePayable !== undefined && updates.courseFinalFeePayable !== null && updates.courseFinalFeePayable !== '') {
+      lead.courseFinalFeePayable = Number(updates.courseFinalFeePayable);
+    }
+
+    if (updates.projectStakeholdersCount !== undefined && updates.projectStakeholdersCount !== null && updates.projectStakeholdersCount !== '') {
+      lead.projectStakeholdersCount = Number(updates.projectStakeholdersCount);
+    }
+
+    if (updates.projectProposalAmount !== undefined && updates.projectProposalAmount !== null && updates.projectProposalAmount !== '') {
+      lead.projectProposalAmount = Number(updates.projectProposalAmount);
+    }
+
+    if (updates.projectMaintenanceFee !== undefined && updates.projectMaintenanceFee !== null && updates.projectMaintenanceFee !== '') {
+      lead.projectMaintenanceFee = Number(updates.projectMaintenanceFee);
     }
 
     let assignedSet = new Set((lead.assignedUsers || []).map((id) => id.toString()));
@@ -518,6 +762,8 @@ const updateLead = async (req, res) => {
       .populate('assignedUsers', 'name email phone profilePic')
       .populate('createdBy', 'name email phone profilePic');
 
+    await assignLeadCodeIfMissing(populated);
+
     res.json(populated);
   } catch (error) {
     console.error('Error updating CRM lead:', error);
@@ -570,6 +816,8 @@ const moveLead = async (req, res) => {
       .populate('leadOwner', 'name email phone profilePic')
       .populate('assignedUsers', 'name email phone profilePic')
       .populate('createdBy', 'name email phone profilePic');
+
+    await assignLeadCodeIfMissing(populatedLead);
 
     res.json(populatedLead);
   } catch (error) {
