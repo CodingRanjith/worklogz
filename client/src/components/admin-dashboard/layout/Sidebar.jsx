@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
   FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
-  FiMenu, FiChevronLeft
+  FiMenu, FiChevronLeft, FiLayers
 } from 'react-icons/fi';
 
 const menuItems = [
@@ -23,6 +23,14 @@ const menuItems = [
   { label: 'Task Manager', icon: <FiClipboard />, path: '/task-manager' },
   { label: 'Company Worklogz', icon: <FiBriefcase />, path: '/company-worklogz' },
   { label: 'Company Departments', icon: <FiBriefcase />, path: '/company-departments' },
+  {
+    label: 'CRM',
+    icon: <FiLayers />,
+    subItems: [
+      { label: 'Course', path: '/crm/course' },
+      { label: 'Internship', path: '/crm/internship' }
+    ]
+  },
   {
     label: 'Leaves & Lates',
     icon: <FiCalendar />,
@@ -191,7 +199,7 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
             );
           })}
 
-          <div className={`mt-auto pb-4 ${isCollapsed ? 'px-2' : 'px-4'}`}>
+          <div className={`${isCollapsed ? 'px-2' : 'px-4'} mt-auto pb-4`}>
             <button
               onClick={handleLogout}
               className={`flex items-center w-full py-2 rounded-md text-sm font-medium text-red-600 hover:bg-gray-100 relative group ${

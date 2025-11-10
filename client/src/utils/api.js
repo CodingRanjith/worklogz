@@ -102,6 +102,21 @@ export const API_ENDPOINTS = {
   updateWorkCardProgress: (id) => `${BASE_URL}/api/work-cards/${id}/progress`,
 
   // -----------------
+  // CRM APIs
+  // -----------------
+  getCRMStages: (pipelineType = 'course') => `${BASE_URL}/api/crm/stages?pipelineType=${pipelineType}`,
+  createCRMStage: `${BASE_URL}/api/crm/stages`,
+  updateCRMStage: (id) => `${BASE_URL}/api/crm/stages/${id}`,
+  deleteCRMStage: (id) => `${BASE_URL}/api/crm/stages/${id}`,
+  reorderCRMStages: `${BASE_URL}/api/crm/stages/reorder`,
+  getCRMLeads: `${BASE_URL}/api/crm/leads`,
+  getCRMLeadById: (id) => `${BASE_URL}/api/crm/leads/${id}`,
+  createCRMLead: `${BASE_URL}/api/crm/leads`,
+  updateCRMLead: (id) => `${BASE_URL}/api/crm/leads/${id}`,
+  moveCRMLead: (id) => `${BASE_URL}/api/crm/leads/${id}/move`,
+  deleteCRMLead: (id) => `${BASE_URL}/api/crm/leads/${id}`,
+ 
+  // -----------------
   // Misc
   // -----------------
   uploadPath: `${BASE_URL}/uploads`,
@@ -381,5 +396,137 @@ export const bulkUpdateTasks = async (taskIds, updateData, token) => {
     body: JSON.stringify({ taskIds, updateData }),
   });
   if (!response.ok) throw new Error('Failed to bulk update tasks');
+  return response.json();
+};
+
+// -----------------
+// CRM Helper Functions
+// -----------------
+
+const buildAuthHeaders = (token, includeJson = true) => {
+  const headers = {};
+  if (includeJson) {
+    headers['Content-Type'] = 'application/json';
+  }
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
+const buildCRMQueryParams = (filters = {}) => {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params.append(key, value);
+    }
+  });
+  const queryString = params.toString();
+  return queryString ? `?${queryString}` : '';
+};
+
+export const fetchCRMStages = async (pipelineType = 'course', token) => {
+  const response = await fetch(API_ENDPOINTS.getCRMStages(pipelineType), {
+    method: 'GET',
+    headers: buildAuthHeaders(token, false),
+  });
+  if (!response.ok) throw new Error('Failed to fetch CRM stages');
+  return response.json();
+};
+
+export const createCRMStage = async (data, token) => {
+  const response = await fetch(API_ENDPOINTS.createCRMStage, {
+    method: 'POST',
+    headers: buildAuthHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to create CRM stage');
+  return response.json();
+};
+
+export const updateCRMStage = async (stageId, data, token) => {
+  const response = await fetch(API_ENDPOINTS.updateCRMStage(stageId), {
+    method: 'PUT',
+    headers: buildAuthHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to update CRM stage');
+  return response.json();
+};
+
+export const deleteCRMStage = async (stageId, token) => {
+  const response = await fetch(API_ENDPOINTS.deleteCRMStage(stageId), {
+    method: 'DELETE',
+    headers: buildAuthHeaders(token, false),
+  });
+  if (!response.ok) throw new Error('Failed to delete CRM stage');
+  return response.json();
+};
+
+export const reorderCRMStages = async (payload, token) => {
+  const response = await fetch(API_ENDPOINTS.reorderCRMStages, {
+    method: 'POST',
+    headers: buildAuthHeaders(token),
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) throw new Error('Failed to reorder CRM stages');
+  return response.json();
+};
+
+export const fetchCRMLeads = async (filters = {}, token) => {
+  const query = buildCRMQueryParams(filters);
+  const response = await fetch(`${API_ENDPOINTS.getCRMLeads}${query}`, {
+    method: 'GET',
+    headers: buildAuthHeaders(token, false),
+  });
+  if (!response.ok) throw new Error('Failed to fetch CRM leads');
+  return response.json();
+};
+
+export const getCRMLeadById = async (leadId, token) => {
+  const response = await fetch(API_ENDPOINTS.getCRMLeadById(leadId), {
+    method: 'GET',
+    headers: buildAuthHeaders(token, false),
+  });
+  if (!response.ok) throw new Error('Failed to fetch CRM lead details');
+  return response.json();
+};
+
+export const createCRMLead = async (data, token) => {
+  const response = await fetch(API_ENDPOINTS.createCRMLead, {
+    method: 'POST',
+    headers: buildAuthHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to create CRM lead');
+  return response.json();
+};
+
+export const updateCRMLead = async (leadId, data, token) => {
+  const response = await fetch(API_ENDPOINTS.updateCRMLead(leadId), {
+    method: 'PUT',
+    headers: buildAuthHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to update CRM lead');
+  return response.json();
+};
+
+export const moveCRMLead = async (leadId, data, token) => {
+  const response = await fetch(API_ENDPOINTS.moveCRMLead(leadId), {
+    method: 'PATCH',
+    headers: buildAuthHeaders(token),
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to move CRM lead');
+  return response.json();
+};
+
+export const deleteCRMLead = async (leadId, token) => {
+  const response = await fetch(API_ENDPOINTS.deleteCRMLead(leadId), {
+    method: 'DELETE',
+    headers: buildAuthHeaders(token, false),
+  });
+  if (!response.ok) throw new Error('Failed to delete CRM lead');
   return response.json();
 };

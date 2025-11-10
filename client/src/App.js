@@ -50,6 +50,8 @@ import RelievingLetters from './pages/admin/RelievingLetters';
 import UploadDocuments from './pages/admin/UploadDocuments';
 import Settings from './pages/admin/Settings';
 import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
+import CourseCRM from './pages/admin/CourseCRM';
+import InternshipCRM from './pages/admin/InternshipCRM';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 
@@ -117,6 +119,8 @@ function App() {
           <Route path="/company-departments" element={<CompanyDepartments />} />
           <Route path="/company-departments/create" element={<CreateWorkCard />} />
           <Route path="/company-departments/:department" element={<DepartmentWorkCards />} />
+          <Route path="/crm/course" element={<CourseCRM />} />
+          <Route path="/crm/internship" element={<InternshipCRM />} />
           <Route path="/daily-salary-credit" element={<DailySalaryCredit />} />
           <Route path="/late-reports" element={<LateReports />} />
           <Route path="/experience-letters" element={<ExperienceLetters />} />

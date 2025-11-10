@@ -48,6 +48,7 @@ app.use("/api/payslips", require("./routes/payslipRoutes"));
 app.use('/api/work-cards', require('./routes/workCardRoutes'));
 app.use('/api/daily-salary', require('./routes/dailySalaryRoutes'));
 app.use('/api/engagement', require('./routes/achievementRoutes'));
+app.use('/api/crm', require('./routes/crmRoutes'));
 
 // Default Admin Setup
 const User = require('./models/User');
