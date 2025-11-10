@@ -1,14 +1,16 @@
 import React from 'react';
 import { Draggable } from '@hello-pangea/dnd';
-import { FiEdit2, FiPhone, FiTrash2, FiCalendar, FiBook, FiTag, FiUser } from 'react-icons/fi';
+import { FiPhone, FiCalendar, FiBook } from 'react-icons/fi';
 import { format } from 'date-fns';
 
 const DEFAULT_AVATAR = 'https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png';
 
-const LeadCard = ({ lead, index, onEdit, onDelete }) => {
+const LeadCard = ({ lead, index, onEdit }) => {
   const followUpLabel = lead.followUpDate ? format(new Date(lead.followUpDate), 'MMM dd, yyyy') : 'No follow-up';
-  const tags = Array.isArray(lead.tags) ? lead.tags : [];
   const assignedUsersRaw = Array.isArray(lead.assignedUsers) ? lead.assignedUsers : [];
+  const isCoursePipeline = lead.pipelineType === 'course';
+  const isITProjectPipeline = lead.pipelineType === 'it-project';
+  const isInternshipPipeline = lead.pipelineType === 'internship';
 
   const fallbackUsers = [];
   if (lead.leadOwner) fallbackUsers.push(lead.leadOwner);
@@ -23,6 +25,7 @@ const LeadCard = ({ lead, index, onEdit, onDelete }) => {
   });
 
   const assignedUsers = Array.from(uniqueMap.values());
+  const assignedUsersDisplay = assignedUsers.filter((user) => user && user.name !== 'Admin');
 
   const getInitials = (name = '') => {
     const parts = name.trim().split(' ').filter(Boolean);
@@ -31,6 +34,37 @@ const LeadCard = ({ lead, index, onEdit, onDelete }) => {
     return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
   };
 
+  const getRelativeTime = (dateValue) => {
+     if (!dateValue) return null;
+     const now = Date.now();
+     const createdTime = new Date(dateValue).getTime();
+     if (Number.isNaN(createdTime)) return null;
+ 
+     const diffSeconds = Math.max(0, Math.floor((now - createdTime) / 1000));
+    if (diffSeconds < 1) return '1s';
+
+    const units = [
+      { unit: 'y', value: 60 * 60 * 24 * 365 },
+      { unit: 'mo', value: 60 * 60 * 24 * 30 },
+      { unit: 'w', value: 60 * 60 * 24 * 7 },
+      { unit: 'd', value: 60 * 60 * 24 },
+      { unit: 'h', value: 60 * 60 },
+      { unit: 'm', value: 60 },
+      { unit: 's', value: 1 },
+    ];
+
+    for (const { unit, value } of units) {
+      if (diffSeconds >= value) {
+        const count = Math.floor(diffSeconds / value);
+        return `${count}${unit}`;
+      }
+    }
+
+    return '1s';
+  };
+
+  const createdRelative = getRelativeTime(lead.createdAt);
+
   return (
     <Draggable draggableId={lead._id} index={index}>
       {(provided, snapshot) => (
@@ -38,52 +72,142 @@ const LeadCard = ({ lead, index, onEdit, onDelete }) => {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`group rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition transform ${snapshot.isDragging ? 'ring-2 ring-indigo-400 scale-[1.01]' : ''}`}
+          onClick={() => onEdit(lead)}
+          className={`group cursor-pointer rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition transform ${snapshot.isDragging ? 'ring-2 ring-indigo-400 scale-[1.01]' : 'hover:-translate-y-0.5'}`}
         >
-          <div className="p-4 space-y-3">
+          <div className="px-3 py-2.5 space-y-3">
             <div className="flex items-start justify-between gap-2">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 leading-tight">
-                  {lead.fullName}
-                </h4>
-                <p className="text-xs text-gray-500">{lead.status || 'Pending'}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {lead.leadCode && (
-                  <span className="rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-600">
-                    {lead.leadCode}
-                  </span>
-                )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => onEdit(lead)}
-                    className="p-2 rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
-                    title="Edit lead"
-                  >
-                    <FiEdit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(lead)}
-                    className="p-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100"
-                    title="Delete lead"
-                  >
-                    <FiTrash2 className="w-4 h-4" />
-                  </button>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-gray-900 leading-tight truncate">
+                    {lead.fullName}
+                  </h4>
+                  {lead.leadCode && (
+                    <span className="rounded-full bg-indigo-100/80 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                      {lead.leadCode}
+                    </span>
+                  )}
                 </div>
+                <p className="text-[11px] font-medium text-indigo-500 uppercase tracking-wide truncate">
+                  {lead.status || 'Pending'}
+                </p>
               </div>
+              {createdRelative && (
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+                  {createdRelative}
+                </span>
+              )}
             </div>
 
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2 text-xs text-gray-600">
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1.5 text-xs text-gray-600">
                 <div className="flex items-center gap-2">
                   <FiPhone className="w-3.5 h-3.5" />
                   <span>{lead.phone}</span>
                 </div>
 
-                {lead.createdBy?.name && (
+                {lead.leadSource && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <span className="font-medium text-gray-500">Source:</span>
+                    <span>{lead.leadSource}</span>
+                  </div>
+                )}
+
+                {isInternshipPipeline && lead.trainingMode && (
                   <div className="flex items-center gap-2">
-                    <FiUser className="w-3.5 h-3.5" />
-                    <span title={`Created by ${lead.createdBy.name}`}>Created by {lead.createdBy.name}</span>
+                    <span className="font-medium text-gray-500">Mode:</span>
+                    <span>{lead.trainingMode}</span>
+                  </div>
+                )}
+
+                {isInternshipPipeline && lead.durationRequired && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Duration:</span>
+                    <span>{lead.durationRequired}</span>
+                  </div>
+                )}
+
+                {isCoursePipeline && lead.courseProgramType && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Program:</span>
+                    <span>{lead.courseProgramType}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectCompanyName && (
+                   <div className="flex items-center gap-2">
+                     <span className="font-medium text-gray-500">Company:</span>
+                     <span className="truncate" title={lead.projectCompanyName}>{lead.projectCompanyName}</span>
+                   </div>
+                 )}
+
+                {isITProjectPipeline && lead.projectName && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Project:</span>
+                    <span className="truncate" title={lead.projectName}>{lead.projectName}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectCategory?.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Category:</span>
+                    <span>{lead.projectCategory.slice(0, 2).join(', ')}{lead.projectCategory.length > 2 ? '…' : ''}</span>
+                  </div>
+                )}
+
+                {isCoursePipeline && lead.courseMode && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Mode:</span>
+                    <span>{lead.courseMode}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectUrgency && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Urgency:</span>
+                    <span>{lead.projectUrgency}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectTimelineExpectation && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Timeline:</span>
+                    <span>{lead.projectTimelineExpectation}</span>
+                  </div>
+                )}
+
+                {isCoursePipeline && lead.courseBatchType && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Batch:</span>
+                    <span>{lead.courseBatchType}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && typeof lead.projectProposalAmount === 'number' && lead.projectProposalAmount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Proposal:</span>
+                    <span>₹{lead.projectProposalAmount.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectBudgetExpectation && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Budget:</span>
+                    <span>{lead.projectBudgetExpectation}</span>
+                  </div>
+                )}
+
+                {isCoursePipeline && lead.courseStartDate && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Start:</span>
+                    <span>{format(new Date(lead.courseStartDate), 'MMM dd, yyyy')}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectStatus && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Project Status:</span>
+                    <span>{lead.projectStatus}</span>
                   </div>
                 )}
 
@@ -94,18 +218,69 @@ const LeadCard = ({ lead, index, onEdit, onDelete }) => {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2">
-                  <FiCalendar className="w-3.5 h-3.5" />
-                  <span>{followUpLabel}</span>
-                </div>
+                {!isInternshipPipeline && (
+                  <div className="flex items-center gap-2">
+                    <FiCalendar className="w-3.5 h-3.5" />
+                    <span>{followUpLabel}</span>
+                  </div>
+                )}
+
+                {isCoursePipeline && lead.coursePaymentStatus && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Payment:</span>
+                    <span>{lead.coursePaymentStatus}</span>
+                  </div>
+                )}
+
+                {isInternshipPipeline && lead.paymentStatus && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Payment:</span>
+                    <span>{lead.paymentStatus}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectPaymentStatus && (
+                   <div className="flex items-center gap-2">
+                     <span className="font-medium text-gray-500">Payment:</span>
+                     <span>{lead.projectPaymentStatus}</span>
+                   </div>
+                 )}
+
+                {isITProjectPipeline && lead.projectCommunicationMode && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Last Meet:</span>
+                    <span>{lead.projectCommunicationMode}</span>
+                  </div>
+                )}
+
+                {isCoursePipeline && lead.courseCounselorAssigned && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Counselor:</span>
+                    <span>{lead.courseCounselorAssigned}</span>
+                  </div>
+                )}
+
+                {isCoursePipeline && lead.courseCompletionStatus && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Completion:</span>
+                    <span>{lead.courseCompletionStatus}</span>
+                  </div>
+                )}
+
+                {isITProjectPipeline && lead.projectSupportType?.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-500">Support:</span>
+                    <span>{lead.projectSupportType.slice(0, 2).join(', ')}{lead.projectSupportType.length > 2 ? '…' : ''}</span>
+                  </div>
+                )}
               </div>
 
-              {assignedUsers.length > 0 && (
-                <div className="mt-1 flex flex-col items-end gap-2">
-                  <p className="text-xs font-medium text-gray-500">Assigned Team</p>
-                  <div className="flex items-center gap-2">
+              {assignedUsersDisplay.length > 0 && (
+                <div className="mt-1 flex flex-col items-end gap-1">
+                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Assigned Team</p>
+                  <div className="flex items-center gap-1.5">
                     <div className="flex -space-x-2">
-                      {assignedUsers.slice(0, 3).map((user) => {
+                      {assignedUsersDisplay.slice(0, 3).map((user) => {
                         const id = user?._id || user;
                         const name = typeof user === 'string' ? 'Team Member' : (user?.name || 'Team Member');
                         const phone = typeof user === 'string' ? '' : (user?.phone || '');
@@ -133,30 +308,13 @@ const LeadCard = ({ lead, index, onEdit, onDelete }) => {
                         );
                       })}
                     </div>
-                    {assignedUsers.length > 3 && (
-                      <span className="text-[10px] font-medium text-gray-500">+{assignedUsers.length - 3} more</span>
+                    {assignedUsersDisplay.length > 3 && (
+                      <span className="text-[10px] font-medium text-gray-500">+{assignedUsersDisplay.length - 3}</span>
                     )}
                   </div>
                 </div>
               )}
             </div>
-
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                {tags.slice(0, 3).map(tag => (
-                  <span
-                    key={`${lead._id}-${tag}`}
-                    className="inline-flex items-center gap-1 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-medium px-2 py-0.5"
-                  >
-                    <FiTag className="w-3 h-3" />
-                    {tag}
-                  </span>
-                ))}
-                {tags.length > 3 && (
-                  <span className="text-[10px] text-gray-500 font-medium">+{tags.length - 3} more</span>
-                )}
-              </div>
-            )}
           </div>
         </div>
       )}

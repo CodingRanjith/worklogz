@@ -20,4 +20,7 @@ router.put('/:id', auth, role('admin'), userController.updateUser);
 // ✅ UPDATE salary
 router.put('/:id/salary', auth, role('admin'), userController.updateSalary);
 
+// ✅ DELETE user and related data
+router.delete('/:id', auth, role('admin'), userController.deleteUser);
+
 module.exports = router;

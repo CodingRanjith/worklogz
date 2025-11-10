@@ -9,7 +9,7 @@ export const BASE_URL = 'https://worklogz.onrender.com';
 // export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
 
 // -----------------
-// Auth & User APIs
+// Auth & User APIss
 // -----------------
 export const API_ENDPOINTS = {
   
@@ -27,6 +27,7 @@ export const API_ENDPOINTS = {
   getCurrentUser: `${BASE_URL}/users/me`,
   getUserById: (userId) => `${BASE_URL}/users/${userId}`,
   updateUser: (userId) => `${BASE_URL}/users/${userId}`,
+  deleteUser: (userId) => `${BASE_URL}/users/${userId}`,
   updateSalary: (userId) => `${BASE_URL}/users/${userId}/salary`,
   getSchedules: `${BASE_URL}/schedules`,
   putUserSchedule: (userId) => `${BASE_URL}/schedules/${userId}`,

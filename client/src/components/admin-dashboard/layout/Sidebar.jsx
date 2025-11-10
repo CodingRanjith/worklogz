@@ -28,7 +28,8 @@ const menuItems = [
     icon: <FiLayers />,
     subItems: [
       { label: 'Course', path: '/crm/course' },
-      { label: 'Internship', path: '/crm/internship' }
+      { label: 'Internship', path: '/crm/internship' },
+      { label: 'IT Projects', path: '/crm/it-projects' }
     ]
   },
   {

@@ -23,7 +23,7 @@ const CRMStageSchema = new mongoose.Schema({
   },
   pipelineType: {
     type: String,
-    enum: ['course', 'internship'],
+    enum: ['course', 'internship', 'it-project'],
     default: 'course',
     index: true,
   },
