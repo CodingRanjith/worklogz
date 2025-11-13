@@ -75,7 +75,7 @@ const LeadCard = ({ lead, index, onEdit }) => {
           onClick={() => onEdit(lead)}
           className={`group cursor-pointer rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition transform ${snapshot.isDragging ? 'ring-2 ring-indigo-400 scale-[1.01]' : 'hover:-translate-y-0.5'}`}
         >
-          <div className="px-3 py-2.5 space-y-3">
+          <div className="max-h-80 overflow-y-auto px-3 py-2.5 space-y-3">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
