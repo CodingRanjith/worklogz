@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./AttendancePage.css";
+import "../../styles/m365Theme.css";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { API_ENDPOINTS } from "../../utils/api";
@@ -37,6 +38,7 @@ function AttendancePage() {
   const [showTimesheetModal, setShowTimesheetModal] = useState(false);
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0); // 0 = current week, -1 = previous week, +1 = next week
+  const [activeHeroTab, setActiveHeroTab] = useState("How it works");
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -306,6 +308,153 @@ function AttendancePage() {
   const presentDays = Object.keys(attendanceMap).length;
   // Calculate absent days: days elapsed in current month - present days
   const absentDays = Math.max(0, currentDayOfMonth - presentDays);
+
+  const formatWeeklyHours = () => {
+    const { totalWorkedHours } = calculateWeeklyHours();
+    const hours = Math.floor(totalWorkedHours);
+    const minutes = Math.floor((totalWorkedHours - hours) * 60);
+    return `${hours.toString().padStart(2, "0")}h ${minutes
+      .toString()
+      .padStart(2, "0")}m`;
+  };
+
+  const attendanceRate = currentDayOfMonth
+    ? Math.round((presentDays / currentDayOfMonth) * 100)
+    : 0;
+
+  const heroHighlights = [
+    {
+      label: "Attendance rate",
+      value: `${attendanceRate}%`,
+      sub: "This month",
+    },
+    {
+      label: "Days logged",
+      value: `${presentDays}/${currentDayOfMonth}`,
+      sub: "Month-to-date",
+    },
+    {
+      label: "Weekly hours",
+      value: formatWeeklyHours(),
+      sub: "Tracked time",
+    },
+  ];
+
+  const heroTabs = [
+    "How it works",
+    "Featured news",
+    "What's included",
+    "Plans",
+    "Customer stories",
+  ];
+
+  const quickActions = [
+    {
+      label: "My Earnings",
+      description: "View payouts & credits",
+      accent: "emerald",
+      onClick: () => navigate("/my-earnings"),
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Task Manager",
+      description: "Log daily work",
+      accent: "teal",
+      onClick: () => navigate("/timesheet"),
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Apply Leave",
+      description: "Request time off",
+      accent: "orange",
+      onClick: () => navigate("/apply-leave"),
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Calendar View",
+      description: "Review attendance",
+      accent: "purple",
+      onClick: () => setShowCalendarModal(true),
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          />
+        </svg>
+      ),
+    },
+    {
+      label: "Holiday List",
+      description: "Company calendar",
+      accent: "blue",
+      onClick: () => setShowHolidayModal(true),
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+          />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-green-50 px-2 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 lg:py-10 w-full font-sans">

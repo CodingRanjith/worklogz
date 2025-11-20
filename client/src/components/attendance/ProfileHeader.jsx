@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { API_ENDPOINTS } from '../../utils/api';
-import { FiBell, FiClock, FiUser } from 'react-icons/fi';
+import React, { useEffect, useState } from "react";
+import { API_ENDPOINTS } from "../../utils/api";
+import { FiBell, FiClock, FiUser } from "react-icons/fi";
 
 function ProfileHeader() {
   const [user, setUser] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -16,16 +16,16 @@ function ProfileHeader() {
           },
         });
 
-        if (!res.ok) throw new Error('Failed to fetch user');
+        if (!res.ok) throw new Error("Failed to fetch user");
 
         const users = await res.json();
-        const decoded = JSON.parse(atob(token.split('.')[1]));
+        const decoded = JSON.parse(atob(token.split(".")[1]));
         const userId = decoded.userId;
 
         const currentUser = users.find(u => u._id === userId);
         setUser(currentUser);
       } catch (err) {
-        console.error('Error loading user:', err.message);
+        console.error("Error loading user:", err.message);
       }
     };
 
@@ -46,9 +46,9 @@ function ProfileHeader() {
   // Get greeting based on time
   const getGreeting = () => {
     const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
   };
 
   // Format date
@@ -71,83 +71,56 @@ function ProfileHeader() {
     });
   };
 
+  const firstName = user.name?.split(" ")[0] || user.name;
+
   return (
-    <div className="bg-white border border-gray-200 shadow-sm rounded-xl px-6 py-5 mb-6">
-      {/* Main content row */}
-      <div className="flex items-center justify-between gap-6">
-        {/* Left side - User Profile */}
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full border-2 border-purple-200 shadow-sm bg-gradient-to-br from-purple-100 to-purple-50 p-1 flex items-center justify-center overflow-hidden">
-            {user.profilePic ? (
-              <img
-                src={user.profilePic}
-                alt={`${user.name}'s profile`}
-                className="w-full h-full object-cover rounded-full"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div 
-              className={`w-full h-full rounded-full flex items-center justify-center ${user.profilePic ? 'hidden' : 'flex'}`}
-              style={{ display: user.profilePic ? 'none' : 'flex' }}
-            >
-              <FiUser className="text-purple-400 text-2xl" />
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xl font-bold text-[#181818]" style={{ fontFamily: 'Sora, sans-serif' }}>
-                {user.name}
-              </h2>
-              <span className="text-lg">👋</span>
-            </div>
-            <p className="text-sm font-medium text-[#8b72cc]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              {getGreeting()}, {user.name.split(' ')[0]}!
-            </p>
-            <p className="text-sm text-gray-600" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              {user.position || 'Employee'}
-            </p>
-            <p className="text-xs text-gray-500 mt-0.5" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              {user.company}
-            </p>
-          </div>
-        </div>
-
-        {/* Center - Live Date and Time */}
-        <div className="flex-1 flex justify-center">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <FiClock className="text-[#8b72cc] text-lg" />
-              <p className="text-lg font-bold text-[#181818]" style={{ fontFamily: 'Sora, sans-serif' }}>
-                {formatDate(currentTime)}
-              </p>
-            </div>
-            <p className="text-2xl font-bold text-[#8b72cc] tracking-wider" style={{ fontFamily: 'Sora, sans-serif' }}>
-              {formatTime(currentTime)}
-            </p>
-            <p className="text-sm font-medium text-gray-600 mt-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              {currentTime.toLocaleString('default', { month: 'long' })} {currentTime.getFullYear()}
-            </p>
-            <p className="text-xs text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              Live Time
-            </p>
-          </div>
-        </div>
-
-        {/* Right side - Notification */}
-        <div className="flex items-center">
-          <div className="relative">
-            <FiBell
-              className="text-gray-400 hover:text-[#8b72cc] transition-colors duration-200 cursor-pointer text-xl"
-              title="Notifications"
+    <div className="attendance-profile glass">
+      <div className="attendance-profile__primary">
+        <div className="attendance-avatar">
+          {user.profilePic ? (
+            <img
+              src={user.profilePic}
+              alt={`${user.name}'s profile`}
+              className="attendance-avatar__img"
             />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs flex items-center justify-center">
-            </span>
+          ) : (
+            <FiUser className="attendance-avatar__icon" />
+          )}
+        </div>
+        <div>
+          <p className="attendance-eyebrow">{getGreeting()}, {firstName}</p>
+          <div className="attendance-name-row">
+            <h2>{user.name}</h2>
+            <span aria-hidden>👋</span>
+          </div>
+          <div className="attendance-meta">
+            <span>{user.position || "Employee"}</span>
+            {user.company && (
+              <>
+                <span className="dot" />
+                <span>{user.company}</span>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      <div className="attendance-profile__time">
+        <div className="time-pill">
+          <FiClock />
+          <span>{formatDate(currentTime)}</span>
+        </div>
+        <p className="time-display">{formatTime(currentTime)}</p>
+        <span className="time-label">
+          {currentTime.toLocaleString("default", { month: "long" })}{" "}
+          {currentTime.getFullYear()} • Live time
+        </span>
+      </div>
+
+      <button className="attendance-notify" type="button" title="Notifications">
+        <FiBell />
+        <span className="ping" />
+      </button>
     </div>
   );
 }

@@ -1,306 +1,300 @@
-/* Responsive breakpoints */
-@media (min-width: 475px) {
-  .xs\:inline {
-    display: inline !important;
-  }
+:root {
+  --attendance-navy: #111a44;
+  --attendance-muted: #58617a;
+  --attendance-border: #dfe6f5;
+  --attendance-green: #34c759;
+  --attendance-amber: #ffb347;
+  --attendance-rose: #ff5f6d;
+  --attendance-indigo: #5a5cff;
+  --attendance-surface: #ffffff;
 }
 
-/* Mobile-first responsive utilities */
-@media (max-width: 640px) {
-  .mobile-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-  
-  .mobile-button {
-    padding: 0.75rem 1rem;
-    font-size: 0.875rem;
-  }
-  
-  .mobile-text-truncate {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-/* Enhanced button states for mobile */
-@media (hover: none) and (pointer: coarse) {
-  .ripple:active {
-    transform: scale(0.98);
-    transition: transform 0.1s;
-  }
-  
-  .group:active .relative {
-    opacity: 0.9;
-  }
-}
-
-.present-day {
-  background-color: #bbf7d0 !important; /* Tailwind green-200 */
-  color: #000 !important;               /* Dark font color */
-  border-radius: 6px;
-}
-
-.partial-present {
-  background-color: #fef08a !important; /* Tailwind yellow-200 */
-  color: #000 !important;
-  border-radius: 6px;
-}
-
-.absent-day {
-  background-color: #fecaca !important; /* Tailwind red-200 */
-  color: #000 !important;
-  border-radius: 6px;
-}
-
-/* Material Design DateStrip enhancements */
 .date-strip-container {
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--attendance-border);
+  border-radius: 28px;
+  padding: 1.25rem;
+  box-shadow: 0 35px 65px rgba(17, 26, 68, 0.08);
 }
 
 .month-tab-active {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3), 0 4px 6px -2px rgba(99, 102, 241, 0.05);
+  background: #111a44;
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.35rem 1.25rem;
+  box-shadow: 0 20px 30px rgba(17, 26, 68, 0.25);
 }
 
 .day-card {
-  backdrop-filter: blur(16px);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.day-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-  transition: left 0.5s;
-}
-
-.day-card:hover::before {
-  left: 100%;
+  border-radius: 22px;
+  border: 1px solid rgba(17, 26, 68, 0.05);
+  background: rgba(255, 255, 255, 0.9);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .day-card:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: translateY(-3px);
+  box-shadow: 0 25px 40px rgba(17, 26, 68, 0.12);
+}
+
+.present-day {
+  background: rgba(52, 199, 89, 0.12) !important;
+  color: var(--attendance-navy) !important;
+  border-radius: 12px;
+}
+
+.partial-present {
+  background: rgba(255, 179, 71, 0.15) !important;
+  color: var(--attendance-navy) !important;
+  border-radius: 12px;
+}
+
+.absent-day {
+  background: rgba(255, 95, 109, 0.12) !important;
+  color: var(--attendance-navy) !important;
+  border-radius: 12px;
 }
 
 .progress-bar {
-  background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
-  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #e3e7f5;
+  border-radius: 999px;
   position: relative;
   overflow: hidden;
 }
 
-.progress-bar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: shimmer 2s infinite;
+.progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(120deg, #2d7cf2, #8a3ffc);
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.hours-display-high {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  color: #047857;
-  box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.1);
-}
-
-.hours-display-medium {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #92400e;
-  box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1);
-}
-
-.hours-display-low {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: #991b1b;
-  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
-}
-
-/* Scrollbar customization */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Material elevation classes */
-.elevation-1 {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-}
-
-.elevation-2 {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-}
-
-.elevation-3 {
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.elevation-4 {
-  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
-}
-
-/* Material ripple effect */
-.ripple {
-  position: relative;
-  overflow: hidden;
-  transform: translate3d(0, 0, 0);
-}
-
-.ripple:before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.5);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-.ripple:focus:before {
-  width: 300px;
-  height: 300px;
-}
-
-/* Glass morphism effect */
 .glass {
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  background-color: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(209, 213, 219, 0.3);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 32px;
+  border: 1px solid rgba(223, 230, 245, 0.7);
+  box-shadow: 0 40px 70px rgba(17, 26, 68, 0.15);
 }
 
-/* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+  background: linear-gradient(120deg, #2d7cf2, #8a3ffc);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 700;
 }
 
-/* Calendar Modal Text Visibility */
 .react-calendar {
-  background: white !important;
-  color: #374151 !important;
-  font-family: inherit !important;
-  border: none !important;
-  border-radius: 1rem !important;
+  background: var(--attendance-surface) !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--attendance-border) !important;
+  font-family: var(--m365-font, "Segoe UI", system-ui, sans-serif) !important;
+  box-shadow: 0 25px 45px rgba(17, 26, 68, 0.08) !important;
   padding: 1rem !important;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
-}
-
-.react-calendar__navigation {
-  background: white !important;
-  margin-bottom: 1rem !important;
 }
 
 .react-calendar__navigation button {
-  background: white !important;
-  color: #374151 !important;
+  border-radius: 16px !important;
+  border: 1px solid var(--attendance-border) !important;
+  color: var(--attendance-navy) !important;
   font-weight: 600 !important;
-  font-size: 1rem !important;
-  border: 2px solid #e5e7eb !important;
-  border-radius: 0.5rem !important;
-  padding: 0.5rem !important;
-  margin: 0 0.25rem !important;
-  transition: all 0.2s !important;
-}
-
-.react-calendar__navigation button:hover {
-  background: #f3f4f6 !important;
-  border-color: #d1d5db !important;
-  transform: translateY(-1px) !important;
-}
-
-.react-calendar__navigation button:disabled {
-  background: #f9fafb !important;
-  color: #9ca3af !important;
-}
-
-.react-calendar__month-view__weekdays {
-  background: #f8fafc !important;
-  border-radius: 0.5rem !important;
-  margin-bottom: 0.5rem !important;
-  padding: 0.5rem 0 !important;
 }
 
 .react-calendar__month-view__weekdays__weekday {
-  color: #6b7280 !important;
+  color: var(--attendance-muted) !important;
   font-weight: 700 !important;
-  font-size: 0.75rem !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-  padding: 0.5rem !important;
 }
 
 .react-calendar__tile {
-  background: white !important;
-  color: #374151 !important;
-  font-weight: 600 !important;
-  font-size: 0.875rem !important;
-  border: 1px solid #f3f4f6 !important;
-  border-radius: 0.375rem !important;
-  padding: 0.75rem 0.5rem !important;
-  margin: 1px !important;
-  transition: all 0.2s !important;
-  position: relative !important;
-}
-
-.react-calendar__tile:hover {
-  background: #f3f4f6 !important;
-  border-color: #d1d5db !important;
-  transform: translateY(-1px) !important;
+  border-radius: 18px !important;
+  border: none !important;
+  color: var(--attendance-navy) !important;
+  transition: background 0.2s ease !important;
 }
 
 .react-calendar__tile--active {
-  background: #3b82f6 !important;
-  color: white !important;
-  border-color: #2563eb !important;
-  box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3) !important;
+  background: linear-gradient(120deg, #2d7cf2, #8a3ffc) !important;
+  color: #fff !important;
+  box-shadow: 0 15px 30px rgba(45, 124, 242, 0.35) !important;
 }
 
-.react-calendar__tile--now {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-  border-color: #3b82f6 !important;
+.calendar-modal-header {
+  color: var(--attendance-navy) !important;
   font-weight: 700 !important;
 }
 
-.react-calendar__tile--now:hover {
-  background: #dbeafe !important;
-}
-
-/* Calendar Modal Header */
-.calendar-modal-header {
-  color: #111827 !important;
-  text-shadow: none !important;
-}
-
 .calendar-modal-subtitle {
-  color: #4b5563 !important;
+  color: var(--attendance-muted) !important;
   font-weight: 600 !important;
+}
+
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.2);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ripple:active::after {
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .date-strip-container {
+    border-radius: 18px;
+    padding: 1rem;
+  }
+}
+
+.attendance-profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  padding: clamp(1.25rem, 3vw, 1.75rem) clamp(1rem, 3vw, 2.5rem);
+  margin-bottom: clamp(1rem, 3vw, 1.75rem);
+  border-radius: 32px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(240, 244, 255, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.attendance-profile__primary {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.attendance-avatar {
+  width: 82px;
+  height: 82px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #e6edff, #fef7ff);
+  border: 1px solid rgba(223, 230, 245, 0.9);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.attendance-avatar__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attendance-avatar__icon {
+  font-size: 2rem;
+  color: var(--attendance-indigo);
+}
+
+.attendance-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--attendance-muted);
+  margin: 0;
+}
+
+.attendance-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.25rem 0;
+}
+
+.attendance-name-row h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--attendance-navy);
+}
+
+.attendance-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: var(--attendance-muted);
+  flex-wrap: wrap;
+}
+
+.attendance-meta .dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--attendance-muted);
+  opacity: 0.6;
+}
+
+.attendance-profile__time {
+  text-align: center;
+  flex: 1;
+}
+
+.time-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  background: rgba(17, 26, 68, 0.08);
+  color: var(--attendance-navy);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.time-display {
+  margin: 0.35rem 0 0;
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--attendance-indigo);
+}
+
+.time-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--attendance-muted);
+}
+
+.attendance-notify {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid var(--attendance-border);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  color: var(--attendance-muted);
+  position: relative;
+}
+
+.attendance-notify .ping {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--attendance-rose);
+}
+
+@media (max-width: 1024px) {
+  .attendance-profile {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .attendance-profile__time {
+    text-align: left;
+  }
 }
