@@ -1,0 +1,320 @@
+:root {
+  --m365-font: 'Segoe UI', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --m365-bg: #f6f8fc;
+  --m365-surface: #ffffff;
+  --m365-navy: #111a44;
+  --m365-muted: #55607a;
+  --m365-border: #e0e6f3;
+  --m365-border-strong: #bfc9df;
+  --m365-shadow: 0 30px 60px rgba(15, 23, 42, 0.08);
+  --m365-radius-lg: 28px;
+  --m365-radius-md: 18px;
+  --m365-gradient: radial-gradient(circle at 5% 10%, #eef4ff 0, transparent 30%),
+    radial-gradient(circle at 80% 0%, #fef0ff 0, transparent 35%),
+    radial-gradient(circle at 10% 60%, #e9fbff 0, transparent 45%),
+    #f6f8fc;
+}
+
+body {
+  font-family: var(--m365-font);
+  background-color: var(--m365-bg);
+  color: var(--m365-navy);
+}
+
+.m365-shell {
+  min-height: 100vh;
+  padding: clamp(1.25rem, 3vw, 2.75rem);
+  background: var(--m365-gradient);
+}
+
+.m365-body {
+  margin-top: clamp(1.25rem, 3vw, 2.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 3vw, 2rem);
+}
+
+.m365-surface {
+  background: var(--m365-surface);
+  border: 1px solid var(--m365-border);
+  border-radius: var(--m365-radius-lg);
+  box-shadow: var(--m365-shadow);
+}
+
+.m365-hero {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
+  background: linear-gradient(135deg, #fefcff 0%, #f2f6ff 45%, #eef5ff 100%);
+}
+
+.m365-hero__content {
+  flex: 1 1 320px;
+  max-width: 640px;
+}
+
+.m365-hero__title {
+  font-size: clamp(1.75rem, 3vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0.65rem 0 0.5rem;
+}
+
+.m365-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.75rem;
+  color: var(--m365-muted);
+  font-weight: 700;
+}
+
+.m365-hero__subtitle {
+  color: var(--m365-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 90%;
+}
+
+.m365-hero__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.m365-tab {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.45rem 1.25rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--m365-muted);
+  background: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+
+.m365-tab.is-active {
+  color: var(--m365-navy);
+  border-color: var(--m365-border-strong);
+  background: var(--m365-surface);
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.15);
+}
+
+.m365-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.m365-cta-primary,
+.m365-cta-secondary {
+  border-radius: 999px;
+  padding: 0.55rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.m365-cta-primary {
+  background: linear-gradient(120deg, #2563eb, #7c3aed);
+  color: #fff;
+  border: none;
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.35);
+}
+
+.m365-cta-secondary {
+  border: 1px solid var(--m365-border-strong);
+  background: transparent;
+  color: var(--m365-navy);
+}
+
+.m365-cta-primary:hover,
+.m365-cta-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.2);
+}
+
+.m365-hero__panel {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.m365-profile-card {
+  border-radius: var(--m365-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 1rem;
+}
+
+.m365-hero__highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.85rem;
+}
+
+.m365-highlight-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: var(--m365-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  padding: 1rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.m365-highlight-card h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--m365-muted);
+  margin-bottom: 0.35rem;
+}
+
+.m365-highlight-card p {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.m365-highlight-card span {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--m365-muted);
+}
+
+.m365-section {
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  background: var(--m365-surface);
+  border: 1px solid var(--m365-border);
+  border-radius: var(--m365-radius-lg);
+  box-shadow: var(--m365-shadow);
+}
+
+.m365-section__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.m365-section__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--m365-navy);
+}
+
+.m365-section__subtitle {
+  color: var(--m365-muted);
+  font-size: 0.95rem;
+}
+
+.m365-quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.85rem;
+}
+
+.m365-quick-action {
+  border-radius: var(--m365-radius-md);
+  border: 1px solid var(--m365-border);
+  background: linear-gradient(145deg, #ffffff, #f3f5fc);
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  color: var(--m365-navy);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.m365-quick-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.1);
+}
+
+.m365-quick-action__badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.m365-quick-action[data-accent='emerald'] .m365-quick-action__badge {
+  background: linear-gradient(135deg, #34d399, #059669);
+}
+
+.m365-quick-action[data-accent='teal'] .m365-quick-action__badge {
+  background: linear-gradient(135deg, #2dd4bf, #0d9488);
+}
+
+.m365-quick-action[data-accent='orange'] .m365-quick-action__badge {
+  background: linear-gradient(135deg, #fb923c, #f97316);
+}
+
+.m365-quick-action[data-accent='purple'] .m365-quick-action__badge {
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+}
+
+.m365-quick-action[data-accent='blue'] .m365-quick-action__badge {
+  background: linear-gradient(135deg, #60a5fa, #2563eb);
+}
+
+.m365-logout {
+  justify-content: center;
+  border: none;
+  color: #fff;
+  background: linear-gradient(120deg, #f43f5e, #ec4899);
+}
+
+.m365-card {
+  border-radius: var(--m365-radius-md);
+  border: 1px solid var(--m365-border);
+  background: #fff;
+  box-shadow: 0 20px 35px rgba(15, 23, 42, 0.07);
+}
+
+.legacy-attendance {
+  margin-top: clamp(1.25rem, 3vw, 2.5rem);
+  border-radius: var(--m365-radius-lg);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: var(--m365-shadow);
+}
+
+@media (max-width: 1024px) {
+  .m365-hero {
+    flex-direction: column;
+  }
+
+  .m365-profile-card {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .m365-shell {
+    padding: 1rem;
+  }
+
+  .m365-hero__tabs {
+    flex-direction: column;
+  }
+
+  .m365-hero__subtitle {
+    max-width: 100%;
+  }
+
+  .m365-section {
+    padding: 1rem;
+  }
+}
+
