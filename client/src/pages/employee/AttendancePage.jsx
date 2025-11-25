@@ -16,14 +16,13 @@ import CameraView from "../../components/attendance/CameraView";
 import { compressImage } from "../../components/attendance/utils";
 import TimesheetModal from "../../components/timesheet/TimesheetModal";
 import HolidayModal from "../../components/holidays/HolidayModal";
-import DailyEarningsCard from "../../components/attendance/DailyEarningsCard";
+import ProfileCard from "./ProfileCard";
 
 function AttendancePage() {
   const navigate = useNavigate();
   const { userId } = useParams();
   const isSelf = !userId;
 
-  const [user, setUser] = useState({ name: "", position: "", company: "" });
   const [type, setType] = useState(null);
   const [image, setImage] = useState(null);
   const [compressedBlob, setCompressedBlob] = useState(null);
@@ -39,6 +38,9 @@ function AttendancePage() {
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0); // 0 = current week, -1 = previous week, +1 = next week
   const [activeHeroTab, setActiveHeroTab] = useState("How it works");
+  const [profileData, setProfileData] = useState(null);
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -100,6 +102,23 @@ function AttendancePage() {
     setCurrentWeekOffset(0);
   };
 
+  const mapUserToProfile = (data) => ({
+    id: data?._id || data?.id || "",
+    name: data?.name || "",
+    employeeId: data?.employeeId || data?.employeeCode || "",
+    enrollmentId: data?.enrollmentId || "",
+    email: data?.email || "",
+    phone: data?.phone || "",
+    position: data?.position || "",
+    department: data?.department || "",
+    company: data?.company || "",
+    location: data?.location || "",
+    gender: data?.gender || "",
+    dob: data?.dateOfBirth || "",
+    maritalStatus: data?.maritalStatus || "",
+    avatar: data?.profilePic || "",
+  });
+
   const fetchUser = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
@@ -109,15 +128,75 @@ function AttendancePage() {
           : API_ENDPOINTS.getUserById(userId),
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUser({
-        name: res.data.name,
-        position: res.data.position,
-        company: res.data.company,
-      });
+      setProfileData(mapUserToProfile(res.data));
     } catch (err) {
       // Swal.fire({ icon: 'error', title: 'Error', text: 'Unable to load user info' });
     }
   }, [isSelf, userId]);
+  const handleProfileSave = async (updatedProfile, avatarFile) => {
+    if (!updatedProfile?.id) {
+      setShowProfileEditor(false);
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+    const formData = new FormData();
+    const fieldMap = {
+      name: "name",
+      email: "email",
+      phone: "phone",
+      position: "position",
+      department: "department",
+      company: "company",
+      location: "location",
+      employeeId: "employeeId",
+      enrollmentId: "enrollmentId",
+      gender: "gender",
+      maritalStatus: "maritalStatus",
+      dob: "dateOfBirth",
+    };
+
+    Object.entries(fieldMap).forEach(([formKey, apiKey]) => {
+      const value = updatedProfile[formKey];
+      if (value !== undefined && value !== null && value !== "") {
+        formData.append(apiKey, value);
+      }
+    });
+
+    if (avatarFile) {
+      formData.append("profilePic", avatarFile);
+    } else if (updatedProfile.avatar !== undefined) {
+      formData.append("profilePic", updatedProfile.avatar);
+    }
+
+    try {
+      setIsSavingProfile(true);
+      const { data } = await axios.put(
+        API_ENDPOINTS.updateMyProfile,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      const updated = data?.user ? mapUserToProfile(data.user) : updatedProfile;
+      setProfileData(updated);
+      Swal.fire({
+        icon: "success",
+        title: "Profile updated",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      setShowProfileEditor(false);
+    } catch (err) {
+      Swal.fire("Error", "Unable to update profile", "error");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
 
   const fetchAttendance = useCallback(async () => {
     const token = localStorage.getItem("token");
@@ -457,160 +536,60 @@ function AttendancePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 via-pink-50 to-green-50 px-2 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 lg:py-10 w-full font-sans">
-      <ProfileHeader />
+    <div className="attendance-app">
+      <ProfileHeader
+        profile={profileData}
+        onEditProfile={isSelf ? () => setShowProfileEditor(true) : undefined}
+      />
 
-      {/* Light Multi-Color Action Controls */}
-      <div className="flex flex-col xl:flex-row xl:justify-between items-stretch xl:items-center gap-4 sm:gap-6 mb-6 sm:mb-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4 w-full xl:w-auto">
+      <div className="ms-panel quick-actions-panel">
+        <div className="quick-actions-grid">
           <button
             onClick={() => navigate("/my-earnings")}
-            className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
+            className="ms-quick-action"
+            data-accent="primary"
           >
-            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
-              <div className="p-1 sm:p-1.5 bg-green-100 rounded-lg">
-                <svg
-                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <span className="hidden sm:inline">My Earnings</span>
-              <span className="sm:hidden">Earnings</span>
-            </span>
+            My Earnings
           </button>
 
           <button
             onClick={() => navigate("/timesheet")}
-            className="group relative overflow-hidden bg-white hover:bg-emerald-50 text-emerald-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-emerald-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
+            className="ms-quick-action"
+            data-accent="secondary"
           >
-            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
-              <div className="p-1 sm:p-1.5 bg-emerald-100 rounded-lg">
-                <svg
-                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-emerald-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                  />
-                </svg>
-              </div>
-              <span className="hidden sm:inline">Task Manager</span>
-              <span className="sm:hidden">Tasks</span>
-            </span>
+            Task Manager
           </button>
 
           <button
             onClick={() => navigate("/apply-leave")}
-            className="group relative overflow-hidden bg-white hover:bg-green-50 text-green-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-green-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
+            className="ms-quick-action"
+            data-accent="neutral"
           >
-            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
-              <div className="p-1 sm:p-1.5 bg-green-100 rounded-lg">
-                <svg
-                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
-              </div>
-              <span className="hidden sm:inline">Apply Leave</span>
-              <span className="sm:hidden">Leave</span>
-            </span>
+            Apply Leave
           </button>
 
           <button
             onClick={() => setShowCalendarModal(true)}
-            className="group relative overflow-hidden bg-white hover:bg-orange-50 text-orange-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-orange-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
+            className="ms-quick-action"
+            data-accent="calendar"
           >
-            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
-              <div className="p-1 sm:p-1.5 bg-orange-100 rounded-lg">
-                <svg
-                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-orange-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <span className="hidden sm:inline">Calendar View</span>
-              <span className="sm:hidden">Calendar</span>
-            </span>
+            Calendar View
           </button>
 
           <button
             onClick={() => setShowHolidayModal(true)}
-            className="group relative overflow-hidden bg-white hover:bg-purple-50 text-purple-700 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-xl sm:rounded-2xl font-medium shadow-lg hover:shadow-xl border border-purple-200/60 transition-all duration-300 text-xs sm:text-sm md:text-base"
+            className="ms-quick-action"
+            data-accent="holiday"
           >
-            <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3">
-              <div className="p-1 sm:p-1.5 bg-purple-100 rounded-lg">
-                <svg
-                  className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-purple-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
-                  />
-                </svg>
-              </div>
-              <span className="hidden sm:inline">Holiday List</span>
-              <span className="sm:hidden">Holidays</span>
-            </span>
+            Holiday List
           </button>
         </div>
 
         <button
           onClick={onLogout}
-          className="group relative overflow-hidden bg-gradient-to-r from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 w-full xl:w-auto text-xs sm:text-sm md:text-base"
+          className="ms-btn danger"
         >
-          <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-            <div className="p-1 sm:p-1.5 bg-pink-300/50 rounded-lg">
-              <svg
-                className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-            </div>
-            <span>Logout</span>
-          </span>
+          Logout
         </button>
       </div>
 
@@ -765,13 +744,6 @@ function AttendancePage() {
           </div>
         </div>
         <AttendanceCards attendanceData={attendanceHistory} />
-        
-        {/* Daily Earnings Card */}
-        {isSelf && (
-          <div className="mt-4 sm:mt-6">
-            <DailyEarningsCard />
-          </div>
-        )}
         
         <div className="mt-4 sm:mt-6">
           <ActivityLog activities={filteredLogs} />
@@ -1080,13 +1052,13 @@ function AttendancePage() {
         />
       </div>
       {isSelf && type && !isCapturing && (
-        <div className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-30 px-4 w-full max-w-xs sm:max-w-none">
+        <div className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-30 w-full px-4 sm:px-6 flex justify-center">
           <button
             onClick={() => {
               getLocation();
               startCamera();
             }}
-            className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4 w-full text-sm sm:text-base"
+            className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4 text-sm sm:text-base min-w-[180px] sm:min-w-[220px]"
           >
             <span className="relative z-10 flex items-center gap-2">
               {type === "check-in" ? (
@@ -1272,6 +1244,13 @@ function AttendancePage() {
       <TimesheetModal
         isOpen={showTimesheetModal}
         onClose={() => setShowTimesheetModal(false)}
+      />
+      <ProfileCard
+        isOpen={showProfileEditor}
+        profile={profileData}
+        onClose={() => setShowProfileEditor(false)}
+        onSave={handleProfileSave}
+        isSaving={isSavingProfile}
       />
     </div>
   );

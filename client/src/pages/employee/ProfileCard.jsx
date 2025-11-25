@@ -1,547 +1,290 @@
-import './ProfileCard.css';
-import { useState } from 'react';
+import { useEffect, useState } from "react";
+import "./ProfileCard.css";
 
-export default function ProfileCard() {
-  const [profile, setProfile] = useState({
-    basicInfo: {
-      name: "Sruthi joseph",
-      id: "1210372726433743682",
-      gender: "Female",
-      email: "sruthijoseph5@gmail.com",
-      phone: "081323323311",
-      avatar: "/Myphoto.jpg"
-    },
-    education: {
-      degree: "Master Degree - Public administration",
-      years: "2016-2018"
-    },
-    skills: ["HTML & CSS", "JavaScript (ES6+)", "React.js", "Node.js", "Python", "SQL & MongoDB", "Git & GitHub", "Docker"],
-    personalDetails: {
-      birthPlace: "chennai",
-      birthDate: "30 Oct 1994",
-      bloodType: "AB",
-      maritalStatus: "Single",
-      religion: "Christian"
-    },
-    banking: {
-      name: "sruthi joseph",
-      bankingName: "SBI",
-      upiId: "12233",
-      ifscCode:"SBI0987",
-      accountNumber: "081324815250"
-    },
-    company: {
-      position: "Senior Developer",
-      company: "TechCorp Solutions",
-      department: "Software Development",
-      salary: "85,000/year",
-      startDate: "March 2022",
-      employmentType: "Full-time"
+const EMPTY_PROFILE = {
+  id: "",
+  name: "",
+  employeeId: "",
+  enrollmentId: "",
+  email: "",
+  phone: "",
+  position: "",
+  department: "",
+  company: "",
+  location: "",
+  gender: "",
+  dob: "",
+  maritalStatus: "",
+  avatar: "",
+};
+
+export default function ProfileCard({
+  isOpen,
+  profile = EMPTY_PROFILE,
+  onClose,
+  onSave,
+  isSaving,
+}) {
+  const [form, setForm] = useState(EMPTY_PROFILE);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarFile, setAvatarFile] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setForm({ ...EMPTY_PROFILE, ...profile });
+      setAvatarPreview(profile?.avatar || "");
+      setAvatarFile(null);
     }
-  });
+  }, [isOpen, profile]);
 
-  const [editing, setEditing] = useState(null);
-
-  const handleInputChange = (section, field, value) => {
-    setProfile(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
+  useEffect(() => {
+    return () => {
+      if (avatarPreview && avatarPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(avatarPreview);
       }
-    }));
+    };
+  }, [avatarPreview]);
+
+  if (!isOpen) return null;
+
+  const handleChange = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSkillChange = (index, value) => {
-    const newSkills = [...profile.skills];
-    newSkills[index] = value;
-    setProfile(prev => ({
-      ...prev,
-      skills: newSkills
-    }));
+  const handleAvatarChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (avatarPreview && avatarPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+    setAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
   };
 
-  const addSkill = () => {
-    setProfile(prev => ({
-      ...prev,
-      skills: [...prev.skills, "New Skill"]
-    }));
+  const handleAvatarRemove = () => {
+    if (avatarPreview && avatarPreview.startsWith("blob:")) {
+      URL.revokeObjectURL(avatarPreview);
+    }
+    setAvatarFile(null);
+    setAvatarPreview("");
+    setForm((prev) => ({ ...prev, avatar: "" }));
   };
 
-  const removeSkill = (index) => {
-    setProfile(prev => ({
-      ...prev,
-      skills: prev.skills.filter((_, i) => i !== index)
-    }));
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave?.(form, avatarFile);
   };
 
-  const toggleEdit = (section) => {
-    setEditing(editing === section ? null : section);
-  };
-
-  const saveChanges = () => {
-    setEditing(null);
-  };
+  const displayInitial = form.name ? form.name.charAt(0).toUpperCase() : "U";
 
   return (
-    <div className="profile-container">
-      <div className="profile-content">
-        {/* Left Column */}
-        <div className="column">
-          {/* Basic Information Card */}
-          <div className="card">
-            <div className="card-header">
-              <h3>Basic information</h3>
-              <button 
-                className="edit-btn" 
-                onClick={() => toggleEdit('basicInfo')}
-              >
-                {editing === 'basicInfo' ? 'Cancel' : 'Edit'}
-              </button>
-            </div>
-            <div className="basic-info">
-              <div className="left">
-                <img
-                  src={profile.basicInfo.avatar}
-                  alt="Profile"
-                  className="avatar"
-                />
-                {editing === 'basicInfo' ? (
-                  <input
-                    type="text"
-                    value={profile.basicInfo.name}
-                    onChange={(e) => handleInputChange('basicInfo', 'name', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <h2>{profile.basicInfo.name}</h2>
-                )}
-                <p>ID: {profile.basicInfo.id}</p>
-                <div className="info-item">
-                  {editing === 'basicInfo' ? (
-                    <select
-                      value={profile.basicInfo.gender}
-                      onChange={(e) => handleInputChange('basicInfo', 'gender', e.target.value)}
-                      className="edit-select"
+    <div className="profile-editor-overlay">
+      <div className="profile-editor-panel">
+        <div className="profile-editor-header">
+          <div>
+            <p className="profile-eyebrow">Profile</p>
+            <h2>Edit profile</h2>
+          </div>
+          <button type="button" className="plain-link" onClick={onClose}>
+            Close
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="profile-form">
+          <section className="profile-section">
+            <div className="section-header">
+              <div>
+                <h3>Basic information</h3>
+                <p>Keep your name and identification details up to date.</p>
+              </div>
+              <div className="avatar-uploader">
+                <div className="avatar-preview">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt={form.name || "Profile"} />
+                  ) : (
+                    <span>{displayInitial}</span>
+                  )}
+                </div>
+                <div className="avatar-actions">
+                  <label className="avatar-upload-trigger">
+                    Upload photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      hidden
+                    />
+                  </label>
+                  {avatarPreview && (
+                    <button
+                      type="button"
+                      className="plain-link small"
+                      onClick={handleAvatarRemove}
                     >
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  ) : (
-                    <span>{profile.basicInfo.gender}</span>
+                      Remove
+                    </button>
                   )}
                 </div>
-                <div className="info-item">
-                  {editing === 'basicInfo' ? (
-                    <input
-                      type="email"
-                      value={profile.basicInfo.email}
-                      onChange={(e) => handleInputChange('basicInfo', 'email', e.target.value)}
-                      className="edit-input"
-                    />
-                  ) : (
-                    <span>{profile.basicInfo.email}</span>
-                  )}
-                </div>
-                <div className="info-item">
-                  {editing === 'basicInfo' ? (
-                    <input
-                      type="tel"
-                      value={profile.basicInfo.phone}
-                      onChange={(e) => handleInputChange('basicInfo', 'phone', e.target.value)}
-                      className="edit-input"
-                    />
-                  ) : (
-                    <span>{profile.basicInfo.phone}</span>
-                  )}
-                </div>
+                <p className="avatar-helper">JPG or PNG, up to 5MB.</p>
               </div>
             </div>
-            {editing === 'basicInfo' && (
-              <button className="save-btn" onClick={saveChanges}>
-                Save Changes
-              </button>
-            )}
-          </div>
+            <div className="field-grid">
+              <label>
+                <span>Full name</span>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                <span>Employee ID</span>
+                <input
+                  type="text"
+                  value={form.employeeId}
+                  onChange={(e) => handleChange("employeeId", e.target.value)}
+                />
+              </label>
+              <label>
+                <span>Enrollment ID</span>
+                <input
+                  type="text"
+                  value={form.enrollmentId}
+                  onChange={(e) => handleChange("enrollmentId", e.target.value)}
+                />
+              </label>
+            </div>
+          </section>
 
-          {/* Education Card */}
-          <div className="card">
-            <div className="card-header">
-              <h3>Education</h3>
-              <button 
-                className="edit-btn" 
-                onClick={() => toggleEdit('education')}
-              >
-                {editing === 'education' ? 'Cancel' : 'Edit'}
-              </button>
-            </div>
-            <div className="education-info">
-              <div className="info-row">
-                <strong>Degree:</strong>
-                {editing === 'education' ? (
-                  <input
-                    type="text"
-                    value={profile.education.degree}
-                    onChange={(e) => handleInputChange('education', 'degree', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.education.degree}</span>
-                )}
-              </div>
-              {/* <div className="info-row">
-                <strong>Field:</strong>
-                {editing === 'education' ? (
-                  <input
-                    type="text"
-                    value={profile.education.field}
-                    onChange={(e) => handleInputChange('education', 'field', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.education.field}</span>
-                )}
-              </div> */}
-              
-              <div className="info-row">
-                <strong>Years:</strong>
-                {editing === 'education' ? (
-                  <input
-                    type="text"
-                    value={profile.education.years}
-                    onChange={(e) => handleInputChange('education', 'years', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.education.years}</span>
-                )}
+          <section className="profile-section">
+            <div className="section-header">
+              <div>
+                <h3>Contact</h3>
+                <p>How HR and teammates reach you.</p>
               </div>
             </div>
-            {editing === 'education' && (
-              <button className="save-btn" onClick={saveChanges}>
-                Save Changes
-              </button>
-            )}
-          </div>
+            <div className="field-grid">
+              <label>
+                <span>Email</span>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                <span>Phone</span>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                />
+              </label>
+              <label>
+                <span>Location</span>
+                <input
+                  type="text"
+                  value={form.location}
+                  onChange={(e) => handleChange("location", e.target.value)}
+                />
+              </label>
+            </div>
+          </section>
 
-          {/* Tech Skills Card */}
-          <div className="card">
-            <div className="card-header">
-              <h3>Tech Skills</h3>
-              <button 
-                className="edit-btn" 
-                onClick={() => toggleEdit('skills')}
-              >
-                {editing === 'skills' ? 'Cancel' : 'Edit'}
-              </button>
+          <section className="profile-section">
+            <div className="section-header">
+              <div>
+                <h3>Company</h3>
+                <p>Your current role inside the organisation.</p>
+              </div>
             </div>
-            <div className="skills-info">
-              {profile.skills.map((skill, index) => (
-                <div key={index} className="skill-item-container">
-                  {editing === 'skills' ? (
-                    <>
-                      <input
-                        type="text"
-                        value={skill}
-                        onChange={(e) => handleSkillChange(index, e.target.value)}
-                        className="edit-input skill-input"
-                      />
-                      <button 
-                        className="remove-skill-btn"
-                        onClick={() => removeSkill(index)}
-                      >
-                        ×
-                      </button>
-                    </>
-                  ) : (
-                    <div className="skill-item">{skill}</div>
-                  )}
-                </div>
-              ))}
-              {editing === 'skills' && (
-                <button className="add-skill-btn" onClick={addSkill}>
-                  + Add Skill
-                </button>
-              )}
+            <div className="field-grid">
+              <label>
+                <span>Company</span>
+                <input
+                  type="text"
+                  value={form.company}
+                  onChange={(e) => handleChange("company", e.target.value)}
+                />
+              </label>
+              <label>
+                <span>Department</span>
+                <input
+                  type="text"
+                  value={form.department}
+                  onChange={(e) => handleChange("department", e.target.value)}
+                />
+              </label>
+              <label>
+                <span>Position</span>
+                <input
+                  type="text"
+                  value={form.position}
+                  onChange={(e) => handleChange("position", e.target.value)}
+                />
+              </label>
             </div>
-            {editing === 'skills' && (
-              <button className="save-btn" onClick={saveChanges}>
-                Save Changes
-              </button>
-            )}
-          </div>
-        </div>
+          </section>
 
-        {/* Right Column */}
-        <div className="column">
-          {/* Place of Birth Card */}
-          <div className="card">
-            <div className="card-header">
-              <h3>Personal Details</h3>
-              <button 
-                className="edit-btn" 
-                onClick={() => toggleEdit('personalDetails')}
-              >
-                {editing === 'personalDetails' ? 'Cancel' : 'Edit'}
-              </button>
-            </div>
-            <div className="personal-details">
-              <div className="info-row">
-                <strong>Birth Place:</strong>
-                {editing === 'personalDetails' ? (
-                  <input
-                    type="text"
-                    value={profile.personalDetails.birthPlace}
-                    onChange={(e) => handleInputChange('personalDetails', 'birthPlace', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.personalDetails.birthPlace}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Birth Date:</strong>
-                {editing === 'personalDetails' ? (
-                  <input
-                    type="text"
-                    value={profile.personalDetails.birthDate}
-                    onChange={(e) => handleInputChange('personalDetails', 'birthDate', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.personalDetails.birthDate}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Blood Type:</strong>
-                {editing === 'personalDetails' ? (
-                  <select
-                    value={profile.personalDetails.bloodType}
-                    onChange={(e) => handleInputChange('personalDetails', 'bloodType', e.target.value)}
-                    className="edit-select"
-                  >
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="AB">AB</option>
-                    <option value="O">O</option>
-                  </select>
-                ) : (
-                  <span>{profile.personalDetails.bloodType}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Marital Status:</strong>
-                {editing === 'personalDetails' ? (
-                  <select
-                    value={profile.personalDetails.maritalStatus}
-                    onChange={(e) => handleInputChange('personalDetails', 'maritalStatus', e.target.value)}
-                    className="edit-select"
-                  >
-                    <option value="Single">Single</option>
-                    <option value="Married">Married</option>
-                    {/* <option value="Divorced">Divorced</option>
-                    <option value="Widowed">Widowed</option> */}
-                  </select>
-                ) : (
-                  <span>{profile.personalDetails.maritalStatus}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Religion:</strong>
-                {editing === 'personalDetails' ? (
-                  <input
-                    type="text"
-                    value={profile.personalDetails.religion}
-                    onChange={(e) => handleInputChange('personalDetails', 'religion', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.personalDetails.religion}</span>
-                )}
+          <section className="profile-section">
+            <div className="section-header">
+              <div>
+                <h3>Personal</h3>
+                <p>Details used for identity records.</p>
               </div>
             </div>
-            {editing === 'personalDetails' && (
-              <button className="save-btn" onClick={saveChanges}>
-                Save Changes
-              </button>
-            )}
-          </div>
+            <div className="field-grid">
+              <label>
+                <span>Gender</span>
+                <select
+                  value={form.gender}
+                  onChange={(e) => handleChange("gender", e.target.value)}
+                >
+                  <option value="">Select</option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label>
+                <span>Date of birth</span>
+                <input
+                  type="date"
+                  value={form.dob || ""}
+                  onChange={(e) => handleChange("dob", e.target.value)}
+                />
+              </label>
+              <label>
+                <span>Marital status</span>
+                <select
+                  value={form.maritalStatus}
+                  onChange={(e) => handleChange("maritalStatus", e.target.value)}
+                >
+                  <option value="">Select</option>
+                  <option value="Single">Single</option>
+                  <option value="Married">Married</option>
+                  <option value="Separated">Separated</option>
+                </select>
+              </label>
+            </div>
+          </section>
 
-          {/* Banking Details Card */}
-          <div className="card">
-            <div className="card-header">
-              <h3>Banking details</h3>
-              <button 
-                className="edit-btn" 
-                onClick={() => toggleEdit('banking')}
-              >
-                {editing === 'banking' ? 'Cancel' : 'Edit'}
-              </button>
-            </div>
-            <div className="banking-info">
-              <div className="info-row">
-                <strong> Banking Name:</strong>
-                {editing === 'banking' ? (
-                  <input
-                    type="text"
-                    value={profile.banking.name}
-                    onChange={(e) => handleInputChange('banking', 'name', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.banking.name}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>UPI ID:</strong>
-                {editing === 'banking' ? (
-                  <input
-                    type="text"
-                    value={profile.banking.upiId}
-                    onChange={(e) => handleInputChange('banking', 'upiId', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.banking.upiId}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>IFSC Code:</strong>
-                {editing === 'banking' ? (
-                  <input
-                    type="text"
-                    value={profile.banking.ifscCode}
-                    onChange={(e) => handleInputChange('banking', 'ifscCode', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.banking.ifscCode}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Account Number:</strong>
-                {editing === 'banking' ? (
-                  <input
-                    type="text"
-                    value={profile.banking.accountNumber}
-                    onChange={(e) => handleInputChange('banking', 'accountNumber', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.banking.accountNumber}</span>
-                )}
-              </div>
-            </div>
-            {editing === 'banking' && (
-              <button className="save-btn" onClick={saveChanges}>
-                Save Changes
-              </button>
-            )}
+          <div className="profile-editor-actions">
+            <button
+              type="button"
+              className="ghost-btn"
+              onClick={onClose}
+              disabled={isSaving}
+            >
+              Cancel
+            </button>
+            <button className="primary-btn" type="submit" disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save changes"}
+            </button>
           </div>
-
-          {/* Company/Position Card */}
-          <div className="card">
-            <div className="card-header">
-              <h3>Company & Position</h3>
-              <button 
-                className="edit-btn" 
-                onClick={() => toggleEdit('company')}
-              >
-                {editing === 'company' ? 'Cancel' : 'Edit'}
-              </button>
-            </div>
-            <div className="company-info">
-              <div className="info-row">
-                <strong>Position:</strong>
-                {editing === 'company' ? (
-                  <input
-                    type="text"
-                    value={profile.company.position}
-                    onChange={(e) => handleInputChange('company', 'position', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.company.position}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Company:</strong>
-                {editing === 'company' ? (
-                  <input
-                    type="text"
-                    value={profile.company.company}
-                    onChange={(e) => handleInputChange('company', 'company', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.company.company}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Department:</strong>
-                {editing === 'company' ? (
-                  <input
-                    type="text"
-                    value={profile.company.department}
-                    onChange={(e) => handleInputChange('company', 'department', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.company.department}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Salary:</strong>
-                {editing === 'company' ? (
-                  <input
-                    type="text"
-                    value={profile.company.salary}
-                    onChange={(e) => handleInputChange('company', 'salary', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.company.salary}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Start Date:</strong>
-                {editing === 'company' ? (
-                  <input
-                    type="text"
-                    value={profile.company.startDate}
-                    onChange={(e) => handleInputChange('company', 'startDate', e.target.value)}
-                    className="edit-input"
-                  />
-                ) : (
-                  <span>{profile.company.startDate}</span>
-                )}
-              </div>
-              <div className="info-row">
-                <strong>Employment Type:</strong>
-                {editing === 'company' ? (
-                  <select
-                    value={profile.company.employmentType}
-                    onChange={(e) => handleInputChange('company', 'employmentType', e.target.value)}
-                    className="edit-select"
-                  >
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Freelance">Freelance</option>
-                  </select>
-                ) : (
-                  <span>{profile.company.employmentType}</span>
-                )}
-              </div>
-            </div>
-            {editing === 'company' && (
-              <button className="save-btn" onClick={saveChanges}>
-                Save Changes
-              </button>
-            )}
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );

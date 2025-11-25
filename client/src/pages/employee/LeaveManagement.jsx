@@ -4,6 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { API_ENDPOINTS } from '../../utils/api';
 import { jwtDecode } from 'jwt-decode';
+import '../../styles/systemAppTheme.css';
 
 const LeaveManagement = () => {
   const navigate = useNavigate();

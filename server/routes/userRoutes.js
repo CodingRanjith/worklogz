@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const role = require('../middleware/role');
+const upload = require('../middleware/upload');
 const userController = require('../controllers/userController');
 
 // ✅ GET all users
@@ -9,6 +10,9 @@ router.get('/', auth, userController.getAllUsers);
 
 // ✅ GET my profile (logged in user)
 router.get('/me', auth, userController.getLoggedInUser);
+
+// ✅ UPDATE my profile (logged in user)
+router.put('/me', auth, upload.single('profilePic'), userController.updateMyProfile);
 // ✅ GET schedules for admin
 
 // ✅ GET user by ID
