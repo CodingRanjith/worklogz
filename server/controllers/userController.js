@@ -84,8 +84,7 @@ const userController = {
         'location',
         'gender',
         'maritalStatus',
-        'employeeId',
-        'enrollmentId'
+        'employeeId'
       ];
 
       const updateData = {};
@@ -135,7 +134,6 @@ const userController = {
       position,
       company,
       employeeId,
-      enrollmentId,
       location,
       gender,
       maritalStatus,
@@ -157,7 +155,6 @@ const userController = {
     if (position) updateData.position = position;
     if (company) updateData.company = company;
     if (employeeId !== undefined) updateData.employeeId = employeeId;
-    if (enrollmentId !== undefined) updateData.enrollmentId = enrollmentId;
     if (location) updateData.location = location;
     if (gender) updateData.gender = gender;
     if (maritalStatus) updateData.maritalStatus = maritalStatus;

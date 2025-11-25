@@ -47,17 +47,23 @@ const authController = {
 
   register: async (req, res) => {
     try {
-      const { name, email, password, phone, position, company, schedule, enrollmentId } = req.body;
+      const { name, email, password, phone, position, company, schedule } = req.body;
 
       if (!name || !email || !password || !phone || !position || !company) {
-        return res.status(400).json({ error: 'All fields are required' });
+        return res.status(400).json({
+          success: false,
+          message: 'All fields are required'
+        });
       }
 
       const existingUser = await User.findOne({ email });
       const existingPending = await PendingUser.findOne({ email });
 
       if (existingUser || existingPending) {
-        return res.status(400).json({ error: 'Email already in use or pending approval' });
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use or pending admin approval'
+        });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -69,7 +75,6 @@ const authController = {
         phone,
         position,
         company,
-        enrollmentId,
         schedule,
         profilePic: req.file ? req.file.path : null
       });
@@ -103,10 +108,16 @@ const authController = {
 
       await transporter.sendMail(mailOptions);
 
-      res.status(201).json({ message: 'Registration submitted and pending admin approval' });
+      res.status(201).json({
+        success: true,
+        message: 'Registration submitted and pending admin approval'
+      });
     } catch (error) {
       console.error('Registration error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
     }
   }
 };

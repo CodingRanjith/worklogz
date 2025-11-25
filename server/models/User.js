@@ -16,6 +16,12 @@ const BankDetailsSchema = new mongoose.Schema({
   }
 }, { _id: false }); // Prevents creation of an _id for this sub-doc
 
+const formatEmployeeId = (value) => {
+  if (!value) return value;
+  const clean = value.toString().replace(/^thc\s*:\s*/i, '').trim();
+  return clean ? `THC : ${clean}` : value;
+};
+
 // Main User schema
 const UserSchema = new mongoose.Schema({
   name: { 
@@ -45,10 +51,9 @@ const UserSchema = new mongoose.Schema({
     required: true
   },
   employeeId: {
-    type: String
-  },
-  enrollmentId: {
-    type: String
+    type: String,
+    set: formatEmployeeId,
+    get: formatEmployeeId
   },
   salary: {
     type: Number,
@@ -97,5 +102,8 @@ const UserSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+UserSchema.set('toJSON', { virtuals: true, getters: true });
+UserSchema.set('toObject', { virtuals: true, getters: true });
 
 module.exports = mongoose.model('User', UserSchema);

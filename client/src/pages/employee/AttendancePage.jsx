@@ -102,11 +102,16 @@ function AttendancePage() {
     setCurrentWeekOffset(0);
   };
 
+  const formatEmployeeId = (value) => {
+    if (!value) return "";
+    const clean = value.toString().replace(/^thc\s*:\s*/i, "").trim();
+    return clean ? `THC : ${clean}` : "";
+  };
+
   const mapUserToProfile = (data) => ({
     id: data?._id || data?.id || "",
     name: data?.name || "",
-    employeeId: data?.employeeId || data?.employeeCode || "",
-    enrollmentId: data?.enrollmentId || "",
+    employeeId: formatEmployeeId(data?.employeeId || data?.employeeCode || ""),
     email: data?.email || "",
     phone: data?.phone || "",
     position: data?.position || "",
@@ -150,15 +155,17 @@ function AttendancePage() {
       company: "company",
       location: "location",
       employeeId: "employeeId",
-      enrollmentId: "enrollmentId",
       gender: "gender",
       maritalStatus: "maritalStatus",
       dob: "dateOfBirth",
     };
 
     Object.entries(fieldMap).forEach(([formKey, apiKey]) => {
-      const value = updatedProfile[formKey];
+      let value = updatedProfile[formKey];
       if (value !== undefined && value !== null && value !== "") {
+        if (formKey === "employeeId") {
+          value = formatEmployeeId(value);
+        }
         formData.append(apiKey, value);
       }
     });

@@ -63,49 +63,48 @@ function Register() {
         }
       });
 
-      if (response.data) {
-        await Swal.fire({
-          icon: 'success',
-          title: 'Registration Successful!',
-          html: `
-            <div class="text-center">
-              <p class="mb-2">Employee registered successfully!</p>
-              <p class="text-sm text-gray-600">Your account will be activated once approved by admin.</p>
-              <p class="text-sm text-gray-600 mt-2">Redirecting to login page...</p>
-            </div>
-          `,
-          timer: 3000,
-          timerProgressBar: true,
-          showConfirmButton: false,
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          }
-        });
+      const { success, message } = response.data || {};
 
-        // Reset form
-        setFormData({
-          name: '',
-          email: '',
-          password: '',
-          phone: '',
-          position: '',
-          company: '',
-          profilePic: null
-        });
-        setPreviewImage(null);
-        
-        // Navigate to login
-        navigate('/login');
+      if (!success) {
+        throw new Error(message || 'Registration request could not be processed.');
       }
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'Request submitted!',
+        html: `
+          <div class="text-center">
+            <p class="mb-2">Thanks for registering. An admin will review and approve your account.</p>
+            <p class="text-sm text-gray-600 mt-1">You will receive an email once the request is approved.</p>
+          </div>
+        `,
+        confirmButtonText: 'Great!',
+        confirmButtonColor: '#16a34a'
+      });
+
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        phone: '',
+        position: '',
+        company: '',
+        profilePic: null
+      });
+      setPreviewImage(null);
+      navigate('/login');
     } catch (error) {
       console.error('Registration error:', error);
       
       let errorMessage = 'Failed to create user. Please try again.';
       
-      if (error.response) {
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response) {
         // Server responded with an error
-        errorMessage = error.response.data.message || error.response.data.error || errorMessage;
+        errorMessage = 'Server rejected the request. Please verify the details and try again.';
       } else if (error.request) {
         // Request was made but no response received
         errorMessage = 'No response from server. Please check your internet connection.';

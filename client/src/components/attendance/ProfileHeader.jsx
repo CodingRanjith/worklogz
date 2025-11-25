@@ -96,12 +96,11 @@ function ProfileHeader({ profile, onEditProfile }) {
       ctx.fillText(profile.company, 200, 202);
     }
 
-    const rows = [
-      { label: "Employee ID", value: profile.employeeId || "—" },
-      { label: "Enrollment ID", value: profile.enrollmentId || "—" },
-      { label: "Department", value: profile.department || "—" },
-      { label: "Location", value: profile.location || "—" },
-    ];
+  const rows = [
+    { label: "Employee ID", value: profile.employeeId || "—" },
+    { label: "Department", value: profile.department || "—" },
+    { label: "Location", value: profile.location || "—" },
+  ];
 
     ctx.fillStyle = "#5c6382";
     ctx.font = "600 14px 'Segoe UI', sans-serif";
@@ -218,10 +217,6 @@ function ProfileHeader({ profile, onEditProfile }) {
               <div>
                 <p className="identity-label">Employee ID</p>
                 <p className="identity-value">{profile.employeeId || "—"}</p>
-              </div>
-              <div>
-                <p className="identity-label">Enrollment ID</p>
-                <p className="identity-value">{profile.enrollmentId || "—"}</p>
               </div>
               <div>
                 <p className="identity-label">Role</p>
