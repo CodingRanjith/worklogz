@@ -1,38 +1,45 @@
-import React from 'react';
+import React from "react";
 
 function ActivityLog({ activities }) {
   if (!activities || activities.length === 0) {
     return (
-      <div className="text-center text-sm text-gray-400">
+      <div className="ms-activity empty">
         No activity on selected date
       </div>
     );
   }
 
   return (
-    <div>
-      <h3 className="text-sm font-semibold text-gray-700 mb-2">Your Activity</h3>
-      {activities.map((item, index) => (
-        <div
-          key={index}
-          className="bg-gray-100 p-4 rounded-lg mb-3 shadow-sm border border-gray-200"
-        >
-          <p className="text-sm font-medium capitalize text-gray-700">
-            {item.type}
-          </p>
-          <div className="flex justify-between text-sm mt-1">
-            <span className="font-bold text-gray-900">
-              {new Date(item.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </span>
-            <span className="text-gray-500">
-              {new Date(item.timestamp).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-      ))}
+    <div className="ms-activity">
+      <div className="ms-activity__header">
+        <h3>Your Activity</h3>
+        <span>{activities.length} entries</span>
+      </div>
+      <ul>
+        {activities.map((item, index) => {
+          const timestamp = new Date(item.timestamp);
+          return (
+            <li key={index} className="ms-activity-item">
+              <div>
+                <p className="type">{item.type?.replace("-", " ")}</p>
+                <p className="date">
+                  {timestamp.toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </p>
+              </div>
+              <span className="time">
+                {timestamp.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

@@ -72,6 +72,59 @@ const userController = {
     }
   },
 
+  updateMyProfile: async (req, res) => {
+    try {
+      const allowedFields = [
+        'name',
+        'email',
+        'phone',
+        'position',
+        'company',
+        'department',
+        'location',
+        'gender',
+        'maritalStatus',
+        'employeeId',
+        'enrollmentId'
+      ];
+
+      const updateData = {};
+
+      allowedFields.forEach((field) => {
+        if (req.body[field] !== undefined) {
+          updateData[field] = req.body[field];
+        }
+      });
+
+      if (req.body.dateOfBirth) {
+        updateData.dateOfBirth = new Date(req.body.dateOfBirth);
+      }
+
+      if (req.file) {
+        updateData.profilePic = req.file.path;
+      } else if (req.body.profilePic) {
+        updateData.profilePic = req.body.profilePic;
+      }
+
+      if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: 'No profile fields provided' });
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        updateData,
+        { new: true }
+      ).select('-password');
+
+      if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+
+      res.json({ message: 'Profile updated successfully', user: updatedUser });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
   updateUser: async (req, res) => {
   try {
     const {
@@ -81,10 +134,16 @@ const userController = {
       phone,
       position,
       company,
+      employeeId,
+      enrollmentId,
+      location,
+      gender,
+      maritalStatus,
       salary,
       department,
       qualification,
       dateOfJoining,
+      dateOfBirth,
       skills,
       rolesAndResponsibility,
       profilePic,
@@ -97,6 +156,11 @@ const userController = {
     if (phone) updateData.phone = phone;
     if (position) updateData.position = position;
     if (company) updateData.company = company;
+    if (employeeId !== undefined) updateData.employeeId = employeeId;
+    if (enrollmentId !== undefined) updateData.enrollmentId = enrollmentId;
+    if (location) updateData.location = location;
+    if (gender) updateData.gender = gender;
+    if (maritalStatus) updateData.maritalStatus = maritalStatus;
     if (salary !== undefined) updateData.salary = salary;
     if (department) updateData.department = department;
     if (qualification) updateData.qualification = qualification;
@@ -105,6 +169,7 @@ const userController = {
     if (Array.isArray(rolesAndResponsibility)) updateData.rolesAndResponsibility = rolesAndResponsibility;
     if (bankDetails && typeof bankDetails === 'object') updateData.bankDetails = bankDetails;
     if (dateOfJoining) updateData.dateOfJoining = new Date(dateOfJoining);
+    if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth);
     if (password) updateData.password = await bcrypt.hash(password, 10);
 
     const updatedUser = await User.findByIdAndUpdate(

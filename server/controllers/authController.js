@@ -47,7 +47,7 @@ const authController = {
 
   register: async (req, res) => {
     try {
-      const { name, email, password, phone, position, company, schedule } = req.body;
+      const { name, email, password, phone, position, company, schedule, enrollmentId } = req.body;
 
       if (!name || !email || !password || !phone || !position || !company) {
         return res.status(400).json({ error: 'All fields are required' });
@@ -69,6 +69,7 @@ const authController = {
         phone,
         position,
         company,
+        enrollmentId,
         schedule,
         profilePic: req.file ? req.file.path : null
       });

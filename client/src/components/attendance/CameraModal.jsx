@@ -1,5 +1,5 @@
 // src/components/CameraModal.jsx
-import React from 'react';
+import React from "react";
 
 function CameraModal({
   videoRef,
@@ -12,38 +12,54 @@ function CameraModal({
   onSubmit,
   type,
 }) {
+  const isCheckIn = type === "check-in";
+
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-sm p-6 rounded-2xl shadow-2xl space-y-4 text-center">
+    <div className="ms-modal-overlay">
+      <div className="ms-modal-panel">
         {!image ? (
           <>
-            <video ref={videoRef} autoPlay className="rounded-lg w-full" />
-            <div className="flex justify-between mt-4">
-              <button onClick={onCancel} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg">
+            <div className="ms-camera-frame">
+              <video ref={videoRef} autoPlay />
+            </div>
+            <div className="ms-modal-actions">
+              <button className="ms-btn secondary" onClick={onCancel}>
                 Cancel
               </button>
-              <button onClick={onCapture} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+              <button className="ms-btn primary" onClick={onCapture}>
                 Capture
               </button>
             </div>
           </>
         ) : (
           <>
-            <img src={image} alt="Captured" className="rounded-lg w-full object-cover" />
+            <div className="ms-photo-preview">
+              <img src={image} alt="Captured" />
+            </div>
             {capturedTime && (
-              <div className="text-sm text-gray-600 mt-2 space-y-1">
-                <p><span className="font-medium">Captured at:</span> {capturedTime.toLocaleTimeString()} on {capturedTime.toLocaleDateString()}</p>
+              <div className="ms-photo-meta">
+                <p>
+                  <span>Captured:</span>{" "}
+                  {capturedTime.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                  {" • "}
+                  {capturedTime.toLocaleDateString()}
+                </p>
                 {location && (
-                  <p><span className="font-medium">Location:</span> {location}</p>
+                  <p>
+                    <span>Location:</span> {location}
+                  </p>
                 )}
               </div>
             )}
-            <div className="flex justify-between mt-4">
-              <button onClick={onRetake} className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg">
+            <div className="ms-modal-actions">
+              <button className="ms-btn secondary" onClick={onRetake}>
                 Retake
               </button>
-              <button onClick={onSubmit} className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg">
-                Submit {type === 'check-in' ? 'Check In' : 'Check Out'}
+              <button className="ms-btn primary" onClick={onSubmit}>
+                Submit {isCheckIn ? "Check In" : "Check Out"}
               </button>
             </div>
           </>

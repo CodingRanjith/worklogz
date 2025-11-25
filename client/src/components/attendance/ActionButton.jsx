@@ -1,12 +1,14 @@
-import React from 'react';
+import React from "react";
 
 function ActionButton({ type, onClick }) {
+  const isCheckIn = type === "check-in";
+
   return (
     <button
       onClick={onClick}
-      className="w-full py-3 px-6 rounded-full bg-blue-600 text-white font-semibold text-sm shadow hover:bg-blue-700 transition duration-200"
+      className={`ms-check-btn ${isCheckIn ? "primary" : "secondary"}`}
     >
-      {type === 'check-in' ? 'Check In' : 'Check Out'}
+      {isCheckIn ? "Check In" : "Check Out"}
     </button>
   );
 }

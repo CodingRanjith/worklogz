@@ -44,6 +44,12 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  employeeId: {
+    type: String
+  },
+  enrollmentId: {
+    type: String
+  },
   salary: {
     type: Number,
     default: 0
