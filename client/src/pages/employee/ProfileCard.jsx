@@ -5,7 +5,6 @@ const EMPTY_PROFILE = {
   id: "",
   name: "",
   employeeId: "",
-  enrollmentId: "",
   email: "",
   phone: "",
   position: "",
@@ -144,14 +143,6 @@ export default function ProfileCard({
                   type="text"
                   value={form.employeeId}
                   onChange={(e) => handleChange("employeeId", e.target.value)}
-                />
-              </label>
-              <label>
-                <span>Enrollment ID</span>
-                <input
-                  type="text"
-                  value={form.enrollmentId}
-                  onChange={(e) => handleChange("enrollmentId", e.target.value)}
                 />
               </label>
             </div>

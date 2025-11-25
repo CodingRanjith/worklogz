@@ -90,7 +90,6 @@ const adminController = {
         phone: pending.phone,
         position: pending.position,
         company: pending.company,
-        enrollmentId: pending.enrollmentId,
         role: 'employee',
         profilePic: pending.profilePic
       });

@@ -7,7 +7,6 @@ const PendingUserSchema = new mongoose.Schema({
   phone: String,
   position: String,
   company: String,
-  enrollmentId: String,
   schedule: Object,
   profilePic: String,
   createdAt: {
