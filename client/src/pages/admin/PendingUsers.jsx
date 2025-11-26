@@ -3,10 +3,13 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { API_ENDPOINTS } from '../../utils/api';
 import { FiUserCheck, FiUserX } from 'react-icons/fi';
+import ApproveScheduleModal from '../../components/admin-dashboard/pending-users/ApproveScheduleModal';
 
 const PendingUsers = () => {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [scheduleModalUser, setScheduleModalUser] = useState(null);
+  const [submittingSchedule, setSubmittingSchedule] = useState(false);
 
   const fetchPendingUsers = async () => {
     try {
@@ -23,9 +26,9 @@ const PendingUsers = () => {
     }
   };
 
-  const handleApprove = async (id) => {
+  const submitApproval = async (userId, schedule) => {
     const confirm = await Swal.fire({
-      title: 'Approve this user?',
+      title: 'Approve this user with the selected schedule?',
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: 'Yes, Approve',
@@ -35,15 +38,23 @@ const PendingUsers = () => {
     if (!confirm.isConfirmed) return;
 
     try {
+      setSubmittingSchedule(true);
       const token = localStorage.getItem('token');
-      await axios.post(`${API_ENDPOINTS.approveUser}/${id}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      Swal.fire('Success', 'User approved and moved to employees.', 'success');
+      await axios.post(
+        `${API_ENDPOINTS.approveUser}/${userId}`,
+        { schedule },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      Swal.fire('Success', 'User approved and schedule assigned.', 'success');
+      setScheduleModalUser(null);
       fetchPendingUsers();
     } catch (err) {
       console.error('Approval failed:', err);
       Swal.fire('Error', 'Failed to approve user.', 'error');
+    } finally {
+      setSubmittingSchedule(false);
     }
   };
 
@@ -99,7 +110,7 @@ const PendingUsers = () => {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => handleApprove(user._id)}
+                  onClick={() => setScheduleModalUser(user)}
                   className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 text-sm rounded"
                 >
                   <FiUserCheck className="inline mr-1" /> Approve
@@ -114,6 +125,17 @@ const PendingUsers = () => {
             </div>
           ))}
         </div>
+      )}
+      {scheduleModalUser && (
+        <ApproveScheduleModal
+          user={scheduleModalUser}
+          initialSchedule={scheduleModalUser.schedule}
+          submitting={submittingSchedule}
+          onClose={() => {
+            if (!submittingSchedule) setScheduleModalUser(null);
+          }}
+          onSubmit={(schedule) => submitApproval(scheduleModalUser._id, schedule)}
+        />
       )}
     </div>
   );

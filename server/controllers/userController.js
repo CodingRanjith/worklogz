@@ -15,6 +15,61 @@ const SalaryHistory = require('../models/SalaryHistory');
 const Payslip = require('../models/Payslip');
 
 
+const EMPLOYEE_ID_PREFIX = 'THC';
+
+const parseEmployeeNumber = (value = '') => {
+  if (!value) return 0;
+  const digits = value.toString().replace(/\D/g, '');
+  return digits ? parseInt(digits, 10) : 0;
+};
+
+const formatEmployeeIdFromNumber = (value) => {
+  const safeNumber = Number.isFinite(value) && value > 0 ? value : 1;
+  return `${EMPLOYEE_ID_PREFIX}${safeNumber.toString().padStart(3, '0')}`;
+};
+
+const getNextEmployeeIdValue = async () => {
+  const users = await User.find(
+    { employeeId: { $exists: true, $ne: null, $ne: '' } },
+    'employeeId'
+  ).lean();
+
+  const maxNumeric = users.reduce((max, user) => {
+    const numeric = parseEmployeeNumber(user.employeeId);
+    return numeric > max ? numeric : max;
+  }, 0);
+
+  return formatEmployeeIdFromNumber(maxNumeric + 1);
+};
+
+const sanitizeArrayField = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.filter((item) => typeof item === 'string' && item.trim()).map((item) => item.trim());
+  }
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const sanitizeBankDetails = (details) => {
+  if (!details || typeof details !== 'object') return undefined;
+  const allowedKeys = ['bankingName', 'bankAccountNumber', 'ifscCode', 'upiId'];
+  const sanitized = {};
+
+  allowedKeys.forEach((key) => {
+    if (details[key]) {
+      sanitized[key] = details[key];
+    }
+  });
+
+  return Object.keys(sanitized).length ? sanitized : undefined;
+};
+
 const userController = {
   getAllUsers: async (req, res) => {
     try {
@@ -43,6 +98,56 @@ const userController = {
     } catch (error) {
       console.error('Error fetching users:', error);
       res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  },
+
+  createUser: async (req, res) => {
+    try {
+      const requiredFields = ['name', 'email', 'password', 'phone', 'position', 'company'];
+      const missingField = requiredFields.find((field) => !req.body[field]);
+
+      if (missingField) {
+        return res.status(400).json({ error: `${missingField} is required` });
+      }
+
+      const normalizedEmail = req.body.email.toLowerCase().trim();
+      const existingUser = await User.findOne({ email: normalizedEmail });
+
+      if (existingUser) {
+        return res.status(400).json({ error: 'A user with this email already exists' });
+      }
+
+      const hashedPassword = await bcrypt.hash(req.body.password, 10);
+      const providedEmployeeId = req.body.employeeId?.toString().trim();
+      const employeeId = providedEmployeeId || (await getNextEmployeeIdValue());
+
+      const payload = {
+        name: req.body.name.trim(),
+        email: normalizedEmail,
+        password: hashedPassword,
+        phone: req.body.phone,
+        position: req.body.position,
+        company: req.body.company,
+        employeeId,
+        role: req.body.role || 'employee',
+        salary: Number.isNaN(Number(req.body.salary)) ? 0 : Number(req.body.salary),
+        department: req.body.department,
+        qualification: req.body.qualification,
+        dateOfJoining: req.body.dateOfJoining ? new Date(req.body.dateOfJoining) : undefined,
+        profilePic: req.body.profilePic,
+        skills: sanitizeArrayField(req.body.skills),
+        rolesAndResponsibility: sanitizeArrayField(req.body.rolesAndResponsibility),
+        bankDetails: sanitizeBankDetails(req.body.bankDetails)
+      };
+
+      const newUser = await User.create(payload);
+      const userResponse = newUser.toObject();
+      delete userResponse.password;
+
+      res.status(201).json({ message: 'User created successfully', user: userResponse });
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ error: 'Failed to create user' });
     }
   },
 
@@ -229,6 +334,16 @@ const userController = {
     } catch (error) {
       console.error('Error deleting user:', error);
       res.status(500).json({ error: 'Failed to delete user' });
+    }
+  },
+
+  getNextEmployeeId: async (req, res) => {
+    try {
+      const nextId = await getNextEmployeeIdValue();
+      res.json({ employeeId: nextId });
+    } catch (error) {
+      console.error('Error generating employee ID:', error);
+      res.status(500).json({ error: 'Failed to generate employee ID' });
     }
   },
 

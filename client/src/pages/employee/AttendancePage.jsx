@@ -1,14 +1,20 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./AttendancePage.css";
+import "./AttendanceModern.css";
 import "../../styles/m365Theme.css";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { API_ENDPOINTS } from "../../utils/api";
-import ProfileHeader from "../../components/attendance/ProfileHeader";
 import DateStrip from "../../components/attendance/DateStrip";
 import AttendanceCards from "../../components/attendance/AttendanceCards";
 import ActivityLog from "../../components/attendance/ActivityLog";
@@ -41,6 +47,13 @@ function AttendancePage() {
   const [profileData, setProfileData] = useState(null);
   const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [holidays, setHolidays] = useState([]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -138,6 +151,18 @@ function AttendancePage() {
       // Swal.fire({ icon: 'error', title: 'Error', text: 'Unable to load user info' });
     }
   }, [isSelf, userId]);
+
+  const fetchHolidays = useCallback(async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.get(API_ENDPOINTS.getHolidays, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setHolidays(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Failed to fetch holidays", error);
+    }
+  }, []);
   const handleProfileSave = async (updatedProfile, avatarFile) => {
     if (!updatedProfile?.id) {
       setShowProfileEditor(false);
@@ -245,7 +270,8 @@ function AttendancePage() {
   useEffect(() => {
     fetchUser();
     fetchAttendance();
-  }, [fetchUser, fetchAttendance]);
+    fetchHolidays();
+  }, [fetchUser, fetchAttendance, fetchHolidays]);
 
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -360,11 +386,45 @@ function AttendancePage() {
     navigate("/login");
   };
 
-  // Get current date info
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-  const currentDayOfMonth = now.getDate();
+  const currentYear = currentTime.getFullYear();
+  const currentMonth = currentTime.getMonth();
+  const currentDayOfMonth = currentTime.getDate();
+
+  const formattedClock = currentTime.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const formattedDate = currentTime.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const formattedWeekday = currentTime.toLocaleDateString("en-US", {
+    weekday: "long",
+  });
+
+  const greeting = useMemo(() => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 17) return "Good Afternoon";
+    return "Good Evening";
+  }, [currentTime]);
+
+  const nextHoliday = useMemo(() => {
+    if (!holidays.length) return null;
+    const today = new Date();
+    const upcoming = holidays
+      .map((holiday) => ({
+        ...holiday,
+        dateInstance: new Date(holiday.date),
+      }))
+      .filter((holiday) => holiday.dateInstance >= today)
+      .sort(
+        (a, b) => a.dateInstance.getTime() - b.dateInstance.getTime()
+      );
+    return upcoming[0] || null;
+  }, [holidays]);
 
   // Filter attendance history to current month only
   const currentMonthAttendance = attendanceHistory.filter((entry) => {
@@ -432,6 +492,17 @@ function AttendancePage() {
     "What's included",
     "Plans",
     "Customer stories",
+  ];
+
+  const sidebarLinks = [
+    { label: "Home", icon: "🏠", action: () => navigate("/attendance") },
+    { label: "My Worklife", icon: "🗂️", action: () => navigate("/my-earnings") },
+    { label: "To Do", icon: "✅", action: () => setShowTimesheetModal(true) },
+    { label: "Salary", icon: "💰", action: () => navigate("/my-earnings") },
+    { label: "Leave", icon: "🌴", action: () => navigate("/apply-leave") },
+    { label: "Attendance", icon: "🕒", action: () => navigate("/attendance") },
+    { label: "Document Center", icon: "📁", action: () => {} },
+    { label: "Apps", icon: "🧩", action: () => {} },
   ];
 
   const quickActions = [
@@ -542,223 +613,282 @@ function AttendancePage() {
     },
   ];
 
+  const quickInfoCards = [
+    {
+      title: "Review",
+      description: "Hurrah! You've nothing to review.",
+      actionLabel: "",
+      accent: "teal",
+    },
+    {
+      title: formattedDate,
+      description: `${formattedWeekday} • 24 Hours Shift`,
+      actionLabel: "Sign in",
+      onClick: () => setShowTimesheetModal(true),
+      accent: "indigo",
+    },
+    {
+      title: "Upcoming Holidays",
+      description: nextHoliday
+        ? `${nextHoliday.name} • ${new Date(
+            nextHoliday.date
+          ).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}`
+        : "No upcoming holidays.",
+      actionLabel: "View",
+      onClick: () => setShowHolidayModal(true),
+      accent: "purple",
+    },
+    {
+      title: "Payslip",
+      description: "Access your monthly payslips instantly.",
+      actionLabel: "Open",
+      onClick: () => navigate("/my-earnings"),
+      accent: "orange",
+    },
+  ];
+
+  const avatarSrc =
+    profileData?.avatar ||
+    "https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png";
+  const heroQuote = "If not us, who? If not now, when?";
+  const heroQuoteAuthor = "John F. Kennedy";
+
   return (
-    <div className="attendance-app">
-      <ProfileHeader
-        profile={profileData}
-        onEditProfile={isSelf ? () => setShowProfileEditor(true) : undefined}
-      />
-
-      <div className="ms-panel quick-actions-panel">
-        <div className="quick-actions-grid">
-          <button
-            onClick={() => navigate("/my-earnings")}
-            className="ms-quick-action"
-            data-accent="primary"
-          >
-            My Earnings
-          </button>
-
-          <button
-            onClick={() => navigate("/timesheet")}
-            className="ms-quick-action"
-            data-accent="secondary"
-          >
-            Task Manager
-          </button>
-
-          <button
-            onClick={() => navigate("/apply-leave")}
-            className="ms-quick-action"
-            data-accent="neutral"
-          >
-            Apply Leave
-          </button>
-
-          <button
-            onClick={() => setShowCalendarModal(true)}
-            className="ms-quick-action"
-            data-accent="calendar"
-          >
-            Calendar View
-          </button>
-
-          <button
-            onClick={() => setShowHolidayModal(true)}
-            className="ms-quick-action"
-            data-accent="holiday"
-          >
-            Holiday List
-          </button>
-        </div>
-
-        <button
-          onClick={onLogout}
-          className="ms-btn danger"
-        >
-          Logout
-        </button>
-      </div>
-
-      {showCalendarModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full relative border border-gray-200 max-h-[95vh] overflow-y-auto">
-            <button
-              className="absolute -top-2 -right-2 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-lg text-sm sm:text-base"
-              onClick={() => setShowCalendarModal(false)}
-            >
-              ✕
-            </button>
-            <div className="p-4 sm:p-6">
-              <div className="text-center mb-4 sm:mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 calendar-modal-header mb-2">
-                  Attendance Calendar
-                </h2>
-                <p className="text-sm sm:text-base text-gray-700 calendar-modal-subtitle">
-                  {calendarViewDate.toLocaleString("default", {
-                    month: "long",
-                  })}{" "}
-                  {calendarViewDate.getFullYear()}
-                </p>
-              </div>
-              <Calendar
-                onChange={setSelectedDate}
-                value={selectedDate}
-                onActiveStartDateChange={({ activeStartDate }) =>
-                  setCalendarViewDate(activeStartDate)
-                }
-                tileClassName={({ date, view }) => {
-                  if (view === "month") {
-                    const key = date.toDateString();
-                    const record = attendanceMap[key];
-                    if (record?.checkin && record?.checkout)
-                      return "present-day";
-                    if (record?.checkin && !record?.checkout)
-                      return "partial-present";
-                    if (!record) return "absent-day";
-                  }
-                  return "";
-                }}
-                className="w-full rounded-xl sm:rounded-2xl border-none shadow-inner"
-              />
-              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4 mt-4 sm:mt-6">
-                <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-green-100">
-                  <div className="w-4 h-4 bg-green-500 rounded-full shadow-md"></div>
-                  <span className="text-xs font-semibold text-green-700">
-                    Present
-                  </span>
-                </div>
-                <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-yellow-100">
-                  <div className="w-4 h-4 bg-yellow-500 rounded-full shadow-md"></div>
-                  <span className="text-xs font-semibold text-yellow-700">
-                    Partial
-                  </span>
-                </div>
-                <div className="flex flex-col items-center gap-2 p-3 rounded-xl bg-red-100">
-                  <div className="w-4 h-4 bg-red-500 rounded-full shadow-md"></div>
-                  <span className="text-xs font-semibold text-red-700">
-                    Absent
-                  </span>
-                </div>
-              </div>
+    <div className="attendance-modern">
+      <div className="attendance-shell">
+        <div className="modern-layout">
+          <aside className="modern-sidebar">
+            <div className="modern-sidebar__logo">
+              <span>United Techno</span>
+              <small>Powered by Worklogz</small>
             </div>
-          </div>
-        </div>
-      )}
+            <ul className="modern-sidebar__list">
+              {sidebarLinks.map((link) => (
+                <li key={link.label}>
+                  <button
+                    type="button"
+                    onClick={link.action}
+                    className={`modern-sidebar__item ${
+                      link.label === "Attendance" ? "is-active" : ""
+                    }`}
+                  >
+                    <span className="icon">{link.icon}</span>
+                    <span>{link.label}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
 
-      {/* Light Multi-Color Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-green-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
-          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
-            <span className="text-xs sm:text-sm font-medium text-green-700 uppercase tracking-wide">
-              Present Days
-            </span>
-          </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-800 mb-2">
-            {presentDays}
-          </p>
-          <div className="w-full bg-green-200 h-1.5 rounded-full">
-            <div
-              className="bg-gradient-to-r from-green-400 to-green-500 h-1.5 rounded-full transition-all duration-500"
-              style={{ width: `${(presentDays / currentDayOfMonth) * 100}%` }}
-            ></div>
-          </div>
-          <p className="text-xs text-green-600 mt-2">Days Attended</p>
-        </div>
+          <main className="modern-main">
+            <section className="modern-hero">
+              <div className="modern-hero__left">
+                <div className="modern-hero__avatar">
+                  <img src={avatarSrc} alt={profileData?.name || "Employee"} />
+                </div>
+                <div className="modern-hero__content">
+                  <p className="modern-hero__greeting">
+                    {greeting},{" "}
+                    <span>{profileData?.name || "Team Member"}</span>
+                  </p>
+                  <p className="modern-hero__role">
+                    {profileData?.position || "Employee"} •{" "}
+                    {profileData?.company || "Techackode"}
+                  </p>
+                  <p className="modern-hero__quote">
+                    “{heroQuote}” <span>— {heroQuoteAuthor}</span>
+                  </p>
+                  <div className="modern-hero__tabs">
+                    {heroTabs.map((tab) => (
+                      <button
+                        key={tab}
+                        type="button"
+                        className={activeHeroTab === tab ? "is-active" : ""}
+                        onClick={() => setActiveHeroTab(tab)}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="modern-hero__right">
+                <div className="modern-hero__time-card">
+                  <span className="time-pill">{formattedWeekday}</span>
+                  <p className="modern-hero__date">{formattedDate}</p>
+                  <p className="modern-hero__clock">{formattedClock}</p>
+                  <span className="modern-hero__live">Live time</span>
+                </div>
+                <div className="modern-hero__highlights">
+                  {heroHighlights.map((item) => (
+                    <div className="hero-highlight-card" key={item.label}>
+                      <span className="label">{item.label}</span>
+                      <strong className="value">{item.value}</strong>
+                      <span className="sub">{item.sub}</span>
+                    </div>
+                  ))}
+                </div>
+                {isSelf && (
+                  <button
+                    type="button"
+                    className="modern-hero__edit"
+                    onClick={() => setShowProfileEditor(true)}
+                  >
+                    Edit profile
+                  </button>
+                )}
+              </div>
+            </section>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
-          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full"></div>
-            <span className="text-xs sm:text-sm font-medium text-orange-700 uppercase tracking-wide">
-              Absent Days
-            </span>
-          </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-800 mb-2">
-            {absentDays}
-          </p>
-          <div className="w-full bg-orange-200 h-1.5 rounded-full">
-            <div
-              className="bg-gradient-to-r from-orange-400 to-orange-500 h-1.5 rounded-full transition-all duration-500"
-              style={{ width: `${(absentDays / currentDayOfMonth) * 100}%` }}
-            ></div>
-          </div>
-          <p className="text-xs text-orange-600 mt-2">Days Missed</p>
-        </div>
+            <section className="quick-info-grid">
+              {quickInfoCards.map((card) => (
+                <div
+                  key={card.title}
+                  className="quick-info-card"
+                  data-accent={card.accent}
+                >
+                  <div>
+                    <p className="title">{card.title}</p>
+                    <p className="description">{card.description}</p>
+                  </div>
+                  {card.actionLabel && (
+                    <button
+                      type="button"
+                      className="quick-info-card__action"
+                      onClick={card.onClick}
+                    >
+                      {card.actionLabel}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </section>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
-          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full"></div>
-            <span className="text-xs sm:text-sm font-medium text-blue-700 uppercase tracking-wide">
-              Total Days
-            </span>
-          </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-800 mb-2">
-            {currentDayOfMonth}
-          </p>
-          <div className="w-full bg-blue-200 h-1.5 rounded-full">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full w-full"></div>
-          </div>
-          <p className="text-xs text-blue-600 mt-2">Month Progress</p>
-        </div>
-      </div>
+            <section className="action-hub-card">
+              <div className="action-hub-grid">
+                {quickActions.map((action) => (
+                  <button
+                    key={action.label}
+                    type="button"
+                    onClick={action.onClick}
+                    className="action-hub-tile"
+                    data-accent={action.accent}
+                  >
+                    <span className="action-hub-tile__icon">{action.icon}</span>
+                    <div>
+                      <p className="label">{action.label}</p>
+                      <p className="description">{action.description}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="logout-pill" onClick={onLogout}>
+                Logout
+              </button>
+            </section>
 
-      {/* Today's Attendance Analytics */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-teal-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
-        <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
-          <div className="p-2 sm:p-2.5 md:p-3 bg-teal-100 rounded-lg">
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-teal-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h3 className="text-lg sm:text-xl font-semibold text-teal-900">
-              Daily Attendance
-            </h3>
-            <p className="text-xs sm:text-sm text-teal-600">
-              Monitor your daily work activities and time tracking
-            </p>
-          </div>
-        </div>
-        <AttendanceCards attendanceData={attendanceHistory} />
-        
-        <div className="mt-4 sm:mt-6">
-          <ActivityLog activities={filteredLogs} />
-        </div>
-      </div>
+            <section className="stats-strip">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-green-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-xs sm:text-sm font-medium text-green-700 uppercase tracking-wide">
+                      Present Days
+                    </span>
+                  </div>
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-800 mb-2">
+                    {presentDays}
+                  </p>
+                  <div className="w-full bg-green-200 h-1.5 rounded-full">
+                    <div
+                      className="bg-gradient-to-r from-green-400 to-green-500 h-1.5 rounded-full transition-all duration-500"
+                      style={{ width: `${(presentDays / currentDayOfMonth) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-green-600 mt-2">Days Attended</p>
+                </div>
 
-      {/* Light Multi-Color Weekly Analytics */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-indigo-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full"></div>
+                    <span className="text-xs sm:text-sm font-medium text-orange-700 uppercase tracking-wide">
+                      Absent Days
+                    </span>
+                  </div>
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-800 mb-2">
+                    {absentDays}
+                  </p>
+                  <div className="w-full bg-orange-200 h-1.5 rounded-full">
+                    <div
+                      className="bg-gradient-to-r from-orange-400 to-orange-500 h-1.5 rounded-full transition-all duration-500"
+                      style={{ width: `${(absentDays / currentDayOfMonth) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-orange-600 mt-2">Days Missed</p>
+                </div>
+
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
+                  <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full"></div>
+                    <span className="text-xs sm:text-sm font-medium text-blue-700 uppercase tracking-wide">
+                      Total Days
+                    </span>
+                  </div>
+                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-800 mb-2">
+                    {currentDayOfMonth}
+                  </p>
+                  <div className="w-full bg-blue-200 h-1.5 rounded-full">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full w-full"></div>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-2">Month Progress</p>
+                </div>
+              </div>
+            </section>
+
+            <section className="daily-panels">
+              <div className="daily-panel primary">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-teal-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6">
+                  <div className="flex items-center gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6">
+                    <div className="p-2 sm:p-2.5 md:p-3 bg-teal-100 rounded-lg">
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-teal-700"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-semibold text-teal-900">
+                        Daily Attendance
+                      </h3>
+                      <p className="text-xs sm:text-sm text-teal-600">
+                        Monitor your daily work activities and time tracking
+                      </p>
+                    </div>
+                  </div>
+                  <AttendanceCards attendanceData={attendanceHistory} />
+
+                  <div className="mt-4 sm:mt-6">
+                    <ActivityLog activities={filteredLogs} />
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="modern-card">
+              {/* Light Multi-Color Weekly Analytics */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-indigo-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
@@ -1048,15 +1178,19 @@ function AttendancePage() {
             <div className="text-xs text-violet-600 mt-1">Current Period</div>
           </div>
         </div>
-      </div>
+              </div>
+            </section>
 
-      {/* Monthly Effort Tracker */}
-      <div className="mb-4 sm:mb-6">
-        <DateStrip
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          attendanceHistory={attendanceHistory}
-        />
+            {/* Monthly Effort Tracker */}
+            <div className="mb-4 sm:mb-6">
+              <DateStrip
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                attendanceHistory={attendanceHistory}
+              />
+            </div>
+          </main>
+        </div>
       </div>
       {isSelf && type && !isCapturing && (
         <div className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-30 w-full px-4 sm:px-6 flex justify-center">
