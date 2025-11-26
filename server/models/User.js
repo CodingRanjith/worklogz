@@ -18,8 +18,13 @@ const BankDetailsSchema = new mongoose.Schema({
 
 const formatEmployeeId = (value) => {
   if (!value) return value;
-  const clean = value.toString().replace(/^thc\s*:\s*/i, '').trim();
-  return clean ? `THC : ${clean}` : value;
+  const digitsOnly = value.toString().replace(/\D/g, '');
+  if (!digitsOnly) {
+    return value.toString().trim();
+  }
+  const normalized = digitsOnly.replace(/^0+/, '') || '0';
+  const padded = normalized.padStart(3, '0');
+  return `THC${padded}`;
 };
 
 // Main User schema

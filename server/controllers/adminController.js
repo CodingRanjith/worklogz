@@ -6,6 +6,27 @@ const PendingUser = require('../models/PendingUser');
 const Schedule = require('../models/Schedule');
 const Attendance = require('../models/Attendance');
 
+const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+const defaultDaySchedule = {
+  start: '09:00',
+  end: '18:00',
+  isLeave: false
+};
+
+const normalizeWeeklySchedule = (schedule = {}) => {
+  return DAYS_OF_WEEK.reduce((acc, day) => {
+    const entry = schedule[day] || {};
+    const isLeave = Boolean(entry.isLeave);
+    acc[day] = {
+      start: isLeave ? (entry.start || '') : (entry.start || defaultDaySchedule.start),
+      end: isLeave ? (entry.end || '') : (entry.end || defaultDaySchedule.end),
+      isLeave
+    };
+    return acc;
+  }, {});
+};
+
 const adminController = {
   getAdminSummary: async (req, res) => {
     try {
@@ -83,6 +104,10 @@ const adminController = {
       const pending = await PendingUser.findById(req.params.id);
       if (!pending) return res.status(404).json({ error: 'Pending user not found' });
 
+      const suppliedSchedule = req.body?.schedule;
+      const effectiveSchedule = suppliedSchedule || pending.schedule;
+      const normalizedSchedule = effectiveSchedule ? normalizeWeeklySchedule(effectiveSchedule) : null;
+
       const user = new User({
         name: pending.name,
         email: pending.email,
@@ -95,12 +120,15 @@ const adminController = {
       });
       await user.save();
 
-      if (pending.schedule) {
-        const userSchedule = new Schedule({
-          user: user._id,
-          weeklySchedule: pending.schedule
-        });
-        await userSchedule.save();
+      if (normalizedSchedule) {
+        await Schedule.findOneAndUpdate(
+          { user: user._id },
+          {
+            user: user._id,
+            weeklySchedule: normalizedSchedule
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
       }
 
       await PendingUser.findByIdAndDelete(pending._id);

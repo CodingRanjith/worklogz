@@ -160,7 +160,7 @@ const UserCard = ({ user, className = '', onEdit, onDelete, isDeleting = false }
                   type="button"
                   onClick={(event) => {
                     event.stopPropagation();
-                    onDelete(user._id);
+                    onDelete(user._id, user.name);
                   }}
                   disabled={isDeleting}
                   className={`border-2 text-sm px-2 py-2 rounded-xl transition-colors font-medium ${

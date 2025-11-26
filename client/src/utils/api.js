@@ -24,8 +24,10 @@ export const API_ENDPOINTS = {
   // -----------------
   
   getUsers: `${BASE_URL}/users`,
+  createUser: `${BASE_URL}/users`,
   getCurrentUser: `${BASE_URL}/users/me`,
   updateMyProfile: `${BASE_URL}/users/me`,
+  getNextEmployeeId: `${BASE_URL}/users/next/employee-id`,
   getUserById: (userId) => `${BASE_URL}/users/${userId}`,
   updateUser: (userId) => `${BASE_URL}/users/${userId}`,
   deleteUser: (userId) => `${BASE_URL}/users/${userId}`,
