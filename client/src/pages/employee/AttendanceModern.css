@@ -39,6 +39,17 @@
   margin-bottom: 32px;
 }
 
+.modern-sidebar__logo > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modern-sidebar__logo > div > div {
+  display: flex;
+  flex-direction: column;
+}
+
 .modern-sidebar__logo small {
   display: block;
   color: #94a3b8;

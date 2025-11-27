@@ -149,6 +149,11 @@ export const API_ENDPOINTS = {
   postHelpdeskMessage: (id) => `${BASE_URL}/api/helpdesk/tickets/${id}/messages`,
   getHelpdeskSummary: `${BASE_URL}/api/helpdesk/summary`,
   getHelpdeskContacts: `${BASE_URL}/api/helpdesk/contacts`,
+
+  // -----------------
+  // AI Assistant
+  // -----------------
+  assistantChat: `${BASE_URL}/api/assistant/chat`,
  
   // -----------------
   // Misc

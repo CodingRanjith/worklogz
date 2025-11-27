@@ -30,6 +30,7 @@ import TimesheetFullPage from "./Timesheet";
 import LeaveManagement from "./LeaveManagement";
 import MyEarnings from "./MyEarnings";
 import HelpdeskCenter from "../../components/helpdesk/HelpdeskCenter";
+import TechAIChat from "../../components/assistant/TechAIChat";
 import {
   FiHome,
   FiClock,
@@ -43,8 +44,10 @@ import {
   FiFolder,
   FiCompass,
   FiHelpCircle,
+  FiStar,
   FiLogOut,
 } from "react-icons/fi";
+import techackodeLogo from "../../assets/techackode.png";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -84,6 +87,7 @@ function AttendancePage() {
   const [communityGroups, setCommunityGroups] = useState([]);
   const [activeGroupId, setActiveGroupId] = useState(null);
   const [showHelpdeskOnly, setShowHelpdeskOnly] = useState(false);
+  const [showAssistantOnly, setShowAssistantOnly] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -580,6 +584,7 @@ function AttendancePage() {
     setShowLeaveManagementOnly(false);
     setShowEarningsOnly(false);
     setShowHelpdeskOnly(false);
+    setShowAssistantOnly(false);
     setShowWorkspaceOnly(false);
   };
 
@@ -665,6 +670,15 @@ function AttendancePage() {
         setShowHelpdeskOnly(true);
       },
     },
+    {
+      label: "AI Copilot",
+      icon: <FiStar />,
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowAssistantOnly(true);
+      },
+    },
   ];
 
   const quickActions = [
@@ -703,6 +717,17 @@ function AttendancePage() {
         setShowWorkspaceOnly(true);
       },
       icon: <FiBriefcase className="w-4 h-4" />,
+    },
+    {
+      label: "Ask Copilot",
+      description: "Design & dev guidance",
+      accent: "violet",
+      onClick: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowAssistantOnly(true);
+      },
+      icon: <FiStar className="w-4 h-4" />,
     },
     {
       label: "Task Manager",
@@ -848,8 +873,25 @@ function AttendancePage() {
         <div className="modern-layout">
           <aside className="modern-sidebar">
             <div className="modern-sidebar__logo">
-              <span>WORKLOGZ</span>
-              <small>Powered by Techackode</small>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <img 
+                  src={techackodeLogo}
+                  alt="Techackode" 
+                  style={{ 
+                    height: '32px', 
+                    width: 'auto', 
+                    objectFit: 'contain',
+                    flexShrink: 0
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <div>
+                  <span>WORKLOGZ</span>
+                  <small>Powered by Techackode</small>
+                </div>
+              </div>
             </div>
             <ul className="modern-sidebar__list">
               {sidebarLinks.map((link) => (
@@ -865,6 +907,8 @@ function AttendancePage() {
                         !showLeaveManagementOnly &&
                         !showEarningsOnly &&
                         !showWorkspaceOnly &&
+                        !showHelpdeskOnly &&
+                        !showAssistantOnly &&
                         link.label === "Attendance") ||
                       (showApplicationsOnly && link.label === "Applications") ||
                       (showPeopleOnly && link.label === "People") ||
@@ -873,7 +917,8 @@ function AttendancePage() {
                       (showLeaveManagementOnly && link.label === "Leave Management") ||
                       (showEarningsOnly && link.label === "Salary") ||
                       (showWorkspaceOnly && link.label === "My Workspace") ||
-                      (showHelpdeskOnly && link.label === "Helpdesk")
+                      (showHelpdeskOnly && link.label === "Helpdesk") ||
+                      (showAssistantOnly && link.label === "AI Copilot")
                         ? "is-active"
                         : ""
                     }`}
@@ -916,6 +961,11 @@ function AttendancePage() {
               <HelpdeskCenter
                 variant="inline"
                 onBack={() => setShowHelpdeskOnly(false)}
+              />
+            ) : showAssistantOnly ? (
+              <TechAIChat
+                variant="inline"
+                onBack={() => setShowAssistantOnly(false)}
               />
             ) : showWorkspaceOnly ? (
               <MyWorkspace onBack={() => setShowWorkspaceOnly(false)} />
