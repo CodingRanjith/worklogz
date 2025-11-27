@@ -26,6 +26,8 @@ import ProfileCard from "./ProfileCard";
 import ApplicationsHub from "../../components/attendance/ApplicationsHub";
 import PeopleDirectory from "../../components/attendance/PeopleDirectory";
 import CommunityHub from "../../components/attendance/CommunityHub";
+import TimesheetFullPage from "./Timesheet";
+import LeaveManagement from "./LeaveManagement";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -55,6 +57,8 @@ function AttendancePage() {
   const [showApplicationsOnly, setShowApplicationsOnly] = useState(false);
   const [showPeopleOnly, setShowPeopleOnly] = useState(false);
   const [showCommunityOnly, setShowCommunityOnly] = useState(false);
+  const [showTaskManagerOnly, setShowTaskManagerOnly] = useState(false);
+  const [showLeaveManagementOnly, setShowLeaveManagementOnly] = useState(false);
   const [people, setPeople] = useState([]);
   const [peopleLoading, setPeopleLoading] = useState(false);
   const [peopleSearch, setPeopleSearch] = useState("");
@@ -553,6 +557,8 @@ function AttendancePage() {
     setShowApplicationsOnly(false);
     setShowPeopleOnly(false);
     setShowCommunityOnly(false);
+    setShowTaskManagerOnly(false);
+    setShowLeaveManagementOnly(false);
   };
 
   const handleNav = (callback) => {
@@ -574,9 +580,25 @@ function AttendancePage() {
       },
     },
     { label: "My Workspace", icon: "🗂️", action: () => handleNav(() => navigate("/my-earnings")) },
-    { label: "Task Manager", icon: "✅", action: () => handleNav(() => setShowTimesheetModal(true)) },
+    {
+      label: "Task Manager",
+      icon: "✅",
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowTaskManagerOnly(true);
+      },
+    },
     { label: "Salary", icon: "💰", action: () => handleNav(() => navigate("/my-earnings")) },
-    { label: "Leave Management", icon: "🌴", action: () => handleNav(() => navigate("/apply-leave")) },
+    {
+      label: "Leave Management",
+      icon: "🌴",
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowLeaveManagementOnly(true);
+      },
+    },
     {
       label: "Applications",
       icon: "🧩",
@@ -626,7 +648,11 @@ function AttendancePage() {
       label: "Task Manager",
       description: "Log daily work",
       accent: "teal",
-      onClick: () => navigate("/timesheet"),
+      onClick: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowTaskManagerOnly(true);
+      },
       icon: (
         <svg
           className="w-4 h-4"
@@ -771,10 +797,14 @@ function AttendancePage() {
                       (!showApplicationsOnly &&
                         !showPeopleOnly &&
                         !showCommunityOnly &&
+                        !showTaskManagerOnly &&
+                        !showLeaveManagementOnly &&
                         link.label === "Attendance") ||
                       (showApplicationsOnly && link.label === "Applications") ||
                       (showPeopleOnly && link.label === "People") ||
-                      (showCommunityOnly && link.label === "Community")
+                      (showCommunityOnly && link.label === "Community") ||
+                      (showTaskManagerOnly && link.label === "Task Manager") ||
+                      (showLeaveManagementOnly && link.label === "Leave Management")
                         ? "is-active"
                         : ""
                     }`}
@@ -796,7 +826,17 @@ function AttendancePage() {
           </aside>
 
           <main className="modern-main">
-            {showApplicationsOnly ? (
+            {showTaskManagerOnly ? (
+              <TimesheetFullPage
+                embedded
+                onBack={() => setShowTaskManagerOnly(false)}
+              />
+            ) : showLeaveManagementOnly ? (
+              <LeaveManagement
+                embedded
+                onBack={() => setShowLeaveManagementOnly(false)}
+              />
+            ) : showApplicationsOnly ? (
               <ApplicationsHub onBack={() => setShowApplicationsOnly(false)} />
             ) : showPeopleOnly ? (
               <PeopleDirectory
@@ -1330,7 +1370,6 @@ function AttendancePage() {
               />
             </div>
 
-            <ApplicationsHub />
               </>
             )}
           </main>
@@ -1525,11 +1564,6 @@ function AttendancePage() {
         onClose={() => setShowHolidayModal(false)}
       />
 
-      {/* Timesheet Modal */}
-      <TimesheetModal
-        isOpen={showTimesheetModal}
-        onClose={() => setShowTimesheetModal(false)}
-      />
       <ProfileCard
         isOpen={showProfileEditor}
         profile={profileData}

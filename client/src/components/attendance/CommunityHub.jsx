@@ -260,18 +260,15 @@ const CommunityHub = ({
           ) : (
             <>
               <header>
-                <div>
+                <div className="community-hub__chat-title">
                   <h3>{activeGroup.name}</h3>
-                  <p>{activeGroup.description || "Group conversation"}</p>
-                </div>
-                <div className="community-hub__chat-actions">
                   {activeGroup.createdBy?._id === currentUserId ? (
                     <button className="btn danger" onClick={handleDeleteGroup}>
-                      Delete group
+                      Delete
                     </button>
                   ) : (
                     <button className="btn ghost" onClick={handleLeaveGroup}>
-                      Leave group
+                      Leave
                     </button>
                   )}
                 </div>
@@ -295,6 +292,9 @@ const CommunityHub = ({
                   ))}
                 </div>
               </header>
+              <p className="community-hub__chat-subtitle">
+                {activeGroup.description || "Group conversation"}
+              </p>
 
               <div className="community-hub__messages">
                 {loadingMessages ? (

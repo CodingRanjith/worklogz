@@ -259,7 +259,7 @@ const TaskDetailModal = ({ task, open, onClose, onSaveComment, onUpdate, onDelet
   );
 };
 
-export default function TimesheetFullPage() {
+export default function TimesheetFullPage({ embedded = false, onBack }) {
   // Get token from localStorage (adjust if you use context or other auth)
   const token = localStorage.getItem('token');
   const navigate = useNavigate();
@@ -740,15 +740,30 @@ export default function TimesheetFullPage() {
 
 
 
+  const handleBackNavigation = () => {
+    if (embedded && onBack) {
+      onBack();
+    } else {
+      navigate('/attendance');
+    }
+  };
+
+  const containerClass = embedded
+    ? "bg-white rounded-2xl shadow-lg p-4 md:p-6"
+    : "min-h-screen bg-gradient-to-tr from-pink-50 via-yellow-50 to-sky-50 p-4 md:p-6";
+
+  const gridWrapperClass = `${embedded ? "" : "max-w-[1400px] mx-auto"} grid grid-cols-12 gap-6 items-start`;
+  const summaryWrapperClass = `${embedded ? "mt-6" : "max-w-[1400px] mx-auto mt-6"}`;
+
   return (
-    <div className="min-h-screen bg-gradient-to-tr from-pink-50 via-yellow-50 to-sky-50 p-4 md:p-6">
-      <div className="max-w-[1400px] mx-auto grid grid-cols-12 gap-6 items-start">
+    <div className={containerClass}>
+      <div className={gridWrapperClass}>
         {/* Calendar Column */}
         <div className="col-span-12 md:col-span-6">
           <div className="bg-white rounded-xl shadow-lg p-4 md:p-6 md:sticky md:top-6">
             <div className="flex items-center justify-between mb-4">
-              <button onClick={() => navigate('/attendance')} className="text-lg font-semibold text-indigo-600 hover:underline">
-                Back
+              <button onClick={handleBackNavigation} className="text-lg font-semibold text-indigo-600 hover:underline">
+                {embedded ? 'Back to dashboard' : 'Back'}
               </button>
               <h2 className="text-lg font-semibold text-gray-800">Calendar</h2>
               <div className="text-sm text-gray-600">
@@ -976,7 +991,7 @@ export default function TimesheetFullPage() {
       </div>
 
       {/* Weekly Summary Section */}
-      <div className="max-w-[1400px] mx-auto mt-6">
+      <div className={summaryWrapperClass}>
         <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
           <div className="flex items-center justify-between mb-4 flex-col sm:flex-row gap-4">
             <div>
