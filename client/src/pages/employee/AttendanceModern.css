@@ -1,18 +1,19 @@
 .attendance-modern {
   min-height: 100vh;
   background: #f5f6fb;
-  padding: 32px 24px 96px;
+  padding: 24px 0 72px;
   font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .attendance-shell {
-  max-width: 1280px;
-  margin: 0 auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 24px;
 }
 
 .modern-layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 260px 1fr;
   gap: 32px;
 }
 
@@ -21,9 +22,12 @@
   border-radius: 24px;
   padding: 24px 20px;
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+  height: 100vh;
   position: sticky;
-  top: 32px;
-  align-self: start;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .modern-sidebar__logo {
@@ -49,6 +53,10 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .modern-sidebar__item {
@@ -70,6 +78,9 @@
 .modern-sidebar__item .icon {
   font-size: 1.1rem;
 }
+.modern-sidebar__item span:last-child {
+  white-space: nowrap;
+}
 
 .modern-sidebar__item:is(:hover, :focus-visible) {
   background: #f1f5f9;
@@ -81,6 +92,17 @@
   background: linear-gradient(120deg, #4c6ef5, #6c63ff);
   color: #fff;
   box-shadow: 0 10px 20px rgba(76, 110, 245, 0.25);
+}
+
+.logout-item {
+  margin-top: auto;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  padding-top: 16px;
+  color: #dc2626;
+}
+
+.logout-item .icon {
+  font-size: 1rem;
 }
 
 .modern-main {
@@ -474,7 +496,11 @@
 
 @media (max-width: 640px) {
   .attendance-modern {
-    padding: 24px 16px 72px;
+    padding: 20px 0 64px;
+  }
+
+  .attendance-shell {
+    padding: 0 12px;
   }
 
   .modern-sidebar {
