@@ -23,6 +23,9 @@ import { compressImage } from "../../components/attendance/utils";
 import TimesheetModal from "../../components/timesheet/TimesheetModal";
 import HolidayModal from "../../components/holidays/HolidayModal";
 import ProfileCard from "./ProfileCard";
+import ApplicationsHub from "../../components/attendance/ApplicationsHub";
+import PeopleDirectory from "../../components/attendance/PeopleDirectory";
+import CommunityHub from "../../components/attendance/CommunityHub";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -49,6 +52,15 @@ function AttendancePage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [holidays, setHolidays] = useState([]);
+  const [showApplicationsOnly, setShowApplicationsOnly] = useState(false);
+  const [showPeopleOnly, setShowPeopleOnly] = useState(false);
+  const [showCommunityOnly, setShowCommunityOnly] = useState(false);
+  const [people, setPeople] = useState([]);
+  const [peopleLoading, setPeopleLoading] = useState(false);
+  const [peopleSearch, setPeopleSearch] = useState("");
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [communityGroups, setCommunityGroups] = useState([]);
+  const [activeGroupId, setActiveGroupId] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -57,6 +69,7 @@ function AttendancePage() {
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
+  const peopleLoadedRef = useRef(false);
 
   // Dynamic week calculation functions
   const getCurrentWeekDates = useCallback(() => {
@@ -267,11 +280,59 @@ function AttendancePage() {
     }
   }, [isSelf, userId]);
 
+  const fetchPeople = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      setPeopleLoading(true);
+      const { data } = await axios.get(API_ENDPOINTS.getUsers, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPeople(data || []);
+      if (!selectedPerson && data?.length) {
+        setSelectedPerson(data[0]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch teammates", error);
+    } finally {
+      setPeopleLoading(false);
+      peopleLoadedRef.current = true;
+    }
+  }, [selectedPerson]);
+
+  const fetchCommunityGroups = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    try {
+      const { data } = await axios.get(API_ENDPOINTS.getCommunityGroups, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCommunityGroups(data || []);
+      if (!activeGroupId && data?.length) {
+        setActiveGroupId(data[0]._id);
+      }
+    } catch (error) {
+      console.error("Failed to fetch community groups", error);
+    }
+  }, [activeGroupId]);
+
   useEffect(() => {
     fetchUser();
     fetchAttendance();
     fetchHolidays();
   }, [fetchUser, fetchAttendance, fetchHolidays]);
+
+  useEffect(() => {
+    if ((showPeopleOnly || showCommunityOnly) && !peopleLoadedRef.current) {
+      fetchPeople();
+    }
+  }, [showPeopleOnly, showCommunityOnly, fetchPeople]);
+
+  useEffect(() => {
+    if (showCommunityOnly && communityGroups.length === 0) {
+      fetchCommunityGroups();
+    }
+  }, [showCommunityOnly, communityGroups.length, fetchCommunityGroups]);
 
   const getLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -486,23 +547,57 @@ function AttendancePage() {
     },
   ];
 
-  const heroTabs = [
-    "How it works",
-    "Featured news",
-    "What's included",
-    "Plans",
-    "Customer stories",
-  ];
+  const heroTabs = [];
+
+  const resetPanels = () => {
+    setShowApplicationsOnly(false);
+    setShowPeopleOnly(false);
+    setShowCommunityOnly(false);
+  };
+
+  const handleNav = (callback) => {
+    resetPanels();
+    callback?.();
+  };
 
   const sidebarLinks = [
-    { label: "Home", icon: "🏠", action: () => navigate("/attendance") },
-    { label: "My Worklife", icon: "🗂️", action: () => navigate("/my-earnings") },
-    { label: "To Do", icon: "✅", action: () => setShowTimesheetModal(true) },
-    { label: "Salary", icon: "💰", action: () => navigate("/my-earnings") },
-    { label: "Leave", icon: "🌴", action: () => navigate("/apply-leave") },
-    { label: "Attendance", icon: "🕒", action: () => navigate("/attendance") },
-    { label: "Document Center", icon: "📁", action: () => {} },
-    { label: "Apps", icon: "🧩", action: () => {} },
+    { label: "Home", icon: "🏠", action: () => handleNav(() => navigate("/attendance")) },
+    { label: "Attendance", icon: "🕒", action: () => handleNav(() => navigate("/attendance")) },
+    {
+      label: "Community",
+      icon: "🌐",
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setShowApplicationsOnly(false);
+        setShowPeopleOnly(false);
+        setShowCommunityOnly(true);
+      },
+    },
+    { label: "My Workspace", icon: "🗂️", action: () => handleNav(() => navigate("/my-earnings")) },
+    { label: "Task Manager", icon: "✅", action: () => handleNav(() => setShowTimesheetModal(true)) },
+    { label: "Salary", icon: "💰", action: () => handleNav(() => navigate("/my-earnings")) },
+    { label: "Leave Management", icon: "🌴", action: () => handleNav(() => navigate("/apply-leave")) },
+    {
+      label: "Applications",
+      icon: "🧩",
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setShowPeopleOnly(false);
+        setShowApplicationsOnly(true);
+      },
+    },
+    {
+      label: "People",
+      icon: "👤",
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        setShowApplicationsOnly(false);
+        setShowPeopleOnly(true);
+      },
+    },
+    { label: "Document Center", icon: "📁", action: () => handleNav(() => {}) },
+    { label: "Plans", icon: "🗓️", action: () => handleNav(() => {}) },
+    { label: "Helpdesk", icon: "💬", action: () => handleNav(() => {}) },
   ];
 
   const quickActions = [
@@ -654,8 +749,8 @@ function AttendancePage() {
   const avatarSrc =
     profileData?.avatar ||
     "https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png";
-  const heroQuote = "If not us, who? If not now, when?";
-  const heroQuoteAuthor = "John F. Kennedy";
+  const heroQuote = "";
+  const heroQuoteAuthor = "";
 
   return (
     <div className="attendance-modern">
@@ -663,8 +758,8 @@ function AttendancePage() {
         <div className="modern-layout">
           <aside className="modern-sidebar">
             <div className="modern-sidebar__logo">
-              <span>United Techno</span>
-              <small>Powered by Worklogz</small>
+              <span>WORKLOGZ</span>
+              <small>Powered by Techackode</small>
             </div>
             <ul className="modern-sidebar__list">
               {sidebarLinks.map((link) => (
@@ -673,7 +768,15 @@ function AttendancePage() {
                     type="button"
                     onClick={link.action}
                     className={`modern-sidebar__item ${
-                      link.label === "Attendance" ? "is-active" : ""
+                      (!showApplicationsOnly &&
+                        !showPeopleOnly &&
+                        !showCommunityOnly &&
+                        link.label === "Attendance") ||
+                      (showApplicationsOnly && link.label === "Applications") ||
+                      (showPeopleOnly && link.label === "People") ||
+                      (showCommunityOnly && link.label === "Community")
+                        ? "is-active"
+                        : ""
                     }`}
                   >
                     <span className="icon">{link.icon}</span>
@@ -682,9 +785,41 @@ function AttendancePage() {
                 </li>
               ))}
             </ul>
+            <button
+              type="button"
+              className="modern-sidebar__item logout-item"
+              onClick={onLogout}
+            >
+              <span className="icon">🚪</span>
+              <span>Logout</span>
+            </button>
           </aside>
 
           <main className="modern-main">
+            {showApplicationsOnly ? (
+              <ApplicationsHub onBack={() => setShowApplicationsOnly(false)} />
+            ) : showPeopleOnly ? (
+              <PeopleDirectory
+                users={people}
+                loading={peopleLoading}
+                search={peopleSearch}
+                setSearch={setPeopleSearch}
+                onRefresh={fetchPeople}
+                selected={selectedPerson}
+                onSelect={setSelectedPerson}
+                onBack={() => setShowPeopleOnly(false)}
+              />
+            ) : showCommunityOnly ? (
+              <CommunityHub
+                users={people}
+                onBack={() => setShowCommunityOnly(false)}
+                groups={communityGroups}
+                setGroups={setCommunityGroups}
+                activeGroupId={activeGroupId}
+                setActiveGroupId={setActiveGroupId}
+              />
+            ) : (
+              <>
             <section className="modern-hero">
               <div className="modern-hero__left">
                 <div className="modern-hero__avatar">
@@ -699,21 +834,26 @@ function AttendancePage() {
                     {profileData?.position || "Employee"} •{" "}
                     {profileData?.company || "Techackode"}
                   </p>
-                  <p className="modern-hero__quote">
-                    “{heroQuote}” <span>— {heroQuoteAuthor}</span>
-                  </p>
-                  <div className="modern-hero__tabs">
-                    {heroTabs.map((tab) => (
-                      <button
-                        key={tab}
-                        type="button"
-                        className={activeHeroTab === tab ? "is-active" : ""}
-                        onClick={() => setActiveHeroTab(tab)}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
+                  {heroQuote && (
+                    <p className="modern-hero__quote">
+                      “{heroQuote}”{" "}
+                      {heroQuoteAuthor && <span>— {heroQuoteAuthor}</span>}
+                    </p>
+                  )}
+                  {heroTabs.length > 0 && (
+                    <div className="modern-hero__tabs">
+                      {heroTabs.map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          className={activeHeroTab === tab ? "is-active" : ""}
+                          onClick={() => setActiveHeroTab(tab)}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="modern-hero__right">
@@ -1189,6 +1329,10 @@ function AttendancePage() {
                 attendanceHistory={attendanceHistory}
               />
             </div>
+
+            <ApplicationsHub />
+              </>
+            )}
           </main>
         </div>
       </div>

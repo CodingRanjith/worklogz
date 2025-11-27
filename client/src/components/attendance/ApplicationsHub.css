@@ -1,0 +1,213 @@
+.apps-hub {
+  margin-top: 32px;
+  background: #fff;
+  border-radius: 32px;
+  padding: 28px;
+  box-shadow: 0 22px 60px rgba(14, 19, 56, 0.08);
+  border: 1px solid rgba(93, 109, 246, 0.08);
+}
+
+.apps-hub__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.apps-hub__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  color: #9aa7d9;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.apps-hub__header h2 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  color: #111538;
+}
+
+.apps-hub__subtitle {
+  margin-top: 6px;
+  color: #636b92;
+  max-width: 480px;
+}
+
+.apps-hub__cta {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.apps-hub__btn {
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.apps-hub__btn.primary {
+  background: linear-gradient(120deg, #5f6afc, #8a63ff);
+  color: #fff;
+  box-shadow: 0 12px 30px rgba(95, 106, 252, 0.35);
+}
+
+.apps-hub__btn.ghost {
+  border-color: rgba(95, 106, 252, 0.3);
+  color: #5f6afc;
+  background: transparent;
+}
+
+.apps-hub__btn:hover {
+  transform: translateY(-2px);
+}
+
+.apps-hub__form {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #f7f8ff;
+  border: 1px solid rgba(93, 109, 246, 0.15);
+}
+
+.apps-hub__form label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #4c4f7a;
+}
+
+.apps-hub__form input {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(76, 110, 245, 0.2);
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.apps-hub__form input:focus {
+  outline: none;
+  border-color: #5f6afc;
+  box-shadow: 0 0 0 3px rgba(95, 106, 252, 0.15);
+}
+
+.apps-hub__form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.apps-hub__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.apps-hub__card {
+  border-radius: 22px;
+  border: 1px solid rgba(93, 109, 246, 0.15);
+  padding: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: linear-gradient(180deg, #ffffff, #f7f8ff);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.apps-hub__card-head {
+  display: flex;
+  gap: 14px;
+}
+
+.apps-hub__card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(94, 108, 252, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+}
+
+.apps-hub__card-head h3 {
+  margin: 0;
+  color: #14183c;
+}
+
+.apps-hub__card-head p {
+  margin: 4px 0 0;
+  color: #6b7393;
+  font-size: 0.9rem;
+}
+
+.apps-hub__links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.apps-hub__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #fff;
+  color: #222649;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.apps-hub__link-icon {
+  font-size: 1rem;
+}
+
+.apps-hub__link-category {
+  margin-left: auto;
+  margin-right: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #9aa0c5;
+}
+
+.apps-hub__link:hover {
+  border-color: rgba(93, 109, 246, 0.35);
+  box-shadow: 0 12px 24px rgba(18, 22, 60, 0.08);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .apps-hub {
+    padding: 20px;
+  }
+
+  .apps-hub__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .apps-hub__cta {
+    width: 100%;
+  }
+
+  .apps-hub__btn {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+}
+
