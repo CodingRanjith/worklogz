@@ -1,0 +1,235 @@
+.workspace-shell {
+  background: #fff;
+  border-radius: 32px;
+  padding: 32px;
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.workspace-shell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.workspace-shell__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.workspace-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.workspace-stat {
+  border-radius: 20px;
+  background: #f8fafc;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: #111827;
+  font-weight: 600;
+}
+
+.workspace-stat span {
+  display: block;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.workspace-stat strong {
+  font-size: 1.6rem;
+  margin-top: 6px;
+  display: block;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 24px;
+}
+
+.workspace-list-panel,
+.workspace-detail-panel {
+  background: #f8fafc;
+  border-radius: 28px;
+  padding: 20px;
+  min-height: 480px;
+}
+
+.workspace-list-panel__head input {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 14px;
+  background: #fff;
+}
+
+.workspace-project-list {
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workspace-project-list li button {
+  width: 100%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  border-radius: 18px;
+  padding: 16px;
+  background: #fff;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.workspace-project-list li.is-active button {
+  background: #eef2ff;
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.25);
+}
+
+.workspace-detail__hero {
+  background: #fff;
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.workspace-timeframe span {
+  display: block;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.workspace-timeframe strong {
+  font-size: 1rem;
+  margin-top: 4px;
+}
+
+.workspace-detail__section {
+  margin-top: 20px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 20px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.workspace-team-list,
+.workspace-milestones {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workspace-team-list li,
+.workspace-milestones li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+.workspace-milestones li > div {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.workspace-milestones li span {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.workspace-milestones li span.done {
+  color: #059669;
+}
+
+.workspace-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.workspace-tools article {
+  background: #f8fafc;
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px dashed #dbeafe;
+}
+
+.workspace-tools button {
+  align-self: flex-start;
+  border: none;
+  background: #4f46e5;
+  color: #fff;
+  border-radius: 12px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.workspace-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: #6b7280;
+}
+
+.workspace-empty.inline {
+  padding: 8px 0;
+}
+
+.workspace-shell .btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workspace-shell .btn.ghost {
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+@media (max-width: 1024px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-shell {
+    padding: 20px;
+  }
+}
+

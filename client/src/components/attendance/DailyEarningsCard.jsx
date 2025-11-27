@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { API_ENDPOINTS } from "../../utils/api";
 import axios from "axios";
+import { FiTrendingUp, FiRefreshCw, FiShield } from "react-icons/fi";
+import { API_ENDPOINTS } from "../../utils/api";
 
 const DailyEarningsCard = () => {
   const [loading, setLoading] = useState(true);
   const [totalEarnings, setTotalEarnings] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     fetchEarnings();
@@ -12,34 +14,86 @@ const DailyEarningsCard = () => {
 
   const fetchEarnings = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await axios.get(API_ENDPOINTS.getMyEarnings, {
+      const { data } = await axios.get(API_ENDPOINTS.getMyEarnings, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (response.data.success) {
-        setTotalEarnings(response.data.data.dailyEarnings || 0);
+      if (data.success) {
+        const { dailyEarnings, updatedAt } = data.data || {};
+        setTotalEarnings(dailyEarnings || 0);
+        setLastUpdated(updatedAt ? new Date(updatedAt) : new Date());
+      } else {
+        setTotalEarnings(0);
+        setLastUpdated(null);
       }
     } catch (error) {
       console.error("Error fetching earnings:", error);
       setTotalEarnings(0);
+      setLastUpdated(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const content = loading ? (
-    <div className="ms-earnings-loading" />
-  ) : (
-    <>
-      <p className="eyebrow">Admin credited</p>
-      <h3>Total Earnings</h3>
-      <p className="amount">₹{totalEarnings.toLocaleString("en-IN")}</p>
-      <p className="caption">Updated daily after approval</p>
-    </>
-  );
+  return (
+    <div className="daily-earnings-card">
+      <div className="daily-earnings-card__header">
+        <div>
+          <p className="eyebrow">Daily salary credits</p>
+          <h3>Total Earnings</h3>
+        </div>
+        <button
+          className="refresh-btn"
+          onClick={fetchEarnings}
+          disabled={loading}
+        >
+          <FiRefreshCw className={loading ? "spin" : ""} />
+        </button>
+      </div>
 
-  return <div className="ms-earnings-card">{content}</div>;
+      <div className="daily-earnings-card__amount">
+        {loading ? (
+          <div className="pulse-amount" />
+        ) : (
+          <>
+            <span className="currency">₹</span>
+            <span>{totalEarnings.toLocaleString("en-IN")}</span>
+          </>
+        )}
+      </div>
+
+      <div className="daily-earnings-card__meta">
+        <div className="meta-pill">
+          <FiTrendingUp />
+          <span>
+            {totalEarnings >= 1000 ? "Consistent growth" : "Keep logging time"}
+          </span>
+        </div>
+        <div className="meta-pill">
+          <FiShield />
+          <span>Admin verified credits</span>
+        </div>
+      </div>
+
+      <p className="daily-earnings-card__foot">
+        {loading
+          ? "Syncing latest payout..."
+          : lastUpdated
+          ? `Updated ${lastUpdated.toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })} at ${lastUpdated.toLocaleTimeString("en-IN", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })}`
+          : "Awaiting first credit"}
+      </p>
+    </div>
+  );
 };
 
 export default DailyEarningsCard;

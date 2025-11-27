@@ -20,14 +20,31 @@ import AttendanceCards from "../../components/attendance/AttendanceCards";
 import ActivityLog from "../../components/attendance/ActivityLog";
 import CameraView from "../../components/attendance/CameraView";
 import { compressImage } from "../../components/attendance/utils";
-import TimesheetModal from "../../components/timesheet/TimesheetModal";
 import HolidayModal from "../../components/holidays/HolidayModal";
 import ProfileCard from "./ProfileCard";
 import ApplicationsHub from "../../components/attendance/ApplicationsHub";
 import PeopleDirectory from "../../components/attendance/PeopleDirectory";
 import CommunityHub from "../../components/attendance/CommunityHub";
+import MyWorkspace from "../../components/attendance/MyWorkspace";
 import TimesheetFullPage from "./Timesheet";
 import LeaveManagement from "./LeaveManagement";
+import MyEarnings from "./MyEarnings";
+import HelpdeskCenter from "../../components/helpdesk/HelpdeskCenter";
+import {
+  FiHome,
+  FiClock,
+  FiUsers,
+  FiBriefcase,
+  FiCheckSquare,
+  FiDollarSign,
+  FiCalendar,
+  FiGrid,
+  FiUser,
+  FiFolder,
+  FiCompass,
+  FiHelpCircle,
+  FiLogOut,
+} from "react-icons/fi";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -45,7 +62,6 @@ function AttendancePage() {
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showTimesheetModal, setShowTimesheetModal] = useState(false);
   const [showHolidayModal, setShowHolidayModal] = useState(false);
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0); // 0 = current week, -1 = previous week, +1 = next week
   const [activeHeroTab, setActiveHeroTab] = useState("How it works");
@@ -59,12 +75,15 @@ function AttendancePage() {
   const [showCommunityOnly, setShowCommunityOnly] = useState(false);
   const [showTaskManagerOnly, setShowTaskManagerOnly] = useState(false);
   const [showLeaveManagementOnly, setShowLeaveManagementOnly] = useState(false);
+  const [showEarningsOnly, setShowEarningsOnly] = useState(false);
+  const [showWorkspaceOnly, setShowWorkspaceOnly] = useState(false);
   const [people, setPeople] = useState([]);
   const [peopleLoading, setPeopleLoading] = useState(false);
   const [peopleSearch, setPeopleSearch] = useState("");
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [communityGroups, setCommunityGroups] = useState([]);
   const [activeGroupId, setActiveGroupId] = useState(null);
+  const [showHelpdeskOnly, setShowHelpdeskOnly] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -559,6 +578,9 @@ function AttendancePage() {
     setShowCommunityOnly(false);
     setShowTaskManagerOnly(false);
     setShowLeaveManagementOnly(false);
+    setShowEarningsOnly(false);
+    setShowHelpdeskOnly(false);
+    setShowWorkspaceOnly(false);
   };
 
   const handleNav = (callback) => {
@@ -567,32 +589,47 @@ function AttendancePage() {
   };
 
   const sidebarLinks = [
-    { label: "Home", icon: "🏠", action: () => handleNav(() => navigate("/attendance")) },
-    { label: "Attendance", icon: "🕒", action: () => handleNav(() => navigate("/attendance")) },
+    { label: "Home", icon: <FiHome />, action: () => handleNav(() => navigate("/attendance")) },
+    { label: "Attendance", icon: <FiClock />, action: () => handleNav(() => navigate("/attendance")) },
     {
       label: "Community",
-      icon: "🌐",
+      icon: <FiUsers />,
       action: () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setShowApplicationsOnly(false);
-        setShowPeopleOnly(false);
+        resetPanels();
         setShowCommunityOnly(true);
       },
     },
-    { label: "My Workspace", icon: "🗂️", action: () => handleNav(() => navigate("/my-earnings")) },
+    {
+      label: "My Workspace",
+      icon: <FiBriefcase />,
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowWorkspaceOnly(true);
+      },
+    },
     {
       label: "Task Manager",
-      icon: "✅",
+      icon: <FiCheckSquare />,
       action: () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
         resetPanels();
         setShowTaskManagerOnly(true);
       },
     },
-    { label: "Salary", icon: "💰", action: () => handleNav(() => navigate("/my-earnings")) },
+    {
+      label: "Salary",
+      icon: <FiDollarSign />,
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowEarningsOnly(true);
+      },
+    },
     {
       label: "Leave Management",
-      icon: "🌴",
+      icon: <FiCalendar />,
       action: () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
         resetPanels();
@@ -601,25 +638,33 @@ function AttendancePage() {
     },
     {
       label: "Applications",
-      icon: "🧩",
+      icon: <FiGrid />,
       action: () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setShowPeopleOnly(false);
+        resetPanels();
         setShowApplicationsOnly(true);
       },
     },
     {
       label: "People",
-      icon: "👤",
+      icon: <FiUser />,
       action: () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
-        setShowApplicationsOnly(false);
+        resetPanels();
         setShowPeopleOnly(true);
       },
     },
-    { label: "Document Center", icon: "📁", action: () => handleNav(() => {}) },
-    { label: "Plans", icon: "🗓️", action: () => handleNav(() => {}) },
-    { label: "Helpdesk", icon: "💬", action: () => handleNav(() => {}) },
+    { label: "Document Center", icon: <FiFolder />, action: () => handleNav(() => {}) },
+    { label: "Plans", icon: <FiCompass />, action: () => handleNav(() => {}) },
+    {
+      label: "Helpdesk",
+      icon: <FiHelpCircle />,
+      action: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowHelpdeskOnly(true);
+      },
+    },
   ];
 
   const quickActions = [
@@ -627,7 +672,11 @@ function AttendancePage() {
       label: "My Earnings",
       description: "View payouts & credits",
       accent: "emerald",
-      onClick: () => navigate("/my-earnings"),
+      onClick: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowEarningsOnly(true);
+      },
       icon: (
         <svg
           className="w-4 h-4"
@@ -643,6 +692,17 @@ function AttendancePage() {
           />
         </svg>
       ),
+    },
+    {
+      label: "My Workspace",
+      description: "Projects & teammates",
+      accent: "indigo",
+      onClick: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowWorkspaceOnly(true);
+      },
+      icon: <FiBriefcase className="w-4 h-4" />,
     },
     {
       label: "Task Manager",
@@ -745,7 +805,11 @@ function AttendancePage() {
       title: formattedDate,
       description: `${formattedWeekday} • 24 Hours Shift`,
       actionLabel: "Sign in",
-      onClick: () => setShowTimesheetModal(true),
+      onClick: () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        resetPanels();
+        setShowTaskManagerOnly(true);
+      },
       accent: "indigo",
     },
     {
@@ -799,12 +863,17 @@ function AttendancePage() {
                         !showCommunityOnly &&
                         !showTaskManagerOnly &&
                         !showLeaveManagementOnly &&
+                        !showEarningsOnly &&
+                        !showWorkspaceOnly &&
                         link.label === "Attendance") ||
                       (showApplicationsOnly && link.label === "Applications") ||
                       (showPeopleOnly && link.label === "People") ||
                       (showCommunityOnly && link.label === "Community") ||
                       (showTaskManagerOnly && link.label === "Task Manager") ||
-                      (showLeaveManagementOnly && link.label === "Leave Management")
+                      (showLeaveManagementOnly && link.label === "Leave Management") ||
+                      (showEarningsOnly && link.label === "Salary") ||
+                      (showWorkspaceOnly && link.label === "My Workspace") ||
+                      (showHelpdeskOnly && link.label === "Helpdesk")
                         ? "is-active"
                         : ""
                     }`}
@@ -820,13 +889,20 @@ function AttendancePage() {
               className="modern-sidebar__item logout-item"
               onClick={onLogout}
             >
-              <span className="icon">🚪</span>
+              <span className="icon">
+                <FiLogOut />
+              </span>
               <span>Logout</span>
             </button>
           </aside>
 
           <main className="modern-main">
-            {showTaskManagerOnly ? (
+            {showEarningsOnly ? (
+              <MyEarnings
+                embedded
+                onBack={() => setShowEarningsOnly(false)}
+              />
+            ) : showTaskManagerOnly ? (
               <TimesheetFullPage
                 embedded
                 onBack={() => setShowTaskManagerOnly(false)}
@@ -836,6 +912,13 @@ function AttendancePage() {
                 embedded
                 onBack={() => setShowLeaveManagementOnly(false)}
               />
+            ) : showHelpdeskOnly ? (
+              <HelpdeskCenter
+                variant="inline"
+                onBack={() => setShowHelpdeskOnly(false)}
+              />
+            ) : showWorkspaceOnly ? (
+              <MyWorkspace onBack={() => setShowWorkspaceOnly(false)} />
             ) : showApplicationsOnly ? (
               <ApplicationsHub onBack={() => setShowApplicationsOnly(false)} />
             ) : showPeopleOnly ? (

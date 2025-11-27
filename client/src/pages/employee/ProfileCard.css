@@ -188,6 +188,63 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.read-only-input {
+  background: #f1f5f9;
+  color: #475569;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+.role-callout {
+  background: #f8fafc;
+  border: 1px dashed #cbd5f5;
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.role-callout p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
+.role-callout__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.role-callout__grid article {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-callout__grid article span {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.role-callout__grid article strong {
+  font-size: 1rem;
+  color: #0f172a;
+}
+
+.role-callout__grid article small {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
 @media (max-width: 640px) {
   .profile-editor-panel {
     padding: 16px;

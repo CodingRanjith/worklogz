@@ -53,6 +53,9 @@ import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
 import CourseCRM from './pages/admin/CourseCRM';
 import InternshipCRM from './pages/admin/InternshipCRM';
 import ITProjectsCRM from './pages/admin/ITProjectsCRM';
+import ProjectsWorkspace from './pages/admin/ProjectsWorkspace';
+import Helpdesk from './pages/admin/Helpdesk';
+import Plans from './pages/admin/Plans';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 
@@ -120,6 +123,7 @@ function App() {
           <Route path="/company-departments" element={<CompanyDepartments />} />
           <Route path="/company-departments/create" element={<CreateWorkCard />} />
           <Route path="/company-departments/:department" element={<DepartmentWorkCards />} />
+          <Route path="/projects" element={<ProjectsWorkspace />} />
           <Route path="/crm/course" element={<CourseCRM />} />
           <Route path="/crm/internship" element={<InternshipCRM />} />
           <Route path="/crm/it-projects" element={<ITProjectsCRM />} />
@@ -131,6 +135,8 @@ function App() {
           <Route path="/upload-documents" element={<UploadDocuments />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />
+          <Route path="/helpdesk" element={<Helpdesk />} />
+          <Route path="/plans" element={<Plans />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

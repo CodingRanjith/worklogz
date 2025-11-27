@@ -3,8 +3,9 @@ import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
   FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
-  FiMenu, FiChevronLeft, FiLayers
+  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage
 } from 'react-icons/fi';
+import techackodeLogo from '../../../assets/techackode.png';
 
 const menuItems = [
   { label: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
@@ -21,8 +22,10 @@ const menuItems = [
     ]
   },
   { label: 'Task Manager', icon: <FiClipboard />, path: '/task-manager' },
+  { label: 'Helpdesk', icon: <FiHelpCircle />, path: '/helpdesk' },
   { label: 'Company Worklogz', icon: <FiBriefcase />, path: '/company-worklogz' },
   { label: 'Company Departments', icon: <FiBriefcase />, path: '/company-departments' },
+  { label: 'Projects Workspace', icon: <FiBriefcase />, path: '/projects' },
   {
     label: 'CRM',
     icon: <FiLayers />,
@@ -55,6 +58,7 @@ const menuItems = [
   { label: 'Payslip Generator', icon: <FiBarChart2 />, path: '/payslip' },
   { label: 'Daily Salary Credit', icon: <FiDollarSign />, path: '/daily-salary-credit' },
   { label: 'Holiday List', icon: <FiCalendar />, path: '/holidays' },
+  { label: 'Plans', icon: <FiPackage />, path: '/plans' },
   { label: 'Settings', icon: <FiSettings />, path: '/settings' }
 ];
 
@@ -96,19 +100,67 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
           isCollapsed ? 'w-16' : 'w-64'
         }`}
       >
-        <div className={`flex items-center justify-between py-4 border-b border-gray-200 ${
-          isCollapsed ? 'px-2 justify-center' : 'px-4'
+        <div className={`py-4 border-b border-gray-200 ${
+          isCollapsed ? 'px-2' : 'px-4'
         }`}>
-          {!isCollapsed && (
-            <div className="text-xl font-semibold">Worklogz</div>
+          {isCollapsed ? (
+            <div className="flex flex-col items-center gap-3">
+              <img 
+                src={techackodeLogo} 
+                alt="Techackode" 
+                className="w-10 h-10 object-contain"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+              <button
+                onClick={toggleSidebar}
+                className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+                title="Expand Sidebar"
+              >
+                <FiMenu className="w-5 h-5" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <img 
+                  src={techackodeLogo} 
+                  alt="Techackode" 
+                  className="h-10 w-auto object-contain flex-shrink-0"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <div style={{
+                  textTransform: 'uppercase',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.08em',
+                  fontWeight: '700',
+                  color: '#1c1f33',
+                  lineHeight: '1.3',
+                  minWidth: 0
+                }}>
+                  <div>WORKLOGZ</div>
+                  <small style={{
+                    display: 'block',
+                    color: '#94a3b8',
+                    marginTop: '6px',
+                    fontWeight: '600',
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.05em'
+                  }}>POWERED BY TECHACKODE</small>
+                </div>
+              </div>
+              <button
+                onClick={toggleSidebar}
+                className="p-2 hover:bg-gray-100 rounded-md transition-colors flex-shrink-0"
+                title="Collapse Sidebar"
+              >
+                <FiChevronLeft className="w-5 h-5" />
+              </button>
+            </div>
           )}
-          <button
-            onClick={toggleSidebar}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
-            title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          >
-            {isCollapsed ? <FiMenu className="w-5 h-5" /> : <FiChevronLeft className="w-5 h-5" />}
-          </button>
         </div>
 
         <nav className="mt-4 px-2 flex flex-col gap-1 overflow-y-auto h-[calc(100vh-80px)]">
