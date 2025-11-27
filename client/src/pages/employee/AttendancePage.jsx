@@ -873,24 +873,23 @@ function AttendancePage() {
         <div className="modern-layout">
           <aside className="modern-sidebar">
             <div className="modern-sidebar__logo">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <img 
-                  src={techackodeLogo}
-                  alt="Techackode" 
-                  style={{ 
-                    height: '32px', 
-                    width: 'auto', 
-                    objectFit: 'contain',
-                    flexShrink: 0
-                  }}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-                <div>
-                  <span>WORKLOGZ</span>
-                  <small>Powered by Techackode</small>
-                </div>
+              <img 
+                src={techackodeLogo}
+                alt="Techackode" 
+                style={{ 
+                  height: '40px', 
+                  width: 'auto', 
+                  objectFit: 'contain',
+                  marginBottom: '12px',
+                  display: 'block'
+                }}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+              <div>
+                <span>WORKLOGZ</span>
+                <small>Powered by Techackode</small>
               </div>
             </div>
             <ul className="modern-sidebar__list">
