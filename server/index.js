@@ -150,6 +150,7 @@ app.use('/api/crm', require('./routes/crmRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/community', require('./routes/communityRoutes'));
 app.use('/api/helpdesk', require('./routes/helpdeskRoutes'));
+app.use('/api/assistant', require('./routes/assistantRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 
 // Default Admin Setup
