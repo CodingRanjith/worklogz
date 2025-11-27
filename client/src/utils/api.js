@@ -43,6 +43,17 @@ export const API_ENDPOINTS = {
   postCommunityMessage: (groupId) => `${BASE_URL}/api/community/groups/${groupId}/messages`,
   deleteCommunityGroup: (groupId) => `${BASE_URL}/api/community/groups/${groupId}`,
   leaveCommunityGroup: (groupId) => `${BASE_URL}/api/community/groups/${groupId}/leave`,
+  // -----------------
+  // Projects & Workspace
+  // -----------------
+  getProjectsAdmin: `${BASE_URL}/api/projects`,
+  createProject: `${BASE_URL}/api/projects`,
+  updateProject: (projectId) => `${BASE_URL}/api/projects/${projectId}`,
+  deleteProject: (projectId) => `${BASE_URL}/api/projects/${projectId}`,
+  getProjectById: (projectId) => `${BASE_URL}/api/projects/${projectId}`,
+  assignProjectMember: (projectId) => `${BASE_URL}/api/projects/${projectId}/members`,
+  removeProjectMember: (projectId, memberId) => `${BASE_URL}/api/projects/${projectId}/members/${memberId}`,
+  getMyProjects: `${BASE_URL}/api/projects/user/me`,
   // getUserById: (id) => `${BASE_URL}/users/${id}`,
   // getAttendanceByUser: (id) => `${BASE_URL}/attendance/user/${id}`,
 
@@ -127,6 +138,17 @@ export const API_ENDPOINTS = {
   updateCRMLead: (id) => `${BASE_URL}/api/crm/leads/${id}`,
   moveCRMLead: (id) => `${BASE_URL}/api/crm/leads/${id}/move`,
   deleteCRMLead: (id) => `${BASE_URL}/api/crm/leads/${id}`,
+ 
+  // -----------------
+  // Helpdesk APIs
+  // -----------------
+  getHelpdeskTickets: `${BASE_URL}/api/helpdesk/tickets`,
+  createHelpdeskTicket: `${BASE_URL}/api/helpdesk/tickets`,
+  getHelpdeskTicketById: (id) => `${BASE_URL}/api/helpdesk/tickets/${id}`,
+  updateHelpdeskTicketStatus: (id) => `${BASE_URL}/api/helpdesk/tickets/${id}/status`,
+  postHelpdeskMessage: (id) => `${BASE_URL}/api/helpdesk/tickets/${id}/messages`,
+  getHelpdeskSummary: `${BASE_URL}/api/helpdesk/summary`,
+  getHelpdeskContacts: `${BASE_URL}/api/helpdesk/contacts`,
  
   // -----------------
   // Misc

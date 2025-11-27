@@ -142,7 +142,9 @@ export default function ProfileCard({
                 <input
                   type="text"
                   value={form.employeeId}
-                  onChange={(e) => handleChange("employeeId", e.target.value)}
+                  disabled
+                  className="read-only-input"
+                  title="Managed by HR"
                 />
               </label>
             </div>
@@ -163,6 +165,9 @@ export default function ProfileCard({
                   value={form.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   required
+                  disabled
+                  className="read-only-input"
+                  title="Managed by HR"
                 />
               </label>
               <label>
@@ -191,13 +196,40 @@ export default function ProfileCard({
                 <p>Your current role inside the organisation.</p>
               </div>
             </div>
+
+            <div className="role-callout">
+              <p>
+                These details are maintained by HR to ensure payroll & compliance
+                accuracy. Contact your administrator if something looks off.
+              </p>
+              <div className="role-callout__grid">
+                <article>
+                  <span>Company</span>
+                  <strong>{form.company || "Techackode"}</strong>
+                  <small>Managed centrally</small>
+                </article>
+                <article>
+                  <span>Department</span>
+                  <strong>{form.department || "Director"}</strong>
+                  <small>Aligned to reporting structure</small>
+                </article>
+                <article>
+                  <span>Position</span>
+                  <strong>{form.position || "—"}</strong>
+                  <small>Read-only for employees</small>
+                </article>
+              </div>
+            </div>
+
             <div className="field-grid">
               <label>
                 <span>Company</span>
                 <input
                   type="text"
                   value={form.company}
-                  onChange={(e) => handleChange("company", e.target.value)}
+                  disabled
+                  className="read-only-input"
+                  title="Managed by HR"
                 />
               </label>
               <label>
@@ -205,7 +237,9 @@ export default function ProfileCard({
                 <input
                   type="text"
                   value={form.department}
-                  onChange={(e) => handleChange("department", e.target.value)}
+                  disabled
+                  className="read-only-input"
+                  title="Managed by HR"
                 />
               </label>
               <label>
@@ -213,7 +247,9 @@ export default function ProfileCard({
                 <input
                   type="text"
                   value={form.position}
-                  onChange={(e) => handleChange("position", e.target.value)}
+                  disabled
+                  className="read-only-input"
+                  title="Managed by HR"
                 />
               </label>
             </div>

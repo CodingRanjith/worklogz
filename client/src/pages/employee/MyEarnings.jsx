@@ -6,7 +6,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import '../../styles/systemAppTheme.css';
 
-const MyEarnings = () => {
+const MyEarnings = ({ embedded = false, onBack }) => {
   const navigate = useNavigate();
   const [earnings, setEarnings] = useState(null);
   const [creditHistory, setCreditHistory] = useState([]);
@@ -57,9 +57,17 @@ const MyEarnings = () => {
 
   const lastCredit = creditHistory[0];
 
+  const handleBack = () => {
+    if (embedded && typeof onBack === 'function') {
+      onBack();
+    } else {
+      navigate('/attendance');
+    }
+  };
+
   if (loading) {
     return (
-      <div className="page-shell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className={embedded ? 'bg-white rounded-2xl shadow-lg p-6' : 'page-shell'} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="card">
           <p>Loading earnings...</p>
         </div>
@@ -68,15 +76,15 @@ const MyEarnings = () => {
   }
 
   return (
-    <div className="page-shell">
+    <div className={embedded ? 'bg-white rounded-[30px] shadow-2xl p-6 space-y-6' : 'page-shell'}>
       <div className="page-header">
         <div>
           <h1>My Earnings</h1>
           <p>Track salary credits and lifetime payouts</p>
         </div>
-        <button className="link" onClick={() => navigate('/attendance')}>
+        <button className="link" onClick={handleBack}>
           <FiArrowLeft style={{ verticalAlign: 'middle', marginRight: 6 }} />
-          Back to attendance
+          Back
         </button>
       </div>
 

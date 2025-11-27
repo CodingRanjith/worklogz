@@ -129,6 +129,16 @@ exports.createMessage = async (req, res) => {
     });
 
     const populated = await message.populate('sender', 'name profilePic');
+    
+    // Emit real-time message to all group members via Socket.io
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`group:${req.params.id}`).emit('new-message', {
+        message: populated,
+        groupId: req.params.id,
+      });
+    }
+    
     res.status(201).json({ message: 'Message sent', record: populated });
   } catch (error) {
     console.error('Failed to send message', error);
