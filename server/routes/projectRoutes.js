@@ -22,3 +22,4 @@ router.delete('/:projectId/members/:memberId', auth, role('admin'), projectContr
 
 module.exports = router;
 
+
