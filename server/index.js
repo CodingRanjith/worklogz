@@ -152,6 +152,8 @@ app.use('/api/community', require('./routes/communityRoutes'));
 app.use('/api/helpdesk', require('./routes/helpdeskRoutes'));
 app.use('/api/assistant', require('./routes/assistantRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/plans', require('./routes/planRoutes'));
+app.use('/api/documents', require('./routes/documentRoutes'));
 
 // Default Admin Setup
 const User = require('./models/User');

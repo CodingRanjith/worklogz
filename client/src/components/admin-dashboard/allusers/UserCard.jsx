@@ -16,7 +16,7 @@ import {
   ChevronUp,
   Trash2,
 } from 'lucide-react';
-import urbancodeLogoSrc from '../../../assets/uclogo.png';
+import urbancodeLogoSrc from '../../../assets/tech.png';
 import jobzenterLogoSrc from '../../../assets/jzlogo.png';
 
 const UserCard = ({ user, className = '', onEdit, onDelete, isDeleting = false }) => {

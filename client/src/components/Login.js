@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
@@ -58,16 +59,15 @@ function Login() {
   };
 
   const navOptions = [
-    "For individuals",
-    "For business",
-    "For enterprise",
-    "For education",
+    { label: "For individuals", path: "/for-individuals" },
+    { label: "For business", path: "/for-business" },
+    { label: "For enterprise", path: "/for-enterprise" },
+    { label: "For education", path: "/for-education" },
   ];
   const tabs = [
     "How it works",
     "Featured news",
-    "What’s included",
-    "Plans",
+    "What's included",
     "Customer stories",
   ];
 
@@ -75,19 +75,19 @@ function Login() {
     <div className="auth-shell">
       <nav className="auth-navbar">
         <div className="auth-navbar__segments">
-          {navOptions.map((label, idx) => (
-            <button
-              key={label}
+          {navOptions.map((option, idx) => (
+            <Link
+              key={option.path}
+              to={option.path}
               className={`auth-pill ${idx === 0 ? 'is-active' : ''}`}
-              type="button"
             >
-              {label}
-            </button>
+              {option.label}
+            </Link>
           ))}
         </div>
-        <button className="auth-navbar__cta" type="button">
+        <Link to="/pricing" className="auth-navbar__cta">
           See plans and pricing
-        </button>
+        </Link>
       </nav>
 
       <div className="auth-tabs">
