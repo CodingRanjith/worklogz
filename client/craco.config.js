@@ -4,49 +4,35 @@ module.exports = {
   webpack: {
     configure: (webpackConfig, { env, paths }) => {
       // Suppress source map warnings for third-party libraries
-      webpackConfig.module.rules.push({
-        test: /\.js$/,
-        enforce: "pre",
-        use: ["source-map-loader"],
-        exclude: [
-          // Exclude problematic packages from source map processing
-          /node_modules\/html2pdf\.js/,
-          /node_modules\/jspdf/,
-          /node_modules\/html2canvas/,
-        ],
-      });
-
-      // Also suppress warnings in existing source-map-loader rules
+      // Configure source-map-loader to exclude problematic packages
       webpackConfig.module.rules.forEach((rule) => {
-        if (rule.use) {
+        if (rule.use && Array.isArray(rule.use)) {
           rule.use.forEach((use) => {
-            if (use.loader && use.loader.includes('source-map-loader')) {
-              use.options = use.options || {};
-              use.options.filterSourceMappingUrl = (url, resourcePath) => {
-                // Suppress warnings for html2pdf.js and other problematic packages
-                if (resourcePath.includes('html2pdf.js') || 
-                    resourcePath.includes('html2pdf') ||
-                    resourcePath.includes('es6-promise.map')) {
-                  return false;
-                }
-                return true;
-              };
+            if (typeof use === 'object' && use.loader && use.loader.includes('source-map-loader')) {
+              // Exclude html2pdf.js and related packages from source map processing
+              if (!rule.exclude) {
+                rule.exclude = [];
+              }
+              if (Array.isArray(rule.exclude)) {
+                rule.exclude.push(
+                  /node_modules\/html2pdf\.js/,
+                  /node_modules\/es6-promise/
+                );
+              }
             }
           });
         }
       });
 
-      // Remove existing source-map-loader rules that might cause issues
-      webpackConfig.module.rules = webpackConfig.module.rules.filter((rule) => {
-        if (rule.enforce === 'pre' && rule.use) {
-          const hasSourceMapLoader = rule.use.some((use) => 
-            typeof use === 'string' ? use.includes('source-map-loader') : 
-            use.loader && use.loader.includes('source-map-loader')
-          );
-          return !hasSourceMapLoader;
-        }
-        return true;
-      });
+      // Suppress source map warnings globally
+      if (!webpackConfig.ignoreWarnings) {
+        webpackConfig.ignoreWarnings = [];
+      }
+      webpackConfig.ignoreWarnings.push(
+        /Failed to parse source map/,
+        /ENOENT: no such file or directory.*\.map/,
+        /Can't resolve.*\.map/
+      );
 
       return webpackConfig;
     },

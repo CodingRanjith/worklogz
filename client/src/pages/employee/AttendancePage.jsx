@@ -47,7 +47,8 @@ import {
   FiStar,
   FiLogOut,
 } from "react-icons/fi";
-import techackodeLogo from "../../assets/techackode.png";
+import techLogo from "../../assets/tech.png";
+import jobzenterLogo from "../../assets/jzlogo.png";
 
 function AttendancePage() {
   const navigate = useNavigate();
@@ -61,6 +62,8 @@ function AttendancePage() {
   const [location, setLocation] = useState("");
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [workMode, setWorkMode] = useState("office"); // office, remote, hybrid
+  const [skipCamera, setSkipCamera] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
@@ -93,6 +96,123 @@ function AttendancePage() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Auto checkout at 11 PM everyday
+  useEffect(() => {
+    if (!isSelf) return;
+    
+    const checkAutoCheckout = async () => {
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      
+      // Check if it's exactly 11:00 PM (23:00)
+      if (hour === 23 && minute === 0) {
+        const today = new Date().toDateString();
+        const todayEntries = attendanceHistory.filter(
+          (entry) => new Date(entry.timestamp).toDateString() === today
+        );
+        
+        // Check if user has checked in today but not checked out
+        const hasCheckIn = todayEntries.some((entry) => entry.type === "check-in");
+        const hasCheckOut = todayEntries.some((entry) => entry.type === "check-out");
+        
+        if (hasCheckIn && !hasCheckOut) {
+          try {
+            // Get location
+            navigator.geolocation.getCurrentPosition(
+              async (pos) => {
+                const autoLocation = `${pos.coords.latitude},${pos.coords.longitude}`;
+                const formData = new FormData();
+                formData.append("type", "check-out");
+                formData.append("location", autoLocation);
+                formData.append("workMode", "remote");
+                formData.append("isInOffice", false);
+
+                await axios.post(API_ENDPOINTS.postAttendance, formData, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                });
+
+                Swal.fire({
+                  icon: "info",
+                  title: "Auto Checkout",
+                  text: "You have been automatically checked out at 11 PM",
+                  timer: 3000,
+                  showConfirmButton: false,
+                });
+                
+                fetchAttendance();
+              },
+              async () => {
+                // Location failed, still do auto checkout
+                const formData = new FormData();
+                formData.append("type", "check-out");
+                formData.append("location", "Auto-checkout at 11 PM");
+                formData.append("workMode", "remote");
+                formData.append("isInOffice", false);
+
+                await axios.post(API_ENDPOINTS.postAttendance, formData, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                });
+
+                Swal.fire({
+                  icon: "info",
+                  title: "Auto Checkout",
+                  text: "You have been automatically checked out at 11 PM",
+                  timer: 3000,
+                  showConfirmButton: false,
+                });
+                
+                // Refresh attendance after auto checkout
+                setTimeout(() => {
+                  fetchAttendance();
+                }, 1000);
+              },
+              async () => {
+                // Location failed, still do auto checkout
+                const formData = new FormData();
+                formData.append("type", "check-out");
+                formData.append("location", "Auto-checkout at 11 PM");
+                formData.append("workMode", "remote");
+                formData.append("isInOffice", false);
+
+                await axios.post(API_ENDPOINTS.postAttendance, formData, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "multipart/form-data",
+                  },
+                });
+
+                Swal.fire({
+                  icon: "info",
+                  title: "Auto Checkout",
+                  text: "You have been automatically checked out at 11 PM",
+                  timer: 3000,
+                  showConfirmButton: false,
+                });
+                
+                // Refresh attendance after auto checkout
+                setTimeout(() => {
+                  fetchAttendance();
+                }, 1000);
+              }
+            );
+          } catch (err) {
+            console.error("Auto checkout failed:", err);
+          }
+        }
+      }
+    };
+
+    const interval = setInterval(checkAutoCheckout, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [attendanceHistory, isSelf]);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -157,8 +277,25 @@ function AttendancePage() {
 
   const formatEmployeeId = (value) => {
     if (!value) return "";
-    const clean = value.toString().replace(/^thc\s*:\s*/i, "").trim();
-    return clean ? `THC : ${clean}` : "";
+    // Remove any existing THC prefix and whitespace
+    const clean = value.toString().replace(/^thc\s*:?\s*/i, "").trim();
+    // Extract digits only
+    const digits = clean.replace(/\D/g, '');
+    // If we have digits, format as THC001 format
+    if (digits) {
+      const padded = digits.padStart(3, '0');
+      return `THC${padded}`;
+    }
+    // If no digits but has value, return as is
+    return clean || "";
+  };
+
+  const getCompanyLogo = (company) => {
+    if (!company) return techLogo;
+    const companyLower = company.toLowerCase();
+    if (companyLower === 'jobzenter') return jobzenterLogo;
+    if (companyLower === 'techackode' || companyLower === 'urbancode') return techLogo;
+    return techLogo;
   };
 
   const mapUserToProfile = (data) => ({
@@ -175,6 +312,9 @@ function AttendancePage() {
     dob: data?.dateOfBirth || "",
     maritalStatus: data?.maritalStatus || "",
     avatar: data?.profilePic || "",
+    rolesAndResponsibility: data?.rolesAndResponsibility || [],
+    qualification: data?.qualification || "",
+    dateOfJoining: data?.dateOfJoining || "",
   });
 
   const fetchUser = useCallback(async () => {
@@ -209,6 +349,42 @@ function AttendancePage() {
       return;
     }
 
+    // Validate password if password fields are filled
+    if (updatedProfile.newPassword || updatedProfile.confirmPassword || updatedProfile.currentPassword) {
+      if (!updatedProfile.currentPassword) {
+        Swal.fire({
+          icon: "error",
+          title: "Password Required",
+          text: "Please enter your current password",
+        });
+        return;
+      }
+      if (!updatedProfile.newPassword) {
+        Swal.fire({
+          icon: "error",
+          title: "New Password Required",
+          text: "Please enter a new password",
+        });
+        return;
+      }
+      if (updatedProfile.newPassword.length < 6) {
+        Swal.fire({
+          icon: "error",
+          title: "Invalid Password",
+          text: "Password must be at least 6 characters long",
+        });
+        return;
+      }
+      if (updatedProfile.newPassword !== updatedProfile.confirmPassword) {
+        Swal.fire({
+          icon: "error",
+          title: "Password Mismatch",
+          text: "New password and confirm password do not match",
+        });
+        return;
+      }
+    }
+
     const token = localStorage.getItem("token");
     const formData = new FormData();
     const fieldMap = {
@@ -235,6 +411,14 @@ function AttendancePage() {
       }
     });
 
+    // Add password fields if provided
+    if (updatedProfile.currentPassword) {
+      formData.append("currentPassword", updatedProfile.currentPassword);
+    }
+    if (updatedProfile.newPassword) {
+      formData.append("newPassword", updatedProfile.newPassword);
+    }
+
     if (avatarFile) {
       formData.append("profilePic", avatarFile);
     } else if (updatedProfile.avatar !== undefined) {
@@ -257,7 +441,7 @@ function AttendancePage() {
       setProfileData(updated);
       Swal.fire({
         icon: "success",
-        title: "Profile updated",
+        title: updatedProfile.newPassword ? "Profile and password updated" : "Profile updated",
         timer: 1500,
         showConfirmButton: false,
       });
@@ -429,10 +613,10 @@ function AttendancePage() {
 
   const submitAttendance = async () => {
     if (isSubmitting) return;
-    if (!compressedBlob || !location) {
+    if (!location) {
       Swal.fire(
         "Missing Data",
-        "Ensure image and location are available before submitting.",
+        "Please enable location access to proceed.",
         "warning"
       );
       return;
@@ -441,10 +625,16 @@ function AttendancePage() {
     const formData = new FormData();
     formData.append("type", type);
     formData.append("location", location);
-    formData.append("image", compressedBlob);
+    formData.append("workMode", workMode);
+    formData.append("isInOffice", workMode === "office" || workMode === "hybrid");
+    
+    // Image is optional
+    if (compressedBlob) {
+      formData.append("image", compressedBlob);
+    }
 
     try {
-      setIsSubmitting(true); // start loading
+      setIsSubmitting(true);
       await axios.post(API_ENDPOINTS.postAttendance, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -454,18 +644,20 @@ function AttendancePage() {
 
       Swal.fire(
         "Success",
-        `${type === "check-in" ? "Checked In" : "Checked Out"} successfully`,
+        `${type === "check-in" ? "Checked In" : "Checked Out"} successfully as ${workMode.charAt(0).toUpperCase() + workMode.slice(1)}`,
         "success"
       );
       setImage(null);
       setCompressedBlob(null);
       setLocation("");
+      setSkipCamera(false);
+      setWorkMode("office");
       stopCamera();
       fetchAttendance();
     } catch (err) {
       Swal.fire("Failed", "Could not submit attendance", "error");
     } finally {
-      setIsSubmitting(false); // stop loading
+      setIsSubmitting(false);
     }
   };
 
@@ -659,8 +851,7 @@ function AttendancePage() {
         setShowPeopleOnly(true);
       },
     },
-    { label: "Document Center", icon: <FiFolder />, action: () => handleNav(() => {}) },
-    { label: "Plans", icon: <FiCompass />, action: () => handleNav(() => {}) },
+    { label: "Document Center", icon: <FiFolder />, action: () => handleNav(() => navigate("/documents")) },
     {
       label: "Helpdesk",
       icon: <FiHelpCircle />,
@@ -873,20 +1064,6 @@ function AttendancePage() {
         <div className="modern-layout">
           <aside className="modern-sidebar">
             <div className="modern-sidebar__logo">
-              <img 
-                src={techackodeLogo}
-                alt="Techackode" 
-                style={{ 
-                  height: '40px', 
-                  width: 'auto', 
-                  objectFit: 'contain',
-                  marginBottom: '12px',
-                  display: 'block'
-                }}
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
               <div>
                 <span>WORKLOGZ</span>
                 <small>Powered by Techackode</small>
@@ -994,38 +1171,102 @@ function AttendancePage() {
               <>
             <section className="modern-hero">
               <div className="modern-hero__left">
-                <div className="modern-hero__avatar">
-                  <img src={avatarSrc} alt={profileData?.name || "Employee"} />
-                </div>
-                <div className="modern-hero__content">
-                  <p className="modern-hero__greeting">
-                    {greeting},{" "}
-                    <span>{profileData?.name || "Team Member"}</span>
-                  </p>
-                  <p className="modern-hero__role">
-                    {profileData?.position || "Employee"} •{" "}
-                    {profileData?.company || "Techackode"}
-                  </p>
-                  {heroQuote && (
-                    <p className="modern-hero__quote">
-                      “{heroQuote}”{" "}
-                      {heroQuoteAuthor && <span>— {heroQuoteAuthor}</span>}
-                    </p>
-                  )}
-                  {heroTabs.length > 0 && (
-                    <div className="modern-hero__tabs">
-                      {heroTabs.map((tab) => (
-                        <button
-                          key={tab}
-                          type="button"
-                          className={activeHeroTab === tab ? "is-active" : ""}
-                          onClick={() => setActiveHeroTab(tab)}
-                        >
-                          {tab}
-                        </button>
-                      ))}
+                {/* Enhanced Profile Card - Matching Design */}
+                <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 w-full overflow-hidden">
+                  {/* Profile Header Section */}
+                  <div className="p-5 sm:p-6">
+                    <div className="flex items-center gap-4 sm:gap-5">
+                      {/* Profile Picture with Company Logo Overlay */}
+                      <div className="relative flex-shrink-0">
+                        <img
+                          src={avatarSrc}
+                          alt={profileData?.name || "Employee"}
+                          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover ring-2 ring-gray-200"
+                        />
+                        <img
+                          src={getCompanyLogo(profileData?.company)}
+                          alt={`${profileData?.company || "Company"} logo`}
+                          className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-white ring-2 p-0.5 object-contain ring-white shadow-sm"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                      
+                      {/* Employee Details */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium text-blue-500 uppercase tracking-wide mb-1">
+                          {greeting.toUpperCase()}, {profileData?.name?.split(' ')[0]?.toUpperCase() || "TEAM MEMBER"}
+                        </p>
+                        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1.5 truncate">
+                          {profileData?.name || "Team Member"}
+                        </h2>
+                        <p className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
+                          {profileData?.position || "Employee"} • {profileData?.company || "Techackode"}
+                        </p>
+                        
+                        {/* Employee ID Badge */}
+                        {profileData?.employeeId && (
+                          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-300 rounded-lg px-3 py-1.5">
+                            <svg
+                              className="w-3.5 h-3.5 text-blue-600 flex-shrink-0"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                              />
+                            </svg>
+                            <span className="text-xs sm:text-sm font-semibold text-blue-700">
+                              {profileData.employeeId}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
+                  
+                  {/* Separator Line */}
+                  <div className="border-t border-gray-200"></div>
+                  
+                  {/* Employee Details Section */}
+                  <div className="p-4 sm:p-5 space-y-2 sm:space-y-3">
+                    {/* Email */}
+                    {profileData?.email && (
+                      <div className="flex items-start justify-between gap-3 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-700 whitespace-nowrap flex-shrink-0">Email:</span>
+                        <span className="text-sm sm:text-base text-gray-600 text-right break-all flex-1">{profileData.email}</span>
+                      </div>
+                    )}
+                    
+                    {/* Phone */}
+                    {profileData?.phone && (
+                      <div className="flex items-center justify-between gap-3 sm:gap-4">
+                        <span className="text-sm sm:text-base font-semibold text-gray-700 whitespace-nowrap flex-shrink-0">Phone:</span>
+                        <span className="text-sm sm:text-base text-gray-600 text-right whitespace-nowrap">{profileData.phone}</span>
+                      </div>
+                    )}
+                    
+                    {/* Responsibilities - Always Show */}
+                    <div className="flex flex-col gap-2 pt-1">
+                      <span className="text-sm sm:text-base font-semibold text-gray-700">Responsibility:</span>
+                      {profileData?.rolesAndResponsibility && profileData.rolesAndResponsibility.length > 0 ? (
+                        <ul className="list-disc list-inside space-y-1 ml-2">
+                          {profileData.rolesAndResponsibility.map((responsibility, index) => (
+                            <li key={index} className="text-sm sm:text-base text-gray-600">
+                              {responsibility}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-sm sm:text-base text-gray-400 italic ml-2">No responsibilities listed</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="modern-hero__right">
@@ -1510,9 +1751,15 @@ function AttendancePage() {
       {isSelf && type && !isCapturing && (
         <div className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-30 w-full px-4 sm:px-6 flex justify-center">
           <button
-            onClick={() => {
+            onClick={async () => {
               getLocation();
-              startCamera();
+              setIsCapturing(true);
+              setSkipCamera(false);
+              setWorkMode("office");
+              // Start camera after a small delay to ensure modal is open
+              setTimeout(() => {
+                startCamera();
+              }, 100);
             }}
             className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4 text-sm sm:text-base min-w-[180px] sm:min-w-[220px]"
           >
@@ -1556,9 +1803,153 @@ function AttendancePage() {
 
       {isCapturing && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
-          <div className="glass w-full max-w-sm rounded-2xl sm:rounded-3xl shadow-2xl space-y-4 sm:space-y-6 text-center elevation-4 border border-white/20 max-h-[95vh] overflow-y-auto">
+          <div className="glass w-full max-w-md rounded-2xl sm:rounded-3xl shadow-2xl space-y-4 sm:space-y-6 text-center elevation-4 border border-white/20 max-h-[95vh] overflow-y-auto">
             <div className="p-4 sm:p-6">
-              {!image ? (
+              {/* Work Mode Selection */}
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2 text-left">
+                  Work Mode:
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setWorkMode("office")}
+                    className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      workMode === "office"
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    Office
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWorkMode("hybrid")}
+                    className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      workMode === "hybrid"
+                        ? "bg-purple-600 text-white shadow-lg"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    Hybrid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWorkMode("remote")}
+                    className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      workMode === "remote"
+                        ? "bg-green-600 text-white shadow-lg"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    Remote
+                  </button>
+                </div>
+              </div>
+
+              {/* Skip Camera Option */}
+              <div className="mb-4 sm:mb-6">
+                <label className="flex items-center justify-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={skipCamera}
+                    onChange={(e) => {
+                      setSkipCamera(e.target.checked);
+                      if (e.target.checked) {
+                        stopCamera();
+                      } else {
+                        startCamera();
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-xs sm:text-sm text-gray-700">Skip Camera (Optional)</span>
+                </label>
+              </div>
+
+              {skipCamera ? (
+                // Skip Camera - Direct Submit
+                <>
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold gradient-text mb-2">
+                      {type === "check-in" ? "Check In" : "Check Out"} - {workMode.charAt(0).toUpperCase() + workMode.slice(1)}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600">
+                      Camera skipped. Ready to submit.
+                    </p>
+                  </div>
+                  <div className="glass rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 text-xs sm:text-sm text-slate-600 space-y-1">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <svg
+                        className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="font-semibold text-slate-700">Attendance Details</span>
+                    </div>
+                    <p>
+                      <span className="font-medium">Mode:</span> {workMode.charAt(0).toUpperCase() + workMode.slice(1)}
+                    </p>
+                    <p>
+                      <span className="font-medium">Type:</span> {type === "check-in" ? "Check In" : "Check Out"}
+                    </p>
+                    {location && (
+                      <p>
+                        <span className="font-medium">Location:</span> {location}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 sm:gap-3">
+                    <button
+                      onClick={() => {
+                        setIsCapturing(false);
+                        setSkipCamera(false);
+                        setWorkMode("office");
+                      }}
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={submitAttendance}
+                      className={`flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg text-sm sm:text-base ${
+                        isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <svg
+                            className="w-3 h-3 sm:w-4 sm:h-4 animate-spin"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                          Submitting...
+                        </span>
+                      ) : (
+                        `✨ Submit ${
+                          type === "check-in" ? "Check In" : "Check Out"
+                        }`
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : !image ? (
+                // Camera View
                 <>
                   <div className="mb-3 sm:mb-4">
                     <h3 className="text-lg sm:text-xl font-bold gradient-text mb-2">
@@ -1575,7 +1966,12 @@ function AttendancePage() {
                   </div>
                   <div className="flex gap-2 sm:gap-3">
                     <button
-                      onClick={stopCamera}
+                      onClick={() => {
+                        stopCamera();
+                        setIsCapturing(false);
+                        setSkipCamera(false);
+                        setWorkMode("office");
+                      }}
                       className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
                     >
                       Cancel

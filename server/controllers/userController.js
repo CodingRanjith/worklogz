@@ -204,6 +204,32 @@ const userController = {
         updateData.dateOfBirth = new Date(req.body.dateOfBirth);
       }
 
+      // Handle password update if provided
+      if (req.body.currentPassword && req.body.newPassword) {
+        // Get the current user with password
+        const user = await User.findById(req.user._id);
+        if (!user) {
+          return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Verify current password
+        const isPasswordValid = await bcrypt.compare(req.body.currentPassword, user.password);
+        if (!isPasswordValid) {
+          return res.status(400).json({ error: 'Current password is incorrect' });
+        }
+
+        // Validate new password length
+        if (req.body.newPassword.length < 6) {
+          return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+        }
+
+        // Hash and set new password
+        updateData.password = await bcrypt.hash(req.body.newPassword, 10);
+      } else if (req.body.newPassword || req.body.currentPassword) {
+        // If only one password field is provided, return error
+        return res.status(400).json({ error: 'Both current password and new password are required to change password' });
+      }
+
       if (req.file) {
         updateData.profilePic = req.file.path;
       } else if (req.body.profilePic) {

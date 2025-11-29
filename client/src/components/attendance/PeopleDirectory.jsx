@@ -3,8 +3,17 @@ import "./PeopleDirectory.css";
 
 const formatEmployeeId = (value) => {
   if (!value) return "—";
-  const clean = value.toString().replace(/^thc\s*:?/i, "").trim();
-  return clean ? `THC${clean.padStart(3, "0")}` : "—";
+  // Remove any existing THC prefix and whitespace
+  const clean = value.toString().replace(/^thc\s*:?\s*/i, "").trim();
+  // Extract digits only
+  const digits = clean.replace(/\D/g, '');
+  // If we have digits, format as THC001 format
+  if (digits) {
+    const padded = digits.padStart(3, '0');
+    return `THC${padded}`;
+  }
+  // If no digits but has value, return as is
+  return clean || "—";
 };
 
 const PeopleDirectory = ({
@@ -20,9 +29,11 @@ const PeopleDirectory = ({
   const filtered = users.filter((user) => {
     if (!search) return true;
     const value = search.toLowerCase();
+    const empId = user.employeeId || user.employeeCode || "";
     return (
       user.name?.toLowerCase().includes(value) ||
-      user.employeeId?.toLowerCase().includes(value)
+      (empId && empId.toString().toLowerCase().includes(value)) ||
+      (empId && formatEmployeeId(empId).toLowerCase().includes(value))
     );
   });
 
@@ -89,7 +100,7 @@ const PeopleDirectory = ({
                   <p className="people-card__meta">
                     {user.position || "—"} • {user.department || "—"}
                   </p>
-                  <p className="people-card__id">{formatEmployeeId(user.employeeId)}</p>
+                  <p className="people-card__id">{formatEmployeeId(user.employeeId || user.employeeCode)}</p>
                 </div>
               </button>
             ))
@@ -114,12 +125,15 @@ const PeopleDirectory = ({
                 <div>
                   <h3>{selected.name}</h3>
                   <p>{selected.position || "—"}</p>
-                  <span>{formatEmployeeId(selected.employeeId)}</span>
+                  <span>{formatEmployeeId(selected.employeeId || selected.employeeCode)}</span>
                 </div>
               </header>
 
               <section>
                 <h4>Contact</h4>
+                <p>
+                  <strong>Employee Code:</strong> {formatEmployeeId(selected.employeeId || selected.employeeCode)}
+                </p>
                 <p>
                   <strong>Email:</strong> {selected.email || "—"}
                 </p>
@@ -143,6 +157,19 @@ const PeopleDirectory = ({
                     : "—"}
                 </p>
               </section>
+
+              {selected.rolesAndResponsibility && selected.rolesAndResponsibility.length > 0 && (
+                <section>
+                  <h4>Responsibility</h4>
+                  <ul style={{ listStyle: 'disc', paddingLeft: '20px', margin: 0 }}>
+                    {selected.rolesAndResponsibility.map((responsibility, index) => (
+                      <li key={index} style={{ marginBottom: '4px' }}>
+                        {responsibility}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
             </div>
           )}
         </div>

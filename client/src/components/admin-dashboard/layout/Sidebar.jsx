@@ -5,7 +5,6 @@ import {
   FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
   FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage
 } from 'react-icons/fi';
-import techackodeLogo from '../../../assets/techackode.png';
 
 const menuItems = [
   { label: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
@@ -105,14 +104,6 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
         }`}>
           {isCollapsed ? (
             <div className="flex flex-col items-center gap-3">
-              <img 
-                src={techackodeLogo} 
-                alt="Techackode" 
-                className="w-10 h-10 object-contain"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
               <button
                 onClick={toggleSidebar}
                 className="p-2 hover:bg-gray-100 rounded-md transition-colors"
@@ -124,14 +115,6 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
           ) : (
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <img 
-                  src={techackodeLogo} 
-                  alt="Techackode" 
-                  className="h-10 w-auto object-contain flex-shrink-0"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
                 <div style={{
                   textTransform: 'uppercase',
                   fontSize: '0.85rem',

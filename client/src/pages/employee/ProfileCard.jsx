@@ -15,6 +15,9 @@ const EMPTY_PROFILE = {
   dob: "",
   maritalStatus: "",
   avatar: "",
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
 };
 
 export default function ProfileCard({
@@ -27,12 +30,14 @@ export default function ProfileCard({
   const [form, setForm] = useState(EMPTY_PROFILE);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [avatarFile, setAvatarFile] = useState(null);
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setForm({ ...EMPTY_PROFILE, ...profile });
+      setForm({ ...EMPTY_PROFILE, ...profile, currentPassword: "", newPassword: "", confirmPassword: "" });
       setAvatarPreview(profile?.avatar || "");
       setAvatarFile(null);
+      setShowPasswordFields(false);
     }
   }, [isOpen, profile]);
 
@@ -295,6 +300,79 @@ export default function ProfileCard({
                   <option value="Separated">Separated</option>
                 </select>
               </label>
+            </div>
+          </section>
+
+          <section className="profile-section">
+            <div className="section-header">
+              <div>
+                <h3>Security</h3>
+                <p>Change your password to keep your account secure.</p>
+              </div>
+            </div>
+            <div className="field-grid">
+              {!showPasswordFields ? (
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <button
+                    type="button"
+                    className="ghost-btn"
+                    onClick={() => setShowPasswordFields(true)}
+                  >
+                    Change Password
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <label>
+                    <span>Current Password</span>
+                    <input
+                      type="password"
+                      value={form.currentPassword}
+                      onChange={(e) => handleChange("currentPassword", e.target.value)}
+                      placeholder="Enter current password"
+                    />
+                  </label>
+                  <label>
+                    <span>New Password</span>
+                    <input
+                      type="password"
+                      value={form.newPassword}
+                      onChange={(e) => handleChange("newPassword", e.target.value)}
+                      placeholder="Enter new password"
+                      minLength={6}
+                    />
+                  </label>
+                  <label>
+                    <span>Confirm New Password</span>
+                    <input
+                      type="password"
+                      value={form.confirmPassword}
+                      onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                      placeholder="Confirm new password"
+                      minLength={6}
+                    />
+                  </label>
+                  {form.newPassword && form.confirmPassword && form.newPassword !== form.confirmPassword && (
+                    <div style={{ gridColumn: "1 / -1", color: "#ef4444", fontSize: "0.875rem" }}>
+                      Passwords do not match
+                    </div>
+                  )}
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <button
+                      type="button"
+                      className="plain-link small"
+                      onClick={() => {
+                        setShowPasswordFields(false);
+                        handleChange("currentPassword", "");
+                        handleChange("newPassword", "");
+                        handleChange("confirmPassword", "");
+                      }}
+                    >
+                      Cancel password change
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </section>
 

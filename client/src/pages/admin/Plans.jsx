@@ -1,40 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiCheck, FiX, FiEdit, FiTrash2, FiPlus, FiCalendar, FiUsers, FiDollarSign } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import axios from 'axios';
+import { API_ENDPOINTS } from '../../utils/api';
 
 const Plans = () => {
-  const [plans, setPlans] = useState([
-    {
-      id: 1,
-      name: 'Basic Plan',
-      description: 'Perfect for small teams',
-      price: 29,
-      period: 'month',
-      features: ['Up to 10 users', 'Basic analytics', 'Email support', '5GB storage'],
-      isActive: true,
-      createdAt: '2024-01-15'
-    },
-    {
-      id: 2,
-      name: 'Professional Plan',
-      description: 'Ideal for growing businesses',
-      price: 79,
-      period: 'month',
-      features: ['Up to 50 users', 'Advanced analytics', 'Priority support', '50GB storage', 'API access'],
-      isActive: true,
-      createdAt: '2024-01-15'
-    },
-    {
-      id: 3,
-      name: 'Enterprise Plan',
-      description: 'For large organizations',
-      price: 199,
-      period: 'month',
-      features: ['Unlimited users', 'Custom analytics', '24/7 support', 'Unlimited storage', 'API access', 'Custom integrations'],
-      isActive: true,
-      createdAt: '2024-01-15'
-    }
-  ]);
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
@@ -46,6 +18,33 @@ const Plans = () => {
     features: [],
     featureInput: ''
   });
+
+  useEffect(() => {
+    fetchPlans();
+  }, []);
+
+  const fetchPlans = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(API_ENDPOINTS.getAllPlans, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.data && response.data.success) {
+        setPlans(response.data.plans || []);
+      }
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to load plans. Please try again later.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddFeature = () => {
     if (formData.featureInput.trim()) {
@@ -64,7 +63,7 @@ const Plans = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.name || !formData.price) {
@@ -76,67 +75,91 @@ const Plans = () => {
       return;
     }
 
-    if (editingPlan) {
-      // Update existing plan
-      setPlans(plans.map(plan => 
-        plan.id === editingPlan.id 
-          ? { ...formData, id: editingPlan.id, price: parseFloat(formData.price), isActive: editingPlan.isActive, createdAt: editingPlan.createdAt }
-          : plan
-      ));
-      Swal.fire({
-        icon: 'success',
-        title: 'Updated!',
-        text: 'Plan has been updated successfully',
-        timer: 2000,
-        showConfirmButton: false
-      });
-    } else {
-      // Add new plan
-      const newPlan = {
-        ...formData,
-        id: Date.now(),
+    try {
+      const token = localStorage.getItem('token');
+      const planData = {
+        name: formData.name,
+        description: formData.description,
         price: parseFloat(formData.price),
-        isActive: true,
-        createdAt: new Date().toISOString().split('T')[0]
+        period: formData.period,
+        features: formData.features,
+        isActive: editingPlan ? editingPlan.isActive : true
       };
-      setPlans([...plans, newPlan]);
+
+      if (editingPlan) {
+        // Update existing plan
+        const response = await axios.put(
+          API_ENDPOINTS.updatePlan(editingPlan._id),
+          planData,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        
+        if (response.data && response.data.success) {
+          await fetchPlans();
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: 'Plan has been updated successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+      } else {
+        // Create new plan
+        const response = await axios.post(
+          API_ENDPOINTS.createPlan,
+          planData,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        
+        if (response.data && response.data.success) {
+          await fetchPlans();
+          Swal.fire({
+            icon: 'success',
+            title: 'Created!',
+            text: 'New plan has been created successfully',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+      }
+
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        price: '',
+        period: 'month',
+        features: [],
+        featureInput: ''
+      });
+      setEditingPlan(null);
+      setShowForm(false);
+    } catch (error) {
+      console.error('Error saving plan:', error);
       Swal.fire({
-        icon: 'success',
-        title: 'Created!',
-        text: 'New plan has been created successfully',
-        timer: 2000,
-        showConfirmButton: false
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.error || 'Failed to save plan. Please try again.',
       });
     }
-
-    // Reset form
-    setFormData({
-      name: '',
-      description: '',
-      price: '',
-      period: 'month',
-      features: [],
-      featureInput: ''
-    });
-    setEditingPlan(null);
-    setShowForm(false);
   };
 
   const handleEdit = (plan) => {
     setEditingPlan(plan);
     setFormData({
       name: plan.name,
-      description: plan.description,
+      description: plan.description || '',
       price: plan.price.toString(),
-      period: plan.period,
-      features: [...plan.features],
+      period: plan.period || 'month',
+      features: [...(plan.features || [])],
       featureInput: ''
     });
     setShowForm(true);
   };
 
-  const handleDelete = (planId) => {
-    Swal.fire({
+  const handleDelete = async (planId) => {
+    const result = await Swal.fire({
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
       icon: 'warning',
@@ -144,24 +167,57 @@ const Plans = () => {
       confirmButtonColor: '#d33',
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setPlans(plans.filter(plan => plan.id !== planId));
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.delete(
+          API_ENDPOINTS.deletePlan(planId),
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        
+        if (response.data && response.data.success) {
+          await fetchPlans();
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Plan has been deleted',
+            timer: 2000,
+            showConfirmButton: false
+          });
+        }
+      } catch (error) {
+        console.error('Error deleting plan:', error);
         Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Plan has been deleted',
-          timer: 2000,
-          showConfirmButton: false
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.error || 'Failed to delete plan. Please try again.',
         });
       }
-    });
+    }
   };
 
-  const handleToggleStatus = (planId) => {
-    setPlans(plans.map(plan => 
-      plan.id === planId ? { ...plan, isActive: !plan.isActive } : plan
-    ));
+  const handleToggleStatus = async (planId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(
+        API_ENDPOINTS.togglePlanStatus(planId),
+        {},
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      
+      if (response.data && response.data.success) {
+        await fetchPlans();
+      }
+    } catch (error) {
+      console.error('Error toggling plan status:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.response?.data?.error || 'Failed to update plan status. Please try again.',
+      });
+    }
   };
 
   const cancelForm = () => {
@@ -340,11 +396,20 @@ const Plans = () => {
         </div>
       )}
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="animate-spin w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading plans...</p>
+        </div>
+      )}
+
       {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {plans.map((plan) => (
+      {!loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {plans.map((plan) => (
           <div
-            key={plan.id}
+            key={plan._id || plan.id}
             className={`bg-white rounded-lg shadow-md border-2 transition-all hover:shadow-lg ${
               plan.isActive ? 'border-blue-500' : 'border-gray-300 opacity-75'
             }`}
@@ -395,7 +460,7 @@ const Plans = () => {
                   Edit
                 </button>
                 <button
-                  onClick={() => handleToggleStatus(plan.id)}
+                  onClick={() => handleToggleStatus(plan._id)}
                   className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
                     plan.isActive
                       ? 'bg-gray-50 text-gray-600 hover:bg-gray-100'
@@ -406,7 +471,7 @@ const Plans = () => {
                   {plan.isActive ? 'Deactivate' : 'Activate'}
                 </button>
                 <button
-                  onClick={() => handleDelete(plan.id)}
+                  onClick={() => handleDelete(plan._id)}
                   className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
                 >
                   <FiTrash2 className="text-sm" />
@@ -419,8 +484,9 @@ const Plans = () => {
               </div>
             </div>
           </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Empty State */}
       {plans.length === 0 && (

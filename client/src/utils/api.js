@@ -212,6 +212,28 @@ export const API_ENDPOINTS = {
   deleteCreditTransaction: (transactionId) => `${BASE_URL}/api/daily-salary/credit-transaction/${transactionId}`,
   baseURL: BASE_URL,
 
+  // -----------------
+  // Plans APIs
+  // -----------------
+  getAllPlans: `${BASE_URL}/api/plans`,
+  getActivePlans: `${BASE_URL}/api/plans/active`,
+  getPlanById: (id) => `${BASE_URL}/api/plans/${id}`,
+  createPlan: `${BASE_URL}/api/plans`,
+  updatePlan: (id) => `${BASE_URL}/api/plans/${id}`,
+  deletePlan: (id) => `${BASE_URL}/api/plans/${id}`,
+  togglePlanStatus: (id) => `${BASE_URL}/api/plans/${id}/toggle`,
+
+  // -----------------
+  // Documents APIs
+  // -----------------
+  getAllDocuments: `${BASE_URL}/api/documents`,
+  getDocumentById: (id) => `${BASE_URL}/api/documents/${id}`,
+  createDocument: `${BASE_URL}/api/documents`,
+  updateDocument: (id) => `${BASE_URL}/api/documents/${id}`,
+  deleteDocument: (id) => `${BASE_URL}/api/documents/${id}`,
+  downloadDocument: (id) => `${BASE_URL}/api/documents/${id}/download`,
+  getDocumentStats: `${BASE_URL}/api/documents/stats`,
+
 };
 
 // -----------------

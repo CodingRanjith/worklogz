@@ -10,7 +10,7 @@ import {
   FiMenu, 
   FiX,
   FiUser,
-  FiDollarSign
+  FiFolder
 } from 'react-icons/fi';
 
 const EmployeeNavigation = () => {
@@ -30,6 +30,7 @@ const EmployeeNavigation = () => {
     { path: '/performance', icon: <FiTrendingUp />, label: 'Performance', color: 'green' },
     { path: '/goals-achievements', icon: <FiTarget />, label: 'Goals & Achievements', color: 'yellow' },
     { path: '/calendar', icon: <FiCalendar />, label: 'My Calendar', color: 'pink' },
+    { path: '/documents', icon: <FiFolder />, label: 'Document Center', color: 'orange' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -42,6 +43,7 @@ const EmployeeNavigation = () => {
       green: active ? 'bg-green-100 text-green-600 border-l-4 border-green-600' : 'text-gray-600 hover:bg-green-50',
       yellow: active ? 'bg-yellow-100 text-yellow-600 border-l-4 border-yellow-600' : 'text-gray-600 hover:bg-yellow-50',
       pink: active ? 'bg-pink-100 text-pink-600 border-l-4 border-pink-600' : 'text-gray-600 hover:bg-pink-50',
+      orange: active ? 'bg-orange-100 text-orange-600 border-l-4 border-orange-600' : 'text-gray-600 hover:bg-orange-50',
     };
     return colors[color];
   };
