@@ -29,17 +29,12 @@ import GoalsAchievements from './pages/employee/GoalsAchievements';
 import CalendarView from './pages/employee/CalendarView';
 import PerformanceDashboard from './pages/employee/PerformanceDashboard';
 import MyEarnings from './pages/employee/MyEarnings';
-import DocumentCenter from './pages/employee/DocumentCenter';
-import ForIndividuals from './pages/static/ForIndividuals';
-import ForBusiness from './pages/static/ForBusiness';
-import ForEnterprise from './pages/static/ForEnterprise';
-import ForEducation from './pages/static/ForEducation';
-import Pricing from './pages/static/Pricing';
 import EditUser from './components/EditUser';
 import PendingUsers from './pages/admin/PendingUsers';
 import AllUsers from './pages/admin/AllUsers';
 import Holidays from './pages/admin/Holidays';
 import TimeSheet from './pages/employee/Timesheet';
+import SkillDevelopment from './pages/employee/SkillDevelopment';
 import PayslipGenerator from './pages/admin/PayslipGenerator';
 import PayslipList from './pages/admin/PayslipList';
 import TaskManager from './pages/admin/TaskManager';
@@ -100,20 +95,15 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/for-individuals" element={<ForIndividuals />} />
-        <Route path="/for-business" element={<ForBusiness />} />
-        <Route path="/for-enterprise" element={<ForEnterprise />} />
-        <Route path="/for-education" element={<ForEducation />} />
-        <Route path="/pricing" element={<Pricing />} />
         <Route path="/attendance" element={<AttendancePage />} />
         <Route path="/attendance/:userId" element={<AttendancePage />} />
         <Route path="/apply-leave" element={<LeaveManagement />} />
         <Route path="/timesheet" element={<TimeSheet />} />
+        <Route path="/skill-development" element={<SkillDevelopment />} />
         <Route path="/goals-achievements" element={<GoalsAchievements />} />
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/performance" element={<PerformanceDashboard />} />
         <Route path="/my-earnings" element={<MyEarnings />} />
-        <Route path="/documents" element={<DocumentCenter />} />
         
 
         {/* Protected Admin Layout Wrapper */}

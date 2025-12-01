@@ -40,12 +40,14 @@ const TaskManager = () => {
     description: '',
     assigneeId: '',
     assigneeName: '',
+    selectedUserIds: [], // Array of selected user IDs for multi-user assignment
     department: '',
     reporter: '',
     startTime: new Date().toISOString().split('T')[0],
     endTime: new Date().toISOString().split('T')[0],
     status: 'backlog'
   });
+  const [userSearchTerm, setUserSearchTerm] = useState(''); // For filtering users in multi-select
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -209,12 +211,40 @@ const TaskManager = () => {
       description: '',
       assigneeId: '',
       assigneeName: '',
+      selectedUserIds: [],
       department: '',
       reporter: '',
       startTime: new Date().toISOString().split('T')[0],
       endTime: new Date().toISOString().split('T')[0],
       status: 'backlog'
     });
+    setUserSearchTerm('');
+  };
+
+  const toggleUserSelection = (userId) => {
+    setTaskForm(prev => {
+      const isSelected = prev.selectedUserIds.includes(userId);
+      return {
+        ...prev,
+        selectedUserIds: isSelected
+          ? prev.selectedUserIds.filter(id => id !== userId)
+          : [...prev.selectedUserIds, userId]
+      };
+    });
+  };
+
+  const selectAllUsers = () => {
+    setTaskForm(prev => ({
+      ...prev,
+      selectedUserIds: filteredUsers.map(u => u._id)
+    }));
+  };
+
+  const clearUserSelection = () => {
+    setTaskForm(prev => ({
+      ...prev,
+      selectedUserIds: []
+    }));
   };
 
 
@@ -235,11 +265,12 @@ const TaskManager = () => {
       return;
     }
 
-    if (!taskForm.assigneeId) {
+    // Check if at least one user is selected
+    if (!taskForm.selectedUserIds || taskForm.selectedUserIds.length === 0) {
       Swal.fire({
         icon: 'error',
         title: 'Validation Error',
-        text: 'Please select an assignee',
+        text: 'Please select at least one user to assign this task',
       });
       return;
     }
@@ -248,33 +279,66 @@ const TaskManager = () => {
       setCreateTaskLoading(true);
       const token = localStorage.getItem('token');
       
-      const taskData = {
-        title: taskForm.title,
-        description: taskForm.description,
-        assignee: taskForm.assigneeName,
-        department: taskForm.department || '',
-        reporter: taskForm.reporter || 'Admin',
-        startTime: taskForm.startTime,
-        endTime: taskForm.endTime,
-        status: taskForm.status,
-        userId: taskForm.assigneeId, // Add userId for backend filtering
-      };
+      const selectedUsers = users.filter(u => taskForm.selectedUserIds.includes(u._id));
+      const createdTasks = [];
+      const errors = [];
 
-      await createTask(taskData, token);
+      // Create task for each selected user
+      for (const user of selectedUsers) {
+        try {
+          const taskData = {
+            title: taskForm.title,
+            description: taskForm.description,
+            assignee: user.name,
+            department: taskForm.department || '',
+            reporter: taskForm.reporter || 'Admin',
+            startTime: taskForm.startTime,
+            endTime: taskForm.endTime,
+            status: taskForm.status,
+            userId: user._id, // Each task is assigned to a specific user
+          };
+
+          const createdTask = await createTask(taskData, token);
+          createdTasks.push({ user: user.name, task: createdTask });
+        } catch (error) {
+          console.error(`Error creating task for ${user.name}:`, error);
+          errors.push(user.name);
+        }
+      }
       
       // Immediate refresh of task counts for real-time update
       await fetchUserTaskCounts(users);
       setLastUpdated(Date.now());
       
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: `Task created successfully for ${taskForm.assigneeName}`,
-        timer: 2000,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end'
-      });
+      // Show success/error message
+      if (createdTasks.length > 0 && errors.length === 0) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: `Task created successfully for ${createdTasks.length} user(s)`,
+          timer: 3000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      } else if (createdTasks.length > 0 && errors.length > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Partial Success',
+          text: `Task created for ${createdTasks.length} user(s), but failed for ${errors.length} user(s)`,
+          timer: 4000,
+          showConfirmButton: false,
+          toast: true,
+          position: 'top-end'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to create tasks for all selected users',
+        });
+        return;
+      }
 
       setShowCreateModal(false);
       // Reset form
@@ -283,19 +347,21 @@ const TaskManager = () => {
         description: '',
         assigneeId: '',
         assigneeName: '',
+        selectedUserIds: [],
         department: '',
         reporter: '',
         startTime: new Date().toISOString().split('T')[0],
         endTime: new Date().toISOString().split('T')[0],
         status: 'backlog'
       });
+      setUserSearchTerm('');
       
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error('Error creating tasks:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'Failed to create task. Please try again.',
+        text: 'Failed to create tasks. Please try again.',
       });
     } finally {
       setCreateTaskLoading(false);
@@ -559,31 +625,139 @@ const TaskManager = () => {
             </div>
 
             <form onSubmit={handleCreateTaskSubmit} className="p-6 space-y-6">
-              {/* Assignee Selection */}
-              {!taskForm.assigneeId && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Assignee *
+              {/* Multi-User Selection */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Select Users to Assign Task * ({taskForm.selectedUserIds.length} selected)
                   </label>
-                  <select
-                    value={taskForm.assigneeId}
-                    onChange={(e) => {
-                      const selectedUser = users.find(u => u._id === e.target.value);
-                      handleFormChange('assigneeId', e.target.value);
-                      handleFormChange('assigneeName', selectedUser ? selectedUser.name : '');
-                    }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    required
-                  >
-                    <option value="">Choose an employee...</option>
-                    {users.map((user) => (
-                      <option key={user._id} value={user._id}>
-                        {user.name} ({user.employeeId || 'No ID'})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={selectAllUsers}
+                      className="text-xs px-2 py-1 text-indigo-600 hover:text-indigo-700 hover:underline"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearUserSelection}
+                      className="text-xs px-2 py-1 text-gray-600 hover:text-gray-700 hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
-              )}
+                
+                {/* User Search Filter */}
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    value={userSearchTerm}
+                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                    placeholder="Search users..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  />
+                </div>
+
+                {/* User Selection List */}
+                <div className="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
+                  {users
+                    .filter(user => 
+                      !userSearchTerm || 
+                      user.name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                      user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                      (user.employeeId && user.employeeId.toLowerCase().includes(userSearchTerm.toLowerCase()))
+                    )
+                    .map((user) => {
+                      const isSelected = taskForm.selectedUserIds.includes(user._id);
+                      // Debug: Log user data to check employeeId
+                      if (!user.employeeId) {
+                        console.log('User without employeeId:', user.name, user);
+                      }
+                      return (
+                        <div
+                          key={user._id}
+                          onClick={() => toggleUserSelection(user._id)}
+                          className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors ${
+                            isSelected ? 'bg-indigo-50 border-indigo-200' : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleUserSelection(user._id)}
+                              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-gray-900">{user.name || 'Unknown'}</span>
+                                <span className={`px-2.5 py-1 text-xs font-bold rounded border-2 ${
+                                  user.employeeId 
+                                    ? 'bg-indigo-100 text-indigo-800 border-indigo-400' 
+                                    : 'bg-gray-100 text-gray-600 border-gray-400'
+                                }`}>
+                                  ID: {user.employeeId || 'N/A'}
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {user.email}
+                                {user.department && ` • ${user.department}`}
+                              </div>
+                            </div>
+                            {isSelected && (
+                              <div className="text-indigo-600">
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  
+                  {users.filter(user => 
+                    !userSearchTerm || 
+                    user.name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                    user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+                    user.employeeId?.toLowerCase().includes(userSearchTerm.toLowerCase())
+                  ).length === 0 && (
+                    <div className="p-4 text-center text-gray-500 text-sm">
+                      No users found matching "{userSearchTerm}"
+                    </div>
+                  )}
+                </div>
+                
+                {taskForm.selectedUserIds.length > 0 && (
+                  <div className="mt-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <div className="text-xs font-medium text-indigo-900 mb-2">
+                      Selected Users ({taskForm.selectedUserIds.length}):
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {taskForm.selectedUserIds.map(id => {
+                        const user = users.find(u => u._id === id);
+                        if (!user) return null;
+                        return (
+                          <div
+                            key={id}
+                            className="inline-flex items-center gap-1.5 px-2 py-1 bg-white border border-indigo-300 rounded text-xs"
+                          >
+                            <span className="font-medium text-gray-900">{user.name}</span>
+                            <span className={`font-semibold ${
+                              user.employeeId ? 'text-indigo-600' : 'text-gray-500'
+                            }`}>
+                              ({user.employeeId || 'No ID'})
+                            </span>
+                          </div>
+                        );
+                      }).filter(Boolean)}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Task Title */}
               <div>

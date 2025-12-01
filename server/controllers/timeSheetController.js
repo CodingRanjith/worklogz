@@ -22,6 +22,9 @@ const taskController = {
       // Build filter object
       let filter = {};
       
+      // Exclude deleted tasks by default
+      filter.isDeleted = { $ne: true };
+      
       // If admin is requesting tasks for a specific user
       if (userId && req.user.role === 'admin') {
         filter.user = userId;
@@ -255,28 +258,38 @@ const taskController = {
     }
   },
 
-  // Delete a task
+  // Delete a task (soft delete - archived for 7 days)
   deleteTask: async (req, res) => {
     try {
       const { id } = req.params;
 
       // Build filter - allow admin to delete any task, users can only delete their own
-      const filter = { _id: id };
+      const filter = { _id: id, isDeleted: false };
       if (req.user.role !== 'admin') {
         filter.user = req.user._id;
       }
 
-      const task = await Task.findOneAndDelete(filter);
+      const task = await Task.findOneAndUpdate(
+        filter,
+        { 
+          $set: { 
+            isDeleted: true, 
+            deletedAt: new Date() 
+          } 
+        },
+        { new: true }
+      );
 
       if (!task) {
-        return res.status(404).json({ error: 'Task not found' });
+        return res.status(404).json({ error: 'Task not found or already deleted' });
       }
 
       res.json({ 
-        message: 'Task deleted successfully',
+        message: 'Task deleted successfully. It will be permanently removed after 7 days.',
         deletedTask: {
           id: task._id,
-          title: task.title
+          title: task.title,
+          deletedAt: task.deletedAt
         }
       });
     } catch (err) {
@@ -285,6 +298,71 @@ const taskController = {
         return res.status(400).json({ error: 'Invalid task ID format' });
       }
       res.status(500).json({ error: 'Server error while deleting task' });
+    }
+  },
+
+  // Restore a deleted task
+  restoreTask: async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      // Build filter - allow admin to restore any task, users can only restore their own
+      const filter = { _id: id, isDeleted: true };
+      if (req.user.role !== 'admin') {
+        filter.user = req.user._id;
+      }
+
+      const task = await Task.findOneAndUpdate(
+        filter,
+        { 
+          $set: { 
+            isDeleted: false, 
+            deletedAt: null 
+          } 
+        },
+        { new: true }
+      ).populate('user', 'name email');
+
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found or not deleted' });
+      }
+
+      res.json({ 
+        message: 'Task restored successfully',
+        task
+      });
+    } catch (err) {
+      console.error('Restore task error:', err);
+      if (err.name === 'CastError') {
+        return res.status(400).json({ error: 'Invalid task ID format' });
+      }
+      res.status(500).json({ error: 'Server error while restoring task' });
+    }
+  },
+
+  // Get archived/deleted tasks
+  getArchivedTasks: async (req, res) => {
+    try {
+      const filter = { isDeleted: true };
+      
+      // Users can only see their own archived tasks, admins can see all
+      if (req.user.role !== 'admin') {
+        filter.user = req.user._id;
+      }
+
+      // Only show tasks deleted within the last 7 days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      filter.deletedAt = { $gte: sevenDaysAgo };
+
+      const tasks = await Task.find(filter)
+        .populate('user', 'name email')
+        .sort({ deletedAt: -1 });
+
+      res.json({ tasks });
+    } catch (err) {
+      console.error('Get archived tasks error:', err);
+      res.status(500).json({ error: 'Server error while fetching archived tasks' });
     }
   },
 
@@ -345,6 +423,7 @@ const taskController = {
 
       const tasks = await Task.find({
         user: req.user._id,
+        isDeleted: { $ne: true },
         $or: [
           {
             startTime: {
@@ -389,7 +468,7 @@ const taskController = {
       const { startDate, endDate } = req.query;
       
       // Build filter for user's tasks
-      const filter = { user: req.user._id };
+      const filter = { user: req.user._id, isDeleted: { $ne: true } };
       
       // Add date filter if provided
       if (startDate && endDate) {
@@ -487,7 +566,8 @@ const taskController = {
       const result = await Task.updateMany(
         { 
           _id: { $in: taskIds }, 
-          user: req.user._id 
+          user: req.user._id,
+          isDeleted: { $ne: true }
         },
         { $set: updateData }
       );
@@ -500,6 +580,27 @@ const taskController = {
     } catch (err) {
       console.error('Bulk update tasks error:', err);
       res.status(500).json({ error: 'Server error while bulk updating tasks' });
+    }
+  },
+
+  // Cleanup permanently delete tasks older than 7 days
+  cleanupDeletedTasks: async () => {
+    try {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      const result = await Task.deleteMany({
+        isDeleted: true,
+        deletedAt: { $lt: sevenDaysAgo }
+      });
+
+      if (result.deletedCount > 0) {
+        console.log(`Cleanup: Permanently deleted ${result.deletedCount} tasks older than 7 days`);
+      }
+      return result.deletedCount;
+    } catch (err) {
+      console.error('Cleanup deleted tasks error:', err);
+      return 0;
     }
   }
 };

@@ -18,8 +18,14 @@ router.post('/', auth, taskController.createTask);
 // Update a task (full update)
 router.put('/:id', auth, taskController.updateTask);
 
-// Delete a task
+// Delete a task (soft delete)
 router.delete('/:id', auth, taskController.deleteTask);
+
+// Restore a deleted task
+router.post('/:id/restore', auth, taskController.restoreTask);
+
+// Get archived/deleted tasks
+router.get('/archived/list', auth, taskController.getArchivedTasks);
 
 // ===== ADDITIONAL TASK OPERATIONS =====
 

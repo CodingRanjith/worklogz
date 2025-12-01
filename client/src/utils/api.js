@@ -154,6 +154,7 @@ export const API_ENDPOINTS = {
   // AI Assistant
   // -----------------
   assistantChat: `${BASE_URL}/api/assistant/chat`,
+  skillDevelopmentChat: `${BASE_URL}/api/assistant/skill-chat`,
  
   // -----------------
   // Misc
@@ -211,28 +212,6 @@ export const API_ENDPOINTS = {
   editCreditTransaction: (transactionId) => `${BASE_URL}/api/daily-salary/credit-transaction/${transactionId}`,
   deleteCreditTransaction: (transactionId) => `${BASE_URL}/api/daily-salary/credit-transaction/${transactionId}`,
   baseURL: BASE_URL,
-
-  // -----------------
-  // Plans APIs
-  // -----------------
-  getAllPlans: `${BASE_URL}/api/plans`,
-  getActivePlans: `${BASE_URL}/api/plans/active`,
-  getPlanById: (id) => `${BASE_URL}/api/plans/${id}`,
-  createPlan: `${BASE_URL}/api/plans`,
-  updatePlan: (id) => `${BASE_URL}/api/plans/${id}`,
-  deletePlan: (id) => `${BASE_URL}/api/plans/${id}`,
-  togglePlanStatus: (id) => `${BASE_URL}/api/plans/${id}/toggle`,
-
-  // -----------------
-  // Documents APIs
-  // -----------------
-  getAllDocuments: `${BASE_URL}/api/documents`,
-  getDocumentById: (id) => `${BASE_URL}/api/documents/${id}`,
-  createDocument: `${BASE_URL}/api/documents`,
-  updateDocument: (id) => `${BASE_URL}/api/documents/${id}`,
-  deleteDocument: (id) => `${BASE_URL}/api/documents/${id}`,
-  downloadDocument: (id) => `${BASE_URL}/api/documents/${id}/download`,
-  getDocumentStats: `${BASE_URL}/api/documents/stats`,
 
 };
 
@@ -354,6 +333,26 @@ export const deleteTask = async (id, token) => {
     headers: { 'Authorization': `Bearer ${token}` },
   });
   if (!response.ok) throw new Error('Failed to delete task');
+  return response.json();
+};
+
+// Restore a deleted task
+export const restoreTask = async (id, token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/${id}/restore`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Failed to restore task');
+  return response.json();
+};
+
+// Get archived/deleted tasks
+export const getArchivedTasks = async (token) => {
+  const response = await fetch(`${BASE_URL}/api/tasks/archived/list`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error('Failed to fetch archived tasks');
   return response.json();
 };
 

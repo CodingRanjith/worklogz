@@ -152,8 +152,6 @@ app.use('/api/community', require('./routes/communityRoutes'));
 app.use('/api/helpdesk', require('./routes/helpdeskRoutes'));
 app.use('/api/assistant', require('./routes/assistantRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
-app.use('/api/plans', require('./routes/planRoutes'));
-app.use('/api/documents', require('./routes/documentRoutes'));
 
 // Default Admin Setup
 const User = require('./models/User');
@@ -191,6 +189,18 @@ async function startServer() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB connected');
+    
+    // Setup cleanup job for deleted tasks (runs every 24 hours)
+    const taskController = require('./controllers/timeSheetController');
+    const cleanupInterval = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    
+    // Run cleanup immediately on startup, then every 24 hours
+    taskController.cleanupDeletedTasks();
+    setInterval(() => {
+      taskController.cleanupDeletedTasks();
+    }, cleanupInterval);
+    
+    console.log('Task cleanup job scheduled (runs every 24 hours)');
     
     const PORT = process.env.PORT || 5000;
     server.listen(PORT, () => {
