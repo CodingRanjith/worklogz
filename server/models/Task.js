@@ -35,6 +35,9 @@ const TaskSchema = new mongoose.Schema({
   comments: { type: Array, default: [] },
   done: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+  // Soft delete fields
+  isDeleted: { type: Boolean, default: false },
+  deletedAt: { type: Date },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Task', TaskSchema);

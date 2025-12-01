@@ -7,7 +7,9 @@ import {
   addTaskComment, 
   getTaskStats, 
   getAllTasksWithFilters,
-  bulkUpdateTasks 
+  bulkUpdateTasks,
+  getArchivedTasks,
+  restoreTask
 } from '../../utils/api';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -272,6 +274,9 @@ export default function TimesheetFullPage({ embedded = false, onBack }) {
   const [loading, setLoading] = useState(false);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showArchived, setShowArchived] = useState(false);
+  const [archivedTasks, setArchivedTasks] = useState([]);
+  const [archivedLoading, setArchivedLoading] = useState(false);
 
   // formatted YYYY-MM-DD for comparisons (using local timezone to avoid date shift)
   const formattedDate = useMemo(() => {
@@ -509,11 +514,11 @@ export default function TimesheetFullPage({ embedded = false, onBack }) {
     }
   };
 
-  // Delete task in DB and state
+  // Delete task in DB and state (soft delete - archived for 7 days)
   const deleteTaskHandler = (id) => {
     Swal.fire({
       title: 'Delete task?',
-      text: 'This action cannot be undone.',
+      text: 'Task will be archived for 7 days. You can restore it within this period.',
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Delete',
@@ -532,12 +537,12 @@ export default function TimesheetFullPage({ embedded = false, onBack }) {
           
           Swal.fire({
             title: 'Deleted!',
-            text: 'Task has been deleted successfully.',
+            text: 'Task has been archived. You can restore it within 7 days from the Archived section.',
             icon: 'success',
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 2000
+            timer: 3000
           });
         } catch (err) {
           console.error('Failed to delete task:', err);
@@ -554,6 +559,72 @@ export default function TimesheetFullPage({ embedded = false, onBack }) {
       }
     });
   };
+
+  // Fetch archived tasks
+  const fetchArchivedTasks = async () => {
+    try {
+      if (!token) return;
+      setArchivedLoading(true);
+      const response = await getArchivedTasks(token);
+      const tasksData = response.tasks || response || [];
+      setArchivedTasks(Array.isArray(tasksData) ? tasksData : []);
+    } catch (err) {
+      console.error('Failed to load archived tasks:', err);
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to load archived tasks. Please try again.',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
+    } finally {
+      setArchivedLoading(false);
+    }
+  };
+
+  // Restore a deleted task
+  const restoreTaskHandler = async (taskId) => {
+    try {
+      if (!token) return;
+      await restoreTask(taskId, token);
+      
+      // Remove from archived list
+      setArchivedTasks(prev => prev.filter(t => t._id !== taskId));
+      
+      // Refresh main tasks list
+      await fetchAllTasks();
+      
+      Swal.fire({
+        title: 'Restored!',
+        text: 'Task has been restored successfully.',
+        icon: 'success',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000
+      });
+    } catch (err) {
+      console.error('Failed to restore task:', err);
+      Swal.fire({
+        title: 'Error',
+        text: 'Failed to restore task. Please try again.',
+        icon: 'error',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000
+      });
+    }
+  };
+
+  // Toggle archived view
+  useEffect(() => {
+    if (showArchived) {
+      fetchArchivedTasks();
+    }
+  }, [showArchived]);
 
 
 
@@ -838,47 +909,163 @@ export default function TimesheetFullPage({ embedded = false, onBack }) {
         <div className="col-span-12 md:col-span-6">
           <div className="bg-white rounded-xl shadow-lg p-4 md:p-6">
             <div className="flex items-center justify-between mb-4 gap-3 flex-col sm:flex-row">
-              <h2 className="text-md font-bold text-indigo-700">{formattedDate}</h2>
+              <h2 className="text-md font-bold text-indigo-700">
+                {showArchived ? 'Archived Tasks (7 days recovery)' : formattedDate}
+              </h2>
               <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search tasks..."
-                  className="border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:w-48"
-                />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  title="Filter by Status"
-                >
-                  <option value="all">All Status</option>
-                  <option value="backlog">Backlog</option>
-                  <option value="todo">To Do</option>
-                  <option value="doing">In Progress</option>
-                  <option value="done">Done</option>
-                </select>
+                {!showArchived && (
+                  <>
+                    <input
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      placeholder="Search tasks..."
+                      className="border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-1 sm:w-48"
+                    />
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      title="Filter by Status"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="backlog">Backlog</option>
+                      <option value="todo">To Do</option>
+                      <option value="doing">In Progress</option>
+                      <option value="done">Done</option>
+                    </select>
+                    <button
+                      onClick={fetchAllTasks}
+                      disabled={tasksLoading}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
+                      title="Refresh Tasks"
+                    >
+                      <span className={tasksLoading ? 'animate-spin' : ''}>🔄</span>
+                    </button>
+                    <button
+                      onClick={addNewTask}
+                      disabled={loading}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+                      title="Create New Task (Ctrl+N)"
+                    >
+                      <AiOutlinePlus /> New Task
+                    </button>
+                  </>
+                )}
                 <button
-                  onClick={fetchAllTasks}
-                  disabled={tasksLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition disabled:opacity-50"
-                  title="Refresh Tasks"
+                  onClick={() => {
+                    setShowArchived(!showArchived);
+                    if (!showArchived) {
+                      fetchArchivedTasks();
+                    }
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                    showArchived 
+                      ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                  }`}
+                  title={showArchived ? 'Back to Active Tasks' : 'View Archived Tasks'}
                 >
-                  <span className={tasksLoading ? 'animate-spin' : ''}>🔄</span>
-                </button>
-                <button
-                  onClick={addNewTask}
-                  disabled={loading}
-                  className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
-                  title="Create New Task (Ctrl+N)"
-                >
-                  <AiOutlinePlus /> New Task
+                  {showArchived ? '← Active Tasks' : '📦 Archived'}
                 </button>
               </div>
             </div>
 
             <div className="space-y-4 max-h-[600px] overflow-y-auto">
-              {tasksLoading ? (
+              {showArchived ? (
+                // Archived Tasks View
+                archivedLoading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin text-4xl mb-4">⚪</div>
+                    <p className="text-gray-500">Loading archived tasks...</p>
+                  </div>
+                ) : archivedTasks.length > 0 ? (
+                  archivedTasks.map((task) => {
+                    const deletedDate = new Date(task.deletedAt);
+                    const daysSinceDeleted = Math.floor((new Date() - deletedDate) / (1000 * 60 * 60 * 24));
+                    const daysRemaining = 7 - daysSinceDeleted;
+                    
+                    return (
+                      <div
+                        key={task._id}
+                        className="p-4 rounded-lg border shadow-sm bg-gray-50 border-gray-300"
+                      >
+                        <div className="flex justify-between items-start gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h5 className="font-semibold text-base text-gray-800 line-through">{task.title}</h5>
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">
+                                Archived
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600 mb-3">
+                              <p><span className="font-medium">Reporter:</span> {task.reporter || 'Unassigned'}</p>
+                              <p><span className="font-medium">Assignee:</span> {task.assignee || 'Unassigned'}</p>
+                              <p><span className="font-medium">Start:</span> {task.startTime || '—'}</p>
+                              <p><span className="font-medium">End:</span> {task.endTime || '—'}</p>
+                            </div>
+
+                            {task.description && (
+                              <p className="text-sm text-gray-600 mb-3 bg-gray-50 p-2 rounded">
+                                {task.description}
+                              </p>
+                            )}
+
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                              <span>Deleted: {deletedDate.toLocaleDateString()}</span>
+                              <span className={`px-2 py-1 rounded ${
+                                daysRemaining > 3 
+                                  ? 'bg-green-100 text-green-700' 
+                                  : daysRemaining > 0 
+                                  ? 'bg-yellow-100 text-yellow-700' 
+                                  : 'bg-red-100 text-red-700'
+                              }`}>
+                                {daysRemaining > 0 
+                                  ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining` 
+                                  : 'Expired - will be permanently deleted'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col items-end gap-2">
+                            <div className={`text-xs px-3 py-1 rounded-full font-medium ${
+                              task.status === 'done' ? 'bg-green-100 text-green-800' :
+                              task.status === 'doing' ? 'bg-yellow-100 text-yellow-800' :
+                              task.status === 'todo' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {task.status === 'done' ? 'Done' : 
+                               task.status === 'doing' ? 'In Progress' :
+                               task.status === 'todo' ? 'To Do' : 
+                               'Backlog'}
+                            </div>
+                            
+                            {daysRemaining > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  restoreTaskHandler(task._id);
+                                }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
+                              >
+                                Restore
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 text-6xl mb-4">📦</div>
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">No archived tasks</h3>
+                    <p className="text-sm text-gray-500">
+                      Deleted tasks will appear here for 7 days before permanent deletion
+                    </p>
+                  </div>
+                )
+              ) : tasksLoading ? (
                 <div className="text-center py-12">
                   <div className="animate-spin text-4xl mb-4">⚪</div>
                   <p className="text-gray-500">Loading tasks...</p>

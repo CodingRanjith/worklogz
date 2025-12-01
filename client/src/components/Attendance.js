@@ -17,6 +17,8 @@ function Attendance() {
   const [isLoading, setIsLoading] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const [userName, setUserName] = useState('');
+  const [userCompany, setUserCompany] = useState(null);
+  const [showCamera, setShowCamera] = useState(false);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -24,9 +26,11 @@ function Attendance() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    let decoded = null;
     if (token) {
-      const decoded = jwtDecode(token);
+      decoded = jwtDecode(token);
       setUserName(decoded.name || 'User');
+      setUserCompany(decoded.company || null);
     }
 
     const fetchData = async () => {
@@ -49,19 +53,22 @@ function Attendance() {
 
     fetchData();
 
-    const startCamera = async () => {
-      try {
-        setIsCapturing(true);
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Camera Access Denied', text: 'Please enable your camera and refresh the page.' });
-        setIsCapturing(false);
-      }
-    };
-
-    startCamera();
+    // Only auto-start camera if user doesn't have a company
+    const hasCompany = decoded?.company;
+    if (!hasCompany) {
+      const startCamera = async () => {
+        try {
+          setIsCapturing(true);
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+          streamRef.current = stream;
+          if (videoRef.current) videoRef.current.srcObject = stream;
+        } catch (err) {
+          Swal.fire({ icon: 'error', title: 'Camera Access Denied', text: 'Please enable your camera and refresh the page.' });
+          setIsCapturing(false);
+        }
+      };
+      startCamera();
+    }
 
     return () => {
       if (streamRef.current) {
@@ -128,8 +135,37 @@ function Attendance() {
     }
   };
 
+  const startCameraStream = async () => {
+    if (showCamera && streamRef.current) return; // Already started
+    try {
+      setIsCapturing(true);
+      setShowCamera(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Camera Access Denied', text: 'Please enable your camera.' });
+      setIsCapturing(false);
+      setShowCamera(false);
+    }
+  };
+
+  const stopCameraStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCapturing(false);
+    setShowCamera(false);
+    if (videoRef.current) videoRef.current.srcObject = null;
+  };
+
   const handleSubmit = async () => {
-    if (!image) return Swal.fire('No image captured!');
+    // For company users, image is optional
+    if (!userCompany && !image) {
+      return Swal.fire('No image captured!');
+    }
+    
     setIsLoading(true);
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const coords = `${pos.coords.latitude},${pos.coords.longitude}`;
@@ -137,7 +173,9 @@ function Attendance() {
       const formData = new FormData();
       formData.append('type', type);
       formData.append('location', coords);
-      formData.append('image', image);
+      if (image) {
+        formData.append('image', image);
+      }
       try {
         await axios.post(API_ENDPOINTS.postAttendance, formData, {
           headers: {
@@ -147,6 +185,9 @@ function Attendance() {
         });
         Swal.fire(`${type === 'check-in' ? 'Checked In' : 'Checked Out'} successfully!`);
         setImage(null);
+        if (userCompany && showCamera) {
+          stopCameraStream();
+        }
       } catch (err) {
         Swal.fire({ icon: 'error', title: 'Failed to Submit' });
       } finally {
@@ -213,19 +254,56 @@ function Attendance() {
         </div>
       ))}
 
+      {userCompany && !showCamera && (
+        <button
+          onClick={startCameraStream}
+          className="flex items-center justify-center gap-2 bg-blue-500 text-white p-3 rounded-lg shadow-md cursor-pointer mt-4 w-full"
+        >
+          <FiCamera />
+          <span>Show Camera (Optional)</span>
+        </button>
+      )}
+
+      {userCompany && showCamera && (
+        <button
+          onClick={stopCameraStream}
+          className="flex items-center justify-center gap-2 bg-gray-500 text-white p-3 rounded-lg shadow-md cursor-pointer mt-4 w-full"
+        >
+          <span>Close Camera</span>
+        </button>
+      )}
+
       <div
         className="flex justify-between items-center bg-red-500 text-white p-4 rounded-full shadow-md cursor-pointer mt-4"
-        onClick={() => {
-          captureImage();
-          handleSubmit();
+        onClick={async () => {
+          // For company users, directly submit without requiring image
+          if (userCompany) {
+            await handleSubmit();
+          } else {
+            // For non-company users, capture image first
+            if (!image) {
+              await captureImage();
+            }
+            await handleSubmit();
+          }
         }}
       >
-        <span className="text-sm">Swipe to {type === 'check-in' ? 'Check In' : 'Check Out'}</span>
+        <span className="text-sm">Click to {type === 'check-in' ? 'Check In' : 'Check Out'}</span>
         <FiChevronRight />
       </div>
 
-      {isCapturing && (
-        <video ref={videoRef} autoPlay playsInline muted className="mt-4 rounded-lg w-full" />
+      {(isCapturing || showCamera) && (
+        <div className="mt-4">
+          <video ref={videoRef} autoPlay playsInline muted className="rounded-lg w-full" />
+          {!userCompany && (
+            <button
+              onClick={captureImage}
+              className="mt-2 w-full bg-blue-500 text-white p-2 rounded-lg"
+            >
+              Capture Photo
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
