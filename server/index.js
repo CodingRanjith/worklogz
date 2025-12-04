@@ -13,7 +13,7 @@ const server = http.createServer(app);
 
 // Middleware
 app.use(cors({
-  origin: ['https://worklogz.netlify.app', 'http://localhost:3000', 'http://localhost:3001'],
+  origin: ['https://worklogz.netlify.app', 'http://localhost:3000', 'http://localhost:3001', 'https://worklogz.com', 'http://worklogz.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
