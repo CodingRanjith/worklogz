@@ -1,0 +1,33 @@
+.feature-card {
+  background: var(--docs-bg-secondary);
+  border: 1px solid var(--docs-border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.2s;
+}
+
+.feature-card:hover {
+  border-color: var(--docs-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.feature-card-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.feature-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: var(--docs-text-primary);
+}
+
+.feature-card-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--docs-text-secondary);
+  margin: 0;
+}
+

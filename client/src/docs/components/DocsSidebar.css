@@ -1,0 +1,121 @@
+.docs-sidebar {
+  width: var(--docs-sidebar-width);
+  background: var(--docs-bg-secondary);
+  border-right: 1px solid var(--docs-border);
+  height: calc(100vh - var(--docs-header-height));
+  overflow-y: auto;
+  position: sticky;
+  top: var(--docs-header-height);
+  transition: transform 0.3s ease;
+}
+
+.docs-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.docs-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.docs-sidebar::-webkit-scrollbar-thumb {
+  background: var(--docs-border);
+  border-radius: 3px;
+}
+
+.docs-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--docs-text-tertiary);
+}
+
+.docs-sidebar-nav {
+  padding: 24px 0;
+}
+
+.docs-sidebar-section {
+  margin-bottom: 8px;
+}
+
+.docs-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  color: var(--docs-text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.docs-sidebar-item:hover {
+  color: var(--docs-text-primary);
+  background: var(--docs-bg-tertiary);
+}
+
+.docs-sidebar-item.active {
+  color: var(--docs-accent);
+  background: rgba(16, 185, 129, 0.1);
+  border-right: 2px solid var(--docs-accent);
+}
+
+.docs-sidebar-item svg {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.docs-sidebar-toggle {
+  position: relative;
+}
+
+.docs-sidebar-toggle .docs-chevron {
+  margin-left: auto;
+  font-size: 14px;
+  transition: transform 0.2s;
+}
+
+.docs-sidebar-toggle.expanded .docs-chevron {
+  transform: rotate(0deg);
+}
+
+.docs-sidebar-children {
+  padding-left: 20px;
+  margin-top: 4px;
+}
+
+.docs-sidebar-child {
+  display: block;
+  padding: 8px 20px;
+  color: var(--docs-text-tertiary);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+}
+
+.docs-sidebar-child:hover {
+  color: var(--docs-text-primary);
+  background: var(--docs-bg-tertiary);
+}
+
+.docs-sidebar-child.active {
+  color: var(--docs-accent);
+  border-left-color: var(--docs-accent);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+@media (max-width: 1024px) {
+  .docs-sidebar {
+    position: fixed;
+    left: 0;
+    z-index: 999;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .docs-sidebar.closed {
+    transform: translateX(-100%);
+  }
+}
+
