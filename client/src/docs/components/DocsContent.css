@@ -1,0 +1,149 @@
+.docs-content {
+  flex: 1;
+  min-width: 0;
+  padding: 48px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.docs-content-wrapper {
+  width: 100%;
+}
+
+.docs-content-wrapper h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--docs-text-primary);
+  line-height: 1.2;
+}
+
+.docs-content-wrapper h2 {
+  font-size: 32px;
+  font-weight: 600;
+  margin: 48px 0 24px 0;
+  color: var(--docs-text-primary);
+  padding-top: 16px;
+  border-top: 1px solid var(--docs-border);
+}
+
+.docs-content-wrapper h2:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.docs-content-wrapper h3 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 32px 0 16px 0;
+  color: var(--docs-text-primary);
+}
+
+.docs-content-wrapper h4 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 24px 0 12px 0;
+  color: var(--docs-text-primary);
+}
+
+.docs-content-wrapper p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--docs-text-secondary);
+  margin: 0 0 20px 0;
+}
+
+.docs-content-wrapper ul,
+.docs-content-wrapper ol {
+  margin: 0 0 20px 0;
+  padding-left: 24px;
+  color: var(--docs-text-secondary);
+}
+
+.docs-content-wrapper li {
+  margin: 8px 0;
+  line-height: 1.7;
+}
+
+.docs-content-wrapper a {
+  color: var(--docs-link);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.docs-content-wrapper a:hover {
+  color: var(--docs-link-hover);
+  text-decoration: underline;
+}
+
+.docs-content-wrapper code {
+  background: var(--docs-code-bg);
+  border: 1px solid var(--docs-code-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+  color: var(--docs-accent);
+}
+
+.docs-content-wrapper pre {
+  background: var(--docs-code-bg);
+  border: 1px solid var(--docs-code-border);
+  border-radius: 8px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 24px 0;
+}
+
+.docs-content-wrapper pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--docs-text-primary);
+}
+
+.docs-content-wrapper blockquote {
+  border-left: 4px solid var(--docs-accent);
+  padding-left: 20px;
+  margin: 24px 0;
+  color: var(--docs-text-secondary);
+  font-style: italic;
+}
+
+.docs-content-wrapper table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 24px 0;
+}
+
+.docs-content-wrapper table th,
+.docs-content-wrapper table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--docs-border);
+}
+
+.docs-content-wrapper table th {
+  background: var(--docs-bg-tertiary);
+  font-weight: 600;
+  color: var(--docs-text-primary);
+}
+
+.docs-content-wrapper table td {
+  color: var(--docs-text-secondary);
+}
+
+@media (max-width: 768px) {
+  .docs-content {
+    padding: 24px;
+  }
+  
+  .docs-content-wrapper h1 {
+    font-size: 36px;
+  }
+  
+  .docs-content-wrapper h2 {
+    font-size: 28px;
+  }
+}
+

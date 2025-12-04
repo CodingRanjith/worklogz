@@ -1,0 +1,91 @@
+.component-showcase {
+  max-width: 100%;
+}
+
+.component-showcase h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--docs-text-primary);
+}
+
+.component-showcase .intro-subtitle {
+  font-size: 1.25rem;
+  color: var(--docs-text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.showcase-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.component-section {
+  margin-bottom: 3rem;
+}
+
+.component-showcase h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+  color: var(--docs-text-primary);
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--docs-border-color);
+}
+
+.component-showcase h2:first-of-type {
+  margin-top: 2rem;
+}
+
+.component-showcase h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--docs-text-primary);
+}
+
+.component-showcase .component-section .MuiCard-root {
+  margin-bottom: 1.5rem;
+}
+
+.component-showcase .component-section .MuiCardContent-root {
+  padding: 1.5rem;
+}
+
+.component-showcase .component-section .MuiTypography-h6 {
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.component-showcase .component-section .MuiStack-root {
+  margin-top: 1rem;
+}
+
+.component-showcase .component-section .MuiGrid-container {
+  margin-top: 1rem;
+}
+
+.component-showcase .component-section code {
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .component-showcase h1 {
+    font-size: 2rem;
+  }
+
+  .component-showcase h2 {
+    font-size: 1.5rem;
+  }
+
+  .showcase-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
