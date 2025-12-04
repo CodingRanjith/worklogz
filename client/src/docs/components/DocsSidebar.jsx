@@ -19,55 +19,17 @@ const menuItems = [
     label: 'Getting Started',
     icon: <FiZap />,
     children: [
-      { label: 'Quick Start', path: '/docs/getting-started/quick-start' },
-      { label: 'Installation', path: '/docs/getting-started/installation' },
-      { label: 'Architecture Overview', path: '/docs/getting-started/architecture' },
-      { label: 'Configuration', path: '/docs/getting-started/configuration' },
-      { label: 'Migration Guide', path: '/docs/getting-started/migration' }
+      { label: 'Quick Start', path: '/docs/getting-started/quick-start' }
     ]
   },
   {
-    label: 'Components',
-    icon: <FiLayers />,
-    children: [
-      { label: 'Overview', path: '/docs/components/overview' },
-      { label: 'Component Showcase', path: '/docs/components/showcase' },
-      { label: 'Layout Components', path: '/docs/components/layout' },
-      { label: 'Form Components', path: '/docs/components/forms' },
-      { label: 'Data Display', path: '/docs/components/data-display' },
-      { label: 'Navigation', path: '/docs/components/navigation' },
-      { label: 'Feedback', path: '/docs/components/feedback' },
-      { label: 'Overlay', path: '/docs/components/overlay' }
-    ]
-  },
-  {
-    label: 'Admin Dashboard',
-    icon: <FiBarChart2 />,
-    children: [
-      { label: 'Dashboard Overview', path: '/docs/admin/dashboard' },
-      { label: 'Analytics', path: '/docs/admin/analytics' },
-      { label: 'User Management', path: '/docs/admin/user-management' },
-      { label: 'Attendance', path: '/docs/admin/attendance' },
-      { label: 'Task Manager', path: '/docs/admin/task-manager' },
-      { label: 'Projects', path: '/docs/admin/projects' },
-      { label: 'Company Worklogz', path: '/docs/admin/worklogz' },
-      { label: 'Company Departments', path: '/docs/admin/departments' },
-      { label: 'CRM', path: '/docs/admin/crm' },
-      { label: 'Helpdesk', path: '/docs/admin/helpdesk' },
-      { label: 'Payroll', path: '/docs/admin/payroll' },
-      { label: 'Documents', path: '/docs/admin/documents' },
-      { label: 'Reports', path: '/docs/admin/reports' },
-      { label: 'Settings', path: '/docs/admin/settings' }
-    ]
-  },
-  {
-    label: 'Employee Features',
+    label: 'Features',
     icon: <FiUsers />,
     children: [
       { label: 'Attendance', path: '/docs/employee/attendance' },
       { label: 'Timesheet', path: '/docs/employee/timesheet' },
       { label: 'Leave Management', path: '/docs/employee/leave' },
-      { label: 'Performance', path: '/docs/employee/performance' },
+      { label: 'Performance Dashboard', path: '/docs/employee/performance' },
       { label: 'Goals & Achievements', path: '/docs/employee/goals' },
       { label: 'My Earnings', path: '/docs/employee/earnings' },
       { label: 'Calendar View', path: '/docs/employee/calendar' },
@@ -77,34 +39,14 @@ const menuItems = [
     ]
   },
   {
-    label: 'Guides',
-    icon: <FiFileText />,
-    children: [
-      { label: 'Authentication', path: '/docs/guides/authentication' },
-      { label: 'API Integration', path: '/docs/guides/api' },
-      { label: 'Theming', path: '/docs/guides/theming' },
-      { label: 'State Management', path: '/docs/guides/state' },
-      { label: 'Routing', path: '/docs/guides/routing' },
-      { label: 'Best Practices', path: '/docs/guides/best-practices' },
-      { label: 'Troubleshooting', path: '/docs/guides/troubleshooting' }
-    ]
-  },
-  {
-    label: 'API Reference',
-    icon: <FiCode />,
-    children: [
-      { label: 'Endpoints', path: '/docs/api/endpoints' },
-      { label: 'Authentication', path: '/docs/api/auth' },
-      { label: 'Users', path: '/docs/api/users' },
-      { label: 'Attendance', path: '/docs/api/attendance' },
-      { label: 'Projects', path: '/docs/api/projects' },
-      { label: 'CRM', path: '/docs/api/crm' }
-    ]
+    label: 'Component Showcase',
+    icon: <FiLayers />,
+    path: '/docs/components/showcase'
   }
 ];
 
 const DocsSidebar = ({ open, currentPath }) => {
-  const [expandedItems, setExpandedItems] = useState(['Getting Started', 'Components']);
+  const [expandedItems, setExpandedItems] = useState(['Getting Started', 'Features']);
 
   const toggleItem = (label) => {
     setExpandedItems(prev => 
