@@ -186,6 +186,27 @@ const taskController = {
       // Populate user info before sending response
       await task.populate('user', 'name email');
 
+      // Create notification if task is assigned to a different user
+      if (taskUserId.toString() !== req.user._id.toString()) {
+        try {
+          const notificationController = require('./notificationController');
+          await notificationController.createNotification(taskUserId, {
+            type: 'task_assigned',
+            title: 'New Task Assigned',
+            message: `You have been assigned a new task: "${task.title}" by ${req.user.name || 'Admin'}`,
+            link: `/timesheet`,
+            metadata: {
+              taskId: task._id.toString(),
+              taskTitle: task.title,
+              assignedBy: req.user.name || 'Admin'
+            }
+          });
+        } catch (notifError) {
+          console.error('Error creating notification:', notifError);
+          // Don't fail the task creation if notification fails
+        }
+      }
+
       res.status(201).json(task);
     } catch (err) {
       console.error('Create task error:', err);

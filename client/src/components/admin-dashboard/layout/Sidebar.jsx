@@ -3,10 +3,10 @@ import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
   FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
-  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage
+  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield
 } from 'react-icons/fi';
 
-const menuItems = [
+export const menuItems = [
   { label: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
   { label: 'Analytics', icon: <FiBarChart2 />, path: '/analytics' },
   { label: 'Monthly Reports', icon: <FiCamera />, path: '/reports' },
@@ -16,8 +16,8 @@ const menuItems = [
     subItems: [
       { label: 'User Cards', path: '/all-users' },
       { label: 'Employees Schedules', path: '/employees' },
-      
-      { label: 'Pending Approvals', path: '/pending-users' }
+      { label: 'Pending Approvals', path: '/pending-users' },
+      { label: 'Team Management', path: '/admin/team-management' }
     ]
   },
   { label: 'Task Manager', icon: <FiClipboard />, path: '/task-manager' },
@@ -57,6 +57,7 @@ const menuItems = [
   { label: 'Payslip Generator', icon: <FiBarChart2 />, path: '/payslip' },
   { label: 'Daily Salary Credit', icon: <FiDollarSign />, path: '/daily-salary-credit' },
   { label: 'Holiday List', icon: <FiCalendar />, path: '/holidays' },
+  { label: 'Administration', icon: <FiShield />, path: '/administration/access-control' },
   { label: 'Plans', icon: <FiPackage />, path: '/plans' },
   { label: 'Settings', icon: <FiSettings />, path: '/settings' }
 ];

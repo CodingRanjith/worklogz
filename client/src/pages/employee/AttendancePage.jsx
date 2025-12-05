@@ -29,23 +29,12 @@ import MyWorkspace from "../../components/attendance/MyWorkspace";
 import TimesheetFullPage from "./Timesheet";
 import LeaveManagement from "./LeaveManagement";
 import MyEarnings from "./MyEarnings";
+import TeamManagement from "./TeamManagement";
 import HelpdeskCenter from "../../components/helpdesk/HelpdeskCenter";
 import TechAIChat from "../../components/assistant/TechAIChat";
 import {
-  FiHome,
-  FiClock,
-  FiUsers,
   FiBriefcase,
-  FiCheckSquare,
-  FiDollarSign,
-  FiCalendar,
-  FiGrid,
-  FiUser,
-  FiFolder,
-  FiCompass,
-  FiHelpCircle,
   FiStar,
-  FiLogOut,
 } from "react-icons/fi";
 import techLogo from "../../assets/tech.png";
 import jobzenterLogo from "../../assets/jzlogo.png";
@@ -91,6 +80,7 @@ function AttendancePage() {
   const [activeGroupId, setActiveGroupId] = useState(null);
   const [showHelpdeskOnly, setShowHelpdeskOnly] = useState(false);
   const [showAssistantOnly, setShowAssistantOnly] = useState(false);
+  const [showTeamManagementOnly, setShowTeamManagementOnly] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -661,10 +651,6 @@ function AttendancePage() {
     }
   };
 
-  const onLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
 
   const currentYear = currentTime.getFullYear();
   const currentMonth = currentTime.getMonth();
@@ -780,97 +766,8 @@ function AttendancePage() {
     setShowWorkspaceOnly(false);
   };
 
-  const handleNav = (callback) => {
-    resetPanels();
-    callback?.();
-  };
-
-  const sidebarLinks = [
-    { label: "Home", icon: <FiHome />, action: () => handleNav(() => navigate("/attendance")) },
-    { label: "Attendance", icon: <FiClock />, action: () => handleNav(() => navigate("/attendance")) },
-    {
-      label: "Community",
-      icon: <FiUsers />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowCommunityOnly(true);
-      },
-    },
-    {
-      label: "My Workspace",
-      icon: <FiBriefcase />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowWorkspaceOnly(true);
-      },
-    },
-    {
-      label: "Task Manager",
-      icon: <FiCheckSquare />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowTaskManagerOnly(true);
-      },
-    },
-    {
-      label: "Salary",
-      icon: <FiDollarSign />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowEarningsOnly(true);
-      },
-    },
-    {
-      label: "Leave Management",
-      icon: <FiCalendar />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowLeaveManagementOnly(true);
-      },
-    },
-    {
-      label: "Applications",
-      icon: <FiGrid />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowApplicationsOnly(true);
-      },
-    },
-    {
-      label: "People",
-      icon: <FiUser />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowPeopleOnly(true);
-      },
-    },
-    { label: "Document Center", icon: <FiFolder />, action: () => handleNav(() => navigate("/documents")) },
-    {
-      label: "Helpdesk",
-      icon: <FiHelpCircle />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowHelpdeskOnly(true);
-      },
-    },
-    {
-      label: "AI Copilot",
-      icon: <FiStar />,
-      action: () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        resetPanels();
-        setShowAssistantOnly(true);
-      },
-    },
-  ];
+  // Navigation is now handled by EmployeeLayout sidebar
+  // These actions are for embedded views within AttendancePage
 
   const quickActions = [
     {
@@ -970,7 +867,7 @@ function AttendancePage() {
       label: "Calendar View",
       description: "Review attendance",
       accent: "purple",
-      onClick: () => setShowCalendarModal(true),
+      onClick: () => navigate("/calendar"),
       icon: (
         <svg
           className="w-4 h-4"
@@ -1059,65 +956,10 @@ function AttendancePage() {
   const heroQuoteAuthor = "";
 
   return (
-    <div className="attendance-modern">
-      <div className="attendance-shell">
-        <div className="modern-layout">
-          <aside className="modern-sidebar">
-            <div className="modern-sidebar__logo">
-              <div>
-                <span>WORKLOGZ</span>
-                <small>Powered by Techackode</small>
-              </div>
-            </div>
-            <ul className="modern-sidebar__list">
-              {sidebarLinks.map((link) => (
-                <li key={link.label}>
-                  <button
-                    type="button"
-                    onClick={link.action}
-                    className={`modern-sidebar__item ${
-                      (!showApplicationsOnly &&
-                        !showPeopleOnly &&
-                        !showCommunityOnly &&
-                        !showTaskManagerOnly &&
-                        !showLeaveManagementOnly &&
-                        !showEarningsOnly &&
-                        !showWorkspaceOnly &&
-                        !showHelpdeskOnly &&
-                        !showAssistantOnly &&
-                        link.label === "Attendance") ||
-                      (showApplicationsOnly && link.label === "Applications") ||
-                      (showPeopleOnly && link.label === "People") ||
-                      (showCommunityOnly && link.label === "Community") ||
-                      (showTaskManagerOnly && link.label === "Task Manager") ||
-                      (showLeaveManagementOnly && link.label === "Leave Management") ||
-                      (showEarningsOnly && link.label === "Salary") ||
-                      (showWorkspaceOnly && link.label === "My Workspace") ||
-                      (showHelpdeskOnly && link.label === "Helpdesk") ||
-                      (showAssistantOnly && link.label === "AI Copilot")
-                        ? "is-active"
-                        : ""
-                    }`}
-                  >
-                    <span className="icon">{link.icon}</span>
-                    <span>{link.label}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className="modern-sidebar__item logout-item"
-              onClick={onLogout}
-            >
-              <span className="icon">
-                <FiLogOut />
-              </span>
-              <span>Logout</span>
-            </button>
-          </aside>
-
-          <main className="modern-main">
+    <div className="attendance-modern" style={{ padding: '24px', background: 'transparent', minHeight: 'auto' }}>
+      <div className="attendance-shell" style={{ maxWidth: '100%', margin: 0, padding: 0 }}>
+        <div className="modern-layout" style={{ display: 'block', gridTemplateColumns: 'none', gap: 0 }}>
+          <main className="modern-main" style={{ marginLeft: 0, width: '100%', padding: 0 }}>
             {showEarningsOnly ? (
               <MyEarnings
                 embedded
@@ -1158,6 +1000,11 @@ function AttendancePage() {
                 onSelect={setSelectedPerson}
                 onBack={() => setShowPeopleOnly(false)}
               />
+            ) : showTeamManagementOnly ? (
+              <TeamManagement
+                embedded
+                onBack={() => setShowTeamManagementOnly(false)}
+              />
             ) : showCommunityOnly ? (
               <CommunityHub
                 users={people}
@@ -1169,181 +1016,6 @@ function AttendancePage() {
               />
             ) : (
               <>
-            <section className="modern-hero">
-              <div className="modern-hero__left">
-                {/* Enhanced Profile Card - Matching Design */}
-                <div className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-300 w-full overflow-hidden">
-                  {/* Profile Header Section */}
-                  <div className="p-5 sm:p-6">
-                    <div className="flex items-center gap-4 sm:gap-5">
-                      {/* Profile Picture with Company Logo Overlay */}
-                      <div className="relative flex-shrink-0">
-                        <img
-                          src={avatarSrc}
-                          alt={profileData?.name || "Employee"}
-                          className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover ring-2 ring-gray-200"
-                        />
-                        <img
-                          src={getCompanyLogo(profileData?.company)}
-                          alt={`${profileData?.company || "Company"} logo`}
-                          className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full bg-white ring-2 p-0.5 object-contain ring-white shadow-sm"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Employee Details */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium text-blue-500 uppercase tracking-wide mb-1">
-                          {greeting.toUpperCase()}, {profileData?.name?.split(' ')[0]?.toUpperCase() || "TEAM MEMBER"}
-                        </p>
-                        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1.5 truncate">
-                          {profileData?.name || "Team Member"}
-                        </h2>
-                        <p className="text-sm sm:text-base font-semibold text-gray-700 mb-3">
-                          {profileData?.position || "Employee"} • {profileData?.company || "Techackode"}
-                        </p>
-                        
-                        {/* Employee ID Badge */}
-                        {profileData?.employeeId && (
-                          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-300 rounded-lg px-3 py-1.5">
-                            <svg
-                              className="w-3.5 h-3.5 text-blue-600 flex-shrink-0"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                              />
-                            </svg>
-                            <span className="text-xs sm:text-sm font-semibold text-blue-700">
-                              {profileData.employeeId}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Separator Line */}
-                  <div className="border-t border-gray-200"></div>
-                  
-                  {/* Employee Details Section */}
-                  <div className="p-4 sm:p-5 space-y-2 sm:space-y-3">
-                    {/* Email */}
-                    {profileData?.email && (
-                      <div className="flex items-start justify-between gap-3 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-700 whitespace-nowrap flex-shrink-0">Email:</span>
-                        <span className="text-sm sm:text-base text-gray-600 text-right break-all flex-1">{profileData.email}</span>
-                      </div>
-                    )}
-                    
-                    {/* Phone */}
-                    {profileData?.phone && (
-                      <div className="flex items-center justify-between gap-3 sm:gap-4">
-                        <span className="text-sm sm:text-base font-semibold text-gray-700 whitespace-nowrap flex-shrink-0">Phone:</span>
-                        <span className="text-sm sm:text-base text-gray-600 text-right whitespace-nowrap">{profileData.phone}</span>
-                      </div>
-                    )}
-                    
-                    {/* Responsibilities - Always Show */}
-                    <div className="flex flex-col gap-2 pt-1">
-                      <span className="text-sm sm:text-base font-semibold text-gray-700">Responsibility:</span>
-                      {profileData?.rolesAndResponsibility && profileData.rolesAndResponsibility.length > 0 ? (
-                        <ul className="list-disc list-inside space-y-1 ml-2">
-                          {profileData.rolesAndResponsibility.map((responsibility, index) => (
-                            <li key={index} className="text-sm sm:text-base text-gray-600">
-                              {responsibility}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <span className="text-sm sm:text-base text-gray-400 italic ml-2">No responsibilities listed</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="modern-hero__right">
-                <div className="modern-hero__time-card">
-                  <span className="time-pill">{formattedWeekday}</span>
-                  <p className="modern-hero__date">{formattedDate}</p>
-                  <p className="modern-hero__clock">{formattedClock}</p>
-                  <span className="modern-hero__live">Live time</span>
-                </div>
-                <div className="modern-hero__highlights">
-                  {heroHighlights.map((item) => (
-                    <div className="hero-highlight-card" key={item.label}>
-                      <span className="label">{item.label}</span>
-                      <strong className="value">{item.value}</strong>
-                      <span className="sub">{item.sub}</span>
-                    </div>
-                  ))}
-                </div>
-                {isSelf && (
-                  <button
-                    type="button"
-                    className="modern-hero__edit"
-                    onClick={() => setShowProfileEditor(true)}
-                  >
-                    Edit profile
-                  </button>
-                )}
-              </div>
-            </section>
-
-            <section className="quick-info-grid">
-              {quickInfoCards.map((card) => (
-                <div
-                  key={card.title}
-                  className="quick-info-card"
-                  data-accent={card.accent}
-                >
-                  <div>
-                    <p className="title">{card.title}</p>
-                    <p className="description">{card.description}</p>
-                  </div>
-                  {card.actionLabel && (
-                    <button
-                      type="button"
-                      className="quick-info-card__action"
-                      onClick={card.onClick}
-                    >
-                      {card.actionLabel}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </section>
-
-            <section className="action-hub-card">
-              <div className="action-hub-grid">
-                {quickActions.map((action) => (
-                  <button
-                    key={action.label}
-                    type="button"
-                    onClick={action.onClick}
-                    className="action-hub-tile"
-                    data-accent={action.accent}
-                  >
-                    <span className="action-hub-tile__icon">{action.icon}</span>
-                    <div>
-                      <p className="label">{action.label}</p>
-                      <p className="description">{action.description}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              <button type="button" className="logout-pill" onClick={onLogout}>
-                Logout
-              </button>
-            </section>
-
             <section className="stats-strip">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                 <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-green-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
