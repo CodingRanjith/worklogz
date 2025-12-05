@@ -6,7 +6,11 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import html2pdf from 'html2pdf.js';
 import { Button } from "@mui/material";  
-
+import { 
+  FiDownload, FiRefreshCw, FiFileText, FiCalendar, FiSearch,
+  FiBarChart2, FiUsers, FiTrendingUp
+} from 'react-icons/fi';
+import Loader from '../../components/admin-dashboard/common/Loader';
 
 import {
   Box,
@@ -52,6 +56,7 @@ import {
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import './Reports.css';
 
 
 
@@ -83,6 +88,7 @@ const Report = () => {
   const [schedules, setSchedules] = useState([]);
   const [holidays, setHolidays] = useState([]); // Add state for holidays
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
@@ -90,28 +96,31 @@ const Report = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const token = localStorage.getItem("token");
 
+  const fetchData = async () => {
+    try {
+      setRefreshing(true);
+      const headers = { Authorization: `Bearer ${token}` };
+      const year = selectedMonth.getFullYear();
+      const month = selectedMonth.getMonth() + 1; // Months are 1-indexed in API
+      
+      const [logsRes, schedulesRes, holidaysRes] = await Promise.all([
+        axios.get(API_ENDPOINTS.getRecentAttendanceLogs, { headers }),
+        axios.get(API_ENDPOINTS.getSchedules, { headers }),
+        axios.get(`${API_ENDPOINTS.getHolidaysByMonth}?year=${year}&month=${month}`, { headers })
+      ]);
+      
+      setLogs(logsRes.data);
+      setSchedules(schedulesRes.data);
+      setHolidays(holidaysRes.data);
+    } catch (err) {
+      console.error("Failed to fetch data:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const headers = { Authorization: `Bearer ${token}` };
-        const year = selectedMonth.getFullYear();
-        const month = selectedMonth.getMonth() + 1; // Months are 1-indexed in API
-        
-        const [logsRes, schedulesRes, holidaysRes] = await Promise.all([
-          axios.get(API_ENDPOINTS.getRecentAttendanceLogs, { headers }),
-          axios.get(API_ENDPOINTS.getSchedules, { headers }),
-          axios.get(`${API_ENDPOINTS.getHolidaysByMonth}?year=${year}&month=${month}`, { headers })
-        ]);
-        
-        setLogs(logsRes.data);
-        setSchedules(schedulesRes.data);
-        setHolidays(holidaysRes.data);
-      } catch (err) {
-        console.error("Failed to fetch data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchData();
   }, [token, selectedMonth]); // Add selectedMonth as dependency
 
@@ -391,36 +400,86 @@ const downloadDetailedExcel = () => {
 
 
   if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
+    return <Loader />;
   }
 
   return (
-    <ThemeProvider theme={theme}>
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Box sx={{ p: 3, maxWidth: "1800px", mx: "auto" }}>
-        
+    <div className="reports-page">
+      {/* Header Section */}
+      <div className="reports-header">
+        <div className="header-content">
+          <div>
+            <h1 className="page-title">Attendance Reports</h1>
+            <p className="page-subtitle">
+              Comprehensive monthly attendance analysis and insights
+            </p>
+          </div>
+          <div className="header-actions">
+            <button
+              onClick={fetchData}
+              disabled={refreshing}
+              className="btn-refresh"
+              title="Refresh Data"
+            >
+              <FiRefreshCw className={refreshing ? 'spinning' : ''} />
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button
+              onClick={downloadDetailedExcel}
+              className="btn-export"
+              title="Download Excel Report"
+            >
+              <FiDownload />
+              Download Excel
+            </button>
+          </div>
+        </div>
+      </div>
 
-        <Grid container spacing={3} mb={4}>
-          <Grid item xs={12} md={6}>
-            <DatePicker
-              views={["year", "month"]}
-              label="Select Month"
-              value={selectedMonth}
-              onChange={(newValue) => setSelectedMonth(newValue)}
-              renderInput={(params) => <TextField {...params} fullWidth />}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
+      {/* Filters Section */}
+      <div className="reports-filters">
+        <div className="filters-header">
+          <h2 className="section-title">
+            <FiBarChart2 className="section-icon" />
+            Report Filters
+          </h2>
+        </div>
+        <div className="filters-grid">
+          <div className="filter-group">
+            <label className="filter-label">
+              <FiCalendar className="filter-icon" />
+              Select Month
+            </label>
+            <ThemeProvider theme={theme}>
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  views={["year", "month"]}
+                  value={selectedMonth}
+                  onChange={(newValue) => setSelectedMonth(newValue)}
+                  renderInput={(params) => (
+                    <TextField 
+                      {...params} 
+                      fullWidth 
+                      className="filter-input"
+                      placeholder="Select Month"
+                    />
+                  )}
+                />
+              </LocalizationProvider>
+            </ThemeProvider>
+          </div>
+          <div className="filter-group">
+            <label className="filter-label">
+              <FiSearch className="filter-icon" />
+              Search Employee
+            </label>
             <TextField
               fullWidth
-              label="Search Employee"
               variant="outlined"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by employee name..."
+              className="filter-input"
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -429,23 +488,26 @@ const downloadDetailedExcel = () => {
                 ),
               }}
             />
-          </Grid>
-          <Grid item xs={12} md={6}>
-              
-  <Button variant="contained" color="primary" onClick={downloadDetailedExcel}>
-  Download Detailed Excel
-</Button>
-          </Grid>
-        </Grid>
+          </div>
+        </div>
+      </div>
 
-<Box id="report-content" >
-  <Stack direction="row" alignItems="center" spacing={2} mb={4}>
-  <h1 className="text-2xl font-bold text-blue-600">
-    
-    {monthYearLabel} User wise Attendance Report
-  </h1>
-  
-</Stack>
+      {/* Reports Content */}
+      <ThemeProvider theme={theme}>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <Box sx={{ maxWidth: "1800px", mx: "auto" }} className="reports-content">
+
+            <Box id="report-content" className="report-content-box">
+              <div className="report-title-section">
+                <h2 className="report-title">
+                  <FiFileText className="title-icon" />
+                  {monthYearLabel} - User Wise Attendance Report
+                </h2>
+                <div className="report-stats-badge">
+                  <FiUsers className="badge-icon" />
+                  {employees.length} {employees.length === 1 ? 'Employee' : 'Employees'}
+                </div>
+              </div>
 
 
 
@@ -754,11 +816,11 @@ const company = userInfo?.company || "Company not specified";
                </div>
             );
           })
-        )}
-      </Box>
-      </Box>
-    </LocalizationProvider>
-    </ThemeProvider>
+            )}
+          </Box>
+        </LocalizationProvider>
+      </ThemeProvider>
+    </div>
   );
 };
 
