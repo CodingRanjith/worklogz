@@ -103,8 +103,8 @@ function App() {
         if (isExpired) {
           localStorage.removeItem('token');
         } else {
-          // Only redirect if user is on login page or root page
-          if (currentPath === '/' || currentPath === '/login') {
+          // Only redirect if user is on login page
+          if (currentPath === '/login') {
             if (decoded.role === 'admin') navigate('/dashboard');
             else if (decoded.role === 'employee') navigate('/attendance');
           }
@@ -120,11 +120,11 @@ function App() {
       <Routes>
 
         {/* Landing Page */}
+        <Route path="/" element={<LandingPage />} />
         <Route path="/home" element={<LandingPage />} />
         <Route path="/landing" element={<LandingPage />} />
 
         {/* Public Routes */}
-        <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/attendance" element={<AttendancePage />} />
