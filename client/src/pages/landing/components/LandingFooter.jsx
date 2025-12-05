@@ -14,14 +14,14 @@ const LandingFooter = () => {
               <span className="logo-text">Worklogz</span>
             </div>
             <p className="footer-tagline">
-              Comprehensive workforce management platform for modern organizations.
+              Complete business management platform for companies of all sizes. From attendance to everything your company needs.
             </p>
             <div className="social-links">
-              <a href="#" aria-label="Facebook"><FiFacebook /></a>
-              <a href="#" aria-label="Twitter"><FiTwitter /></a>
-              <a href="#" aria-label="LinkedIn"><FiLinkedin /></a>
-              <a href="#" aria-label="Instagram"><FiInstagram /></a>
-              <a href="#" aria-label="GitHub"><FiGithub /></a>
+              <a href="https://www.facebook.com/worklogz" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FiFacebook /></a>
+              <a href="https://www.twitter.com/worklogz" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><FiTwitter /></a>
+              <a href="https://www.linkedin.com/company/techackode-" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><FiLinkedin /></a>
+              <a href="https://www.instagram.com/worklogz" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><FiInstagram /></a>
+              <a href="https://www.github.com/worklogz" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><FiGithub /></a>
             </div>
           </div>
 
@@ -55,6 +55,43 @@ const LandingFooter = () => {
               <li><Link to="/docs/contact">Partners</Link></li>
               <li><Link to="/docs/contact">Careers</Link></li>
             </ul>
+            <div className="team-info" style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #2a2a2a' }}>
+              <p style={{ fontSize: '13px', color: '#9ca3af', marginBottom: '8px', fontWeight: '500' }}>Developed by Techackode</p>
+              <a 
+                href="https://www.linkedin.com/company/techackode-" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                style={{ color: '#6366f1', textDecoration: 'none', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', marginBottom: '12px' }}
+                onMouseEnter={(e) => e.target.style.color = '#8b5cf6'}
+                onMouseLeave={(e) => e.target.style.color = '#6366f1'}
+              >
+                Techackode <FiLinkedin style={{ fontSize: '12px' }} />
+              </a>
+              <p style={{ fontSize: '12px', color: '#9ca3af', marginTop: '12px', marginBottom: '8px' }}>Team:</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '12px' }}>
+                <a href="https://www.linkedin.com/in/coding-ranjith/" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => e.target.style.color = '#ffffff'}
+                  onMouseLeave={(e) => e.target.style.color = '#9ca3af'}
+                >
+                  C. Ranjith Kumar <FiLinkedin style={{ fontSize: '11px' }} />
+                </a>
+                <a href="https://www.linkedin.com/in/gayathrib-dev/" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => e.target.style.color = '#ffffff'}
+                  onMouseLeave={(e) => e.target.style.color = '#9ca3af'}
+                >
+                  Gayathri B <FiLinkedin style={{ fontSize: '11px' }} />
+                </a>
+                <a href="https://www.linkedin.com/in/pushparajraje/" target="_blank" rel="noopener noreferrer" style={{ color: '#9ca3af', textDecoration: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => e.target.style.color = '#ffffff'}
+                  onMouseLeave={(e) => e.target.style.color = '#9ca3af'}
+                >
+                  Pushparaj Raje <FiLinkedin style={{ fontSize: '11px' }} />
+                </a>
+              </div>
+              <p style={{ fontSize: '11px', color: '#6b7280', fontStyle: 'italic', lineHeight: '1.4' }}>
+                Worklogz is a product of <strong style={{ color: '#9ca3af' }}>Techackode</strong>
+              </p>
+            </div>
           </div>
 
           <div className="footer-column">
