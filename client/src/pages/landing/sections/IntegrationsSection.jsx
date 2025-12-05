@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiPlug, FiCode, FiWebhook, FiCheckCircle } from 'react-icons/fi';
+import { FiZap, FiCode, FiActivity, FiCheckCircle } from 'react-icons/fi';
 import './IntegrationsSection.css';
 
 const IntegrationsSection = () => {
@@ -29,12 +29,12 @@ const IntegrationsSection = () => {
         <div className="integrations-content">
           <div className="integrations-features">
             <div className="integration-feature-card">
-              <FiPlug className="feature-icon" />
+              <FiZap className="feature-icon" />
               <h3>RESTful API</h3>
               <p>Standard REST API for custom integrations and automation</p>
             </div>
             <div className="integration-feature-card">
-              <FiWebhook className="feature-icon" />
+              <FiActivity className="feature-icon" />
               <h3>Webhooks</h3>
               <p>Real-time notifications and event triggers for your systems</p>
             </div>
