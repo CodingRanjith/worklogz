@@ -178,15 +178,22 @@ const TaskManager = () => {
       const data = await response.json();
       let usersData = data.users || data || [];
       
-      // If user is a team lead (not admin), filter to only show team members
-      if (isTeamLead && currentUserRole !== 'admin' && teamMemberIds.length > 0) {
+      // Only filter if user is a team lead AND not an admin
+      // Admins should always see all users without any filtering
+      if (currentUserRole === 'admin') {
+        // Admin: show all users, no filtering
+        setUsers(usersData);
+      } else if (isTeamLead && teamMemberIds.length > 0) {
+        // Team lead: filter to only show team members
         usersData = usersData.filter(user => {
           const userId = user._id || user.id;
           return teamMemberIds.includes(userId.toString());
         });
+        setUsers(usersData);
+      } else {
+        // Regular employee or no team members: show all (or empty if not team lead)
+        setUsers(usersData);
       }
-      
-      setUsers(usersData);
       
       // Fetch task counts for each user
       await fetchUserTaskCounts(usersData);
