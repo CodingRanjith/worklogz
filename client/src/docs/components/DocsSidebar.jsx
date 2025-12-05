@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
-  FiChevronDown, FiChevronRight, FiHome, FiLayers, FiUsers,
-  FiCalendar, FiBarChart2, FiFileText, FiDollarSign, FiClipboard,
-  FiBriefcase, FiHelpCircle, FiSettings, FiCamera, FiTrendingUp,
-  FiClock, FiTarget, FiAward, FiMail, FiFolder, FiGrid, FiCode,
-  FiZap, FiShield, FiGlobe, FiPackage, FiStar
+  FiChevronDown, FiChevronRight, FiHome, FiTarget, FiLayers,
+  FiBarChart2, FiShield, FiSettings, FiCloud, FiUsers, FiCode,
+  FiTrendingUp, FiZap, FiDollarSign, FiCheckCircle, FiGlobe,
+  FiAward, FiHelpCircle, FiFileText, FiGift, FiMap, FiMessageCircle,
+  FiMail, FiGitBranch
 } from 'react-icons/fi';
 import './DocsSidebar.css';
 
@@ -16,37 +16,93 @@ const menuItems = [
     icon: <FiHome />
   },
   {
-    label: 'Getting Started',
-    icon: <FiZap />,
+    label: 'Core Purpose',
+    path: '/docs/core-purpose',
+    icon: <FiTarget />
+  },
+  {
+    label: 'Features Overview',
+    path: '/docs/features-overview',
+    icon: <FiLayers />
+  },
+  {
+    label: 'Detailed Features',
+    path: '/docs/detailed-features',
+    icon: <FiBarChart2 />
+  },
+  {
+    label: 'Challenges Solved',
+    path: '/docs/challenges',
+    icon: <FiCheckCircle />
+  },
+  {
+    label: 'Industries',
+    path: '/docs/industries',
+    icon: <FiGlobe />
+  },
+  {
+    label: 'Technology Stack',
+    path: '/docs/technology-stack',
+    icon: <FiCode />
+  },
+  {
+    label: 'Deployment',
+    icon: <FiCloud />,
     children: [
-      { label: 'Quick Start', path: '/docs/getting-started/quick-start' }
+      { label: 'Deployment Options', path: '/docs/deployment-options' },
+      { label: 'Self-Hosted Solution', path: '/docs/self-hosted' },
+      { label: 'User Capacity & Scalability', path: '/docs/scalability' }
     ]
   },
   {
-    label: 'Features',
+    label: 'Access & Customization',
     icon: <FiUsers />,
     children: [
-      { label: 'Attendance', path: '/docs/employee/attendance' },
-      { label: 'Timesheet', path: '/docs/employee/timesheet' },
-      { label: 'Leave Management', path: '/docs/employee/leave' },
-      { label: 'Performance Dashboard', path: '/docs/employee/performance' },
-      { label: 'Goals & Achievements', path: '/docs/employee/goals' },
-      { label: 'My Earnings', path: '/docs/employee/earnings' },
-      { label: 'Calendar View', path: '/docs/employee/calendar' },
-      { label: 'Skill Development', path: '/docs/employee/skills' },
-      { label: 'Community Hub', path: '/docs/employee/community' },
-      { label: 'My Workspace', path: '/docs/employee/workspace' }
+      { label: 'Role-Based Access', path: '/docs/role-based-access' },
+      { label: 'Customization Options', path: '/docs/customization' },
+      { label: 'White-Labeling Process', path: '/docs/white-labeling' }
     ]
   },
   {
-    label: 'Component Showcase',
-    icon: <FiLayers />,
-    path: '/docs/components/showcase'
+    label: 'Business',
+    icon: <FiDollarSign />,
+    children: [
+      { label: 'Pricing Plans', path: '/docs/pricing' },
+      { label: 'Data Security', path: '/docs/security' },
+      { label: 'Integration Capabilities', path: '/docs/integrations' }
+    ]
+  },
+  {
+    label: 'Operations',
+    icon: <FiZap />,
+    children: [
+      { label: 'Performance & Reliability', path: '/docs/performance' },
+      { label: 'User Onboarding', path: '/docs/onboarding' },
+      { label: 'Support & Maintenance', path: '/docs/support' }
+    ]
+  },
+  {
+    label: 'Resources',
+    icon: <FiFileText />,
+    children: [
+      { label: 'Software Comparison', path: '/docs/comparison' },
+      { label: 'Testimonials & Cases', path: '/docs/testimonials' },
+      { label: 'Roadmap & Future', path: '/docs/roadmap' },
+      { label: 'FAQ Section', path: '/docs/faq' }
+    ]
+  },
+  {
+    label: 'Legal & Contact',
+    icon: <FiMail />,
+    children: [
+      { label: 'Legal & Licensing', path: '/docs/legal' },
+      { label: 'Contact & Sales', path: '/docs/contact' }
+    ]
   }
 ];
 
 const DocsSidebar = ({ open, currentPath }) => {
-  const [expandedItems, setExpandedItems] = useState(['Getting Started', 'Features']);
+  const [expandedItems, setExpandedItems] = useState(['Deployment', 'Access & Customization']);
 
   const toggleItem = (label) => {
     setExpandedItems(prev => 
@@ -115,4 +171,3 @@ const DocsSidebar = ({ open, currentPath }) => {
 };
 
 export default DocsSidebar;
-

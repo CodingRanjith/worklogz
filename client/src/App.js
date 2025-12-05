@@ -60,20 +60,32 @@ import Plans from './pages/admin/Plans';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 
-// Documentation Pages - User/Client Side Only
+// Documentation Pages
 import Introduction from './docs/pages/Introduction';
-import ComponentsShowcase from './docs/pages/components/Showcase';
-import QuickStart from './docs/pages/getting-started/QuickStart';
-import EmployeeAttendance from './docs/pages/employee/Attendance';
-import EmployeeTimesheet from './docs/pages/employee/Timesheet';
-import EmployeeLeave from './docs/pages/employee/Leave';
-import EmployeePerformance from './docs/pages/employee/Performance';
-import EmployeeGoals from './docs/pages/employee/Goals';
-import EmployeeEarnings from './docs/pages/employee/Earnings';
-import EmployeeCalendar from './docs/pages/employee/Calendar';
-import EmployeeSkills from './docs/pages/employee/Skills';
-import EmployeeCommunity from './docs/pages/employee/Community';
-import EmployeeWorkspace from './docs/pages/employee/Workspace';
+import CorePurpose from './docs/pages/CorePurpose';
+import FeaturesOverview from './docs/pages/FeaturesOverview';
+import DetailedFeatures from './docs/pages/DetailedFeatures';
+import Challenges from './docs/pages/Challenges';
+import Industries from './docs/pages/Industries';
+import TechnologyStack from './docs/pages/TechnologyStack';
+import DeploymentOptions from './docs/pages/DeploymentOptions';
+import SelfHosted from './docs/pages/SelfHosted';
+import Scalability from './docs/pages/Scalability';
+import RoleBasedAccess from './docs/pages/RoleBasedAccess';
+import Customization from './docs/pages/Customization';
+import WhiteLabeling from './docs/pages/WhiteLabeling';
+import Pricing from './docs/pages/Pricing';
+import Security from './docs/pages/Security';
+import Integrations from './docs/pages/Integrations';
+import Performance from './docs/pages/Performance';
+import Onboarding from './docs/pages/Onboarding';
+import Comparison from './docs/pages/Comparison';
+import Testimonials from './docs/pages/Testimonials';
+import Support from './docs/pages/Support';
+import Roadmap from './docs/pages/Roadmap';
+import FAQ from './docs/pages/FAQ';
+import Legal from './docs/pages/Legal';
+import Contact from './docs/pages/Contact';
 
 function App() {
    const navigate = useNavigate();
@@ -120,20 +132,32 @@ function App() {
         <Route path="/performance" element={<PerformanceDashboard />} />
         <Route path="/my-earnings" element={<MyEarnings />} />
         
-        {/* Documentation Routes - User/Client Side Only */}
+        {/* Documentation Routes */}
         <Route path="/docs" element={<Introduction />} />
-        <Route path="/docs/getting-started/quick-start" element={<QuickStart />} />
-        <Route path="/docs/components/showcase" element={<ComponentsShowcase />} />
-        <Route path="/docs/employee/attendance" element={<EmployeeAttendance />} />
-        <Route path="/docs/employee/timesheet" element={<EmployeeTimesheet />} />
-        <Route path="/docs/employee/leave" element={<EmployeeLeave />} />
-        <Route path="/docs/employee/performance" element={<EmployeePerformance />} />
-        <Route path="/docs/employee/goals" element={<EmployeeGoals />} />
-        <Route path="/docs/employee/earnings" element={<EmployeeEarnings />} />
-        <Route path="/docs/employee/calendar" element={<EmployeeCalendar />} />
-        <Route path="/docs/employee/skills" element={<EmployeeSkills />} />
-        <Route path="/docs/employee/community" element={<EmployeeCommunity />} />
-        <Route path="/docs/employee/workspace" element={<EmployeeWorkspace />} />
+        <Route path="/docs/core-purpose" element={<CorePurpose />} />
+        <Route path="/docs/features-overview" element={<FeaturesOverview />} />
+        <Route path="/docs/detailed-features" element={<DetailedFeatures />} />
+        <Route path="/docs/challenges" element={<Challenges />} />
+        <Route path="/docs/industries" element={<Industries />} />
+        <Route path="/docs/technology-stack" element={<TechnologyStack />} />
+        <Route path="/docs/deployment-options" element={<DeploymentOptions />} />
+        <Route path="/docs/self-hosted" element={<SelfHosted />} />
+        <Route path="/docs/scalability" element={<Scalability />} />
+        <Route path="/docs/role-based-access" element={<RoleBasedAccess />} />
+        <Route path="/docs/customization" element={<Customization />} />
+        <Route path="/docs/white-labeling" element={<WhiteLabeling />} />
+        <Route path="/docs/pricing" element={<Pricing />} />
+        <Route path="/docs/security" element={<Security />} />
+        <Route path="/docs/integrations" element={<Integrations />} />
+        <Route path="/docs/performance" element={<Performance />} />
+        <Route path="/docs/onboarding" element={<Onboarding />} />
+        <Route path="/docs/comparison" element={<Comparison />} />
+        <Route path="/docs/testimonials" element={<Testimonials />} />
+        <Route path="/docs/support" element={<Support />} />
+        <Route path="/docs/roadmap" element={<Roadmap />} />
+        <Route path="/docs/faq" element={<FAQ />} />
+        <Route path="/docs/legal" element={<Legal />} />
+        <Route path="/docs/contact" element={<Contact />} />
 
         {/* Protected Admin Layout Wrapper */}
         <Route element={<Layout />}>
