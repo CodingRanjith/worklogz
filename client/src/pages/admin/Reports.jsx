@@ -816,7 +816,8 @@ const company = userInfo?.company || "Company not specified";
                </div>
             );
           })
-            )}
+        )}
+            </Box>
           </Box>
         </LocalizationProvider>
       </ThemeProvider>
