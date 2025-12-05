@@ -57,6 +57,18 @@ export const API_ENDPOINTS = {
   // getUserById: (id) => `${BASE_URL}/users/${id}`,
   // getAttendanceByUser: (id) => `${BASE_URL}/attendance/user/${id}`,
 
+  // -----------------
+  // Team Management APIs
+  // -----------------
+  getTeams: `${BASE_URL}/api/teams`,
+  createTeam: `${BASE_URL}/api/teams`,
+  getTeamById: (teamId) => `${BASE_URL}/api/teams/${teamId}`,
+  updateTeam: (teamId) => `${BASE_URL}/api/teams/${teamId}`,
+  deleteTeam: (teamId) => `${BASE_URL}/api/teams/${teamId}`,
+  getMyTeams: `${BASE_URL}/api/teams/me`,
+  addTeamMembers: (teamId) => `${BASE_URL}/api/teams/${teamId}/members`,
+  removeTeamMember: (teamId, memberId) => `${BASE_URL}/api/teams/${teamId}/members/${memberId}`,
+
 
   // -----------------
   // Attendance APIs
@@ -212,6 +224,15 @@ export const API_ENDPOINTS = {
   editCreditTransaction: (transactionId) => `${BASE_URL}/api/daily-salary/credit-transaction/${transactionId}`,
   deleteCreditTransaction: (transactionId) => `${BASE_URL}/api/daily-salary/credit-transaction/${transactionId}`,
   baseURL: BASE_URL,
+
+  // -----------------
+  // Notification APIs
+  // -----------------
+  getNotifications: `${BASE_URL}/api/notifications`,
+  getUnreadCount: `${BASE_URL}/api/notifications/unread-count`,
+  markNotificationAsRead: (id) => `${BASE_URL}/api/notifications/${id}/read`,
+  markAllNotificationsAsRead: `${BASE_URL}/api/notifications/read-all`,
+  deleteNotification: (id) => `${BASE_URL}/api/notifications/${id}`,
 
 };
 

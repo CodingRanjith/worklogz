@@ -147,11 +147,13 @@ app.use('/api/work-cards', require('./routes/workCardRoutes'));
 app.use('/api/daily-salary', require('./routes/dailySalaryRoutes'));
 app.use('/api/engagement', require('./routes/achievementRoutes'));
 app.use('/api/crm', require('./routes/crmRoutes'));
+app.use('/api/teams', require('./routes/teamRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 app.use('/api/community', require('./routes/communityRoutes'));
 app.use('/api/helpdesk', require('./routes/helpdeskRoutes'));
 app.use('/api/assistant', require('./routes/assistantRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Default Admin Setup
 const User = require('./models/User');

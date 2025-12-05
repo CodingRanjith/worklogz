@@ -20,6 +20,7 @@ import Employees from './pages/admin/Employees';
 import Attendance from './pages/admin/Attendance';
 import Reports from './pages/admin/Reports';
 import LeaveRequestsAdmin from './pages/admin/LeaveRequests';
+import AdministrationAccess from './pages/admin/AdministrationAccess';
 
 
 import AttendancePage from './pages/employee/AttendancePage';
@@ -29,12 +30,22 @@ import GoalsAchievements from './pages/employee/GoalsAchievements';
 import CalendarView from './pages/employee/CalendarView';
 import PerformanceDashboard from './pages/employee/PerformanceDashboard';
 import MyEarnings from './pages/employee/MyEarnings';
+import CommunityPage from './pages/employee/CommunityPage';
+import WorkspacePage from './pages/employee/WorkspacePage';
+import ApplicationsPage from './pages/employee/ApplicationsPage';
+import PeoplePage from './pages/employee/PeoplePage';
+import AICopilotPage from './pages/employee/AICopilotPage';
+import DocumentCenter from './pages/employee/DocumentCenter';
+import HelpdeskPage from './pages/employee/HelpdeskPage';
+import HomePage from './pages/employee/HomePage';
+import NotificationPage from './pages/employee/NotificationPage';
 import EditUser from './components/EditUser';
 import PendingUsers from './pages/admin/PendingUsers';
 import AllUsers from './pages/admin/AllUsers';
 import Holidays from './pages/admin/Holidays';
 import TimeSheet from './pages/employee/Timesheet';
 import SkillDevelopment from './pages/employee/SkillDevelopment';
+import EmployeeTeamManagement from './pages/employee/TeamManagement';
 import PayslipGenerator from './pages/admin/PayslipGenerator';
 import PayslipList from './pages/admin/PayslipList';
 import TaskManager from './pages/admin/TaskManager';
@@ -57,8 +68,10 @@ import ITProjectsCRM from './pages/admin/ITProjectsCRM';
 import ProjectsWorkspace from './pages/admin/ProjectsWorkspace';
 import Helpdesk from './pages/admin/Helpdesk';
 import Plans from './pages/admin/Plans';
+import TeamManagement from './pages/admin/TeamManagement';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
+import EmployeeLayout from './components/employee-dashboard/layout/EmployeeLayout';
 
 // Documentation Pages
 import Introduction from './docs/pages/Introduction';
@@ -121,14 +134,23 @@ function App() {
 
         {/* Landing Page */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<LandingPage />} />
         <Route path="/landing" element={<LandingPage />} />
 
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Protected Employee Layout Wrapper */}
+        <Route element={<EmployeeLayout />}>
+          <Route path="/home" element={<HomePage />} />
         <Route path="/attendance" element={<AttendancePage />} />
         <Route path="/attendance/:userId" element={<AttendancePage />} />
+          <Route path="/notifications" element={<NotificationPage />} />
+          <Route path="/employee/community" element={<CommunityPage />} />
+          <Route path="/employee/workspace" element={<WorkspacePage />} />
+          <Route path="/employee/applications" element={<ApplicationsPage />} />
+          <Route path="/employee/people" element={<PeoplePage />} />
+          <Route path="/employee/ai" element={<AICopilotPage />} />
         <Route path="/apply-leave" element={<LeaveManagement />} />
         <Route path="/timesheet" element={<TimeSheet />} />
         <Route path="/skill-development" element={<SkillDevelopment />} />
@@ -136,6 +158,11 @@ function App() {
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/performance" element={<PerformanceDashboard />} />
         <Route path="/my-earnings" element={<MyEarnings />} />
+        <Route path="/team-management" element={<EmployeeTeamManagement />} />
+          <Route path="/documents" element={<DocumentCenter />} />
+          <Route path="/helpdesk" element={<HelpdeskPage />} />
+          <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Employee Sidebar */}
+        </Route>
         
         {/* Documentation Routes */}
         <Route path="/docs" element={<Introduction />} />
@@ -175,7 +202,6 @@ function App() {
           <Route path="/holidays" element={<Holidays />} />
           <Route path="/payslip" element={<PayslipGenerator />} />
           <Route path="/leave-requests" element={<LeaveRequestsAdmin />} />
-          <Route path="/task-manager" element={<TaskManager />} />
           <Route path="/user-timesheet/:userId" element={<UserTimesheet />} />
           <Route path="/company-worklogz" element={<CompanyWorklogz />} />
           <Route path="/company-departments" element={<CompanyDepartments />} />
@@ -192,9 +218,11 @@ function App() {
           <Route path="/relieving-letters" element={<RelievingLetters />} />
           <Route path="/upload-documents" element={<UploadDocuments />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/administration/access-control" element={<AdministrationAccess />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />
           <Route path="/helpdesk" element={<Helpdesk />} />
           <Route path="/plans" element={<Plans />} />
+          <Route path="/admin/team-management" element={<TeamManagement />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

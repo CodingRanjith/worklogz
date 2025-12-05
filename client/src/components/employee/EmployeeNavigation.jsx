@@ -1,36 +1,76 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import { 
   FiCalendar, 
   FiClock, 
   FiFileText, 
-  FiTrendingUp, 
-  FiTarget, 
+  FiBriefcase,
+  FiUsers,
+  FiGrid,
+  FiUser,
+  FiHelpCircle,
+  FiStar,
   FiLogOut, 
   FiMenu, 
   FiX,
-  FiUser,
-  FiDollarSign
+  FiDollarSign,
+  FiTrendingUp,
+  FiTarget,
+  FiBook
 } from 'react-icons/fi';
+import { filterMenuByPaths, getAccessForUser } from '../../utils/sidebarAccess';
+
+export const employeeMenuItems = [
+  { path: '/attendance', icon: <FiClock />, label: 'Attendance', color: 'blue' },
+  { path: '/employee/community', icon: <FiUsers />, label: 'Community', color: 'indigo' },
+  { path: '/employee/workspace', icon: <FiBriefcase />, label: 'My Workspace', color: 'purple' },
+  { path: '/timesheet', icon: <FiFileText />, label: 'Team Task Manager', color: 'teal' },
+  { path: '/my-earnings', icon: <FiDollarSign />, label: 'Salary', color: 'emerald' },
+  { path: '/apply-leave', icon: <FiCalendar />, label: 'Leave Management', color: 'orange' },
+  { path: '/skill-development', icon: <FiBook />, label: 'Skill Development', color: 'amber' },
+  { path: '/goals-achievements', icon: <FiTarget />, label: 'Goals & Achievements', color: 'yellow' },
+  { path: '/calendar', icon: <FiCalendar />, label: 'Calendar View', color: 'pink' },
+  { path: '/performance', icon: <FiTrendingUp />, label: 'Performance', color: 'green' },
+  { path: '/employee/applications', icon: <FiGrid />, label: 'Applications', color: 'pink' },
+  { path: '/employee/people', icon: <FiUser />, label: 'People', color: 'cyan' },
+  { path: '/team-management', icon: <FiUsers />, label: 'Team Management', color: 'yellow' },
+  { path: '/documents', icon: <FiFileText />, label: 'Document Center', color: 'gray' },
+  { path: '/helpdesk', icon: <FiHelpCircle />, label: 'Helpdesk', color: 'slate' },
+  { path: '/employee/ai', icon: <FiStar />, label: 'AI Copilot', color: 'violet' },
+];
 
 const EmployeeNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const token = localStorage.getItem('token');
+
+  const currentUserId = useMemo(() => {
+    if (!token) return null;
+    try {
+      const decoded = jwtDecode(token);
+      return decoded.userId || decoded.id || decoded._id || null;
+    } catch (err) {
+      console.warn('Failed to decode token for navigation filtering', err);
+      return null;
+    }
+  }, [token]);
+
+  const allowedPaths = useMemo(
+    () => (currentUserId ? getAccessForUser(currentUserId, 'employee') : null),
+    [currentUserId]
+  );
+
+  const visibleMenuItems = useMemo(
+    () => filterMenuByPaths(employeeMenuItems, allowedPaths),
+    [allowedPaths]
+  );
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
-
-  const menuItems = [
-    { path: '/attendance', icon: <FiClock />, label: 'Attendance', color: 'blue' },
-    { path: '/timesheet', icon: <FiFileText />, label: 'Timesheet', color: 'indigo' },
-    { path: '/apply-leave', icon: <FiCalendar />, label: 'Apply Leave', color: 'purple' },
-    { path: '/performance', icon: <FiTrendingUp />, label: 'Performance', color: 'green' },
-    { path: '/goals-achievements', icon: <FiTarget />, label: 'Goals & Achievements', color: 'yellow' },
-    { path: '/calendar', icon: <FiCalendar />, label: 'My Calendar', color: 'pink' },
-  ];
 
   const isActive = (path) => location.pathname === path;
 
@@ -42,8 +82,16 @@ const EmployeeNavigation = () => {
       green: active ? 'bg-green-100 text-green-600 border-l-4 border-green-600' : 'text-gray-600 hover:bg-green-50',
       yellow: active ? 'bg-yellow-100 text-yellow-600 border-l-4 border-yellow-600' : 'text-gray-600 hover:bg-yellow-50',
       pink: active ? 'bg-pink-100 text-pink-600 border-l-4 border-pink-600' : 'text-gray-600 hover:bg-pink-50',
+      amber: active ? 'bg-amber-100 text-amber-600 border-l-4 border-amber-600' : 'text-gray-600 hover:bg-amber-50',
+      teal: active ? 'bg-teal-100 text-teal-600 border-l-4 border-teal-600' : 'text-gray-600 hover:bg-teal-50',
+      emerald: active ? 'bg-emerald-100 text-emerald-600 border-l-4 border-emerald-600' : 'text-gray-600 hover:bg-emerald-50',
+      orange: active ? 'bg-orange-100 text-orange-600 border-l-4 border-orange-600' : 'text-gray-600 hover:bg-orange-50',
+      cyan: active ? 'bg-cyan-100 text-cyan-600 border-l-4 border-cyan-600' : 'text-gray-600 hover:bg-cyan-50',
+      gray: active ? 'bg-gray-100 text-gray-600 border-l-4 border-gray-600' : 'text-gray-600 hover:bg-gray-50',
+      slate: active ? 'bg-slate-100 text-slate-600 border-l-4 border-slate-600' : 'text-gray-600 hover:bg-slate-50',
+      violet: active ? 'bg-violet-100 text-violet-600 border-l-4 border-violet-600' : 'text-gray-600 hover:bg-violet-50',
     };
-    return colors[color];
+    return colors[color] || colors.blue;
   };
 
   return (
@@ -86,7 +134,7 @@ const EmployeeNavigation = () => {
 
           {/* Menu Items */}
           <div className="flex-1 overflow-y-auto py-4">
-            {menuItems.map((item) => (
+            {visibleMenuItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}

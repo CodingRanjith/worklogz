@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Sidebar from './Sidebar';
-import TopNavbar from './TopNavbar';
+import EmployeeSidebar from './EmployeeSidebar';
+import EmployeeTopNavbar from './EmployeeTopNavbar';
 import { Outlet } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../../utils/api';
 import { useNavigate } from 'react-router-dom';
 
-const Layout = () => {
+const EmployeeLayout = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -48,7 +48,7 @@ const Layout = () => {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <Sidebar 
+      <EmployeeSidebar 
         isOpen={sidebarOpen} 
         setIsOpen={setSidebarOpen}
         onCollapseChange={setSidebarCollapsed}
@@ -60,17 +60,16 @@ const Layout = () => {
         sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'
       }`}>
         {/* Top navbar - fixed position */}
-        <TopNavbar setSidebarOpen={setSidebarOpen} />
+        <EmployeeTopNavbar setSidebarOpen={setSidebarOpen} sidebarCollapsed={sidebarCollapsed} />
         
         {/* Main content - padding-top to account for fixed navbar height */}
-        <main className="flex-1 pt-16 p-6 overflow-y-auto"> {/* pt-16 matches navbar height */}
-          <div className="max-w-7xl mx-auto">
-            <Outlet />
-          </div>
+        <main className="flex-1 pt-16 overflow-y-auto bg-gray-50">
+          <Outlet />
         </main>
       </div>
     </div>
   );
 };
 
-export default Layout;
+export default EmployeeLayout;
+

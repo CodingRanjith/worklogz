@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUser, FiMail, FiPhone, FiCalendar, FiEye, FiSearch, FiPlus, FiX, FiBriefcase } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 import { API_ENDPOINTS, createTask, getAllTasksWithFilters } from '../../utils/api';
 
 // Company departments list (matching CompanyDepartments.jsx)
@@ -35,6 +37,9 @@ const TaskManager = () => {
   const [lastUpdated, setLastUpdated] = useState(Date.now());
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [refreshInterval, setRefreshInterval] = useState(null);
+  const [isTeamLead, setIsTeamLead] = useState(false);
+  const [teamMemberIds, setTeamMemberIds] = useState([]);
+  const [currentUserRole, setCurrentUserRole] = useState(null);
   const [taskForm, setTaskForm] = useState({
     title: '',
     description: '',
@@ -50,9 +55,76 @@ const TaskManager = () => {
   const [userSearchTerm, setUserSearchTerm] = useState(''); // For filtering users in multi-select
   const navigate = useNavigate();
 
+  // Check user role and team lead status
   useEffect(() => {
-    fetchUsers();
+    const checkUserRoleAndTeams = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        // Decode token to get user role and ID
+        const decoded = jwtDecode(token);
+        const userId = decoded.userId || decoded.id || decoded._id;
+        const userRole = decoded.role;
+        setCurrentUserRole(userRole);
+
+        // If user is admin, they can see all users
+        if (userRole === 'admin') {
+          setIsTeamLead(false);
+          setTeamMemberIds([]);
+          return;
+        }
+
+        // Check if user is a team lead
+        const response = await axios.get(API_ENDPOINTS.getMyTeams, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const teams = response.data || [];
+        
+        // Check if user is a team lead in any team
+        const userIsTeamLead = teams.some(team => {
+          const teamLeadId = team.teamLead?._id || team.teamLead;
+          return teamLeadId && (teamLeadId.toString() === userId.toString() || teamLeadId === userId);
+        });
+
+        if (userIsTeamLead) {
+          setIsTeamLead(true);
+          // Collect all team member IDs from teams where user is team lead
+          const memberIds = new Set();
+          teams.forEach(team => {
+            const teamLeadId = team.teamLead?._id || team.teamLead;
+            if (teamLeadId && (teamLeadId.toString() === userId.toString() || teamLeadId === userId)) {
+              // Add all members of this team
+              if (team.members && Array.isArray(team.members)) {
+                team.members.forEach(member => {
+                  const memberId = member._id || member;
+                  if (memberId && memberId.toString() !== userId.toString()) {
+                    memberIds.add(memberId.toString());
+                  }
+                });
+              }
+            }
+          });
+          setTeamMemberIds(Array.from(memberIds));
+        } else {
+          setIsTeamLead(false);
+          setTeamMemberIds([]);
+        }
+      } catch (error) {
+        console.error('Error checking user role and teams:', error);
+        setIsTeamLead(false);
+        setTeamMemberIds([]);
+      }
+    };
+
+    checkUserRoleAndTeams();
   }, []);
+
+  useEffect(() => {
+    if (currentUserRole !== null) { // Only fetch after role is determined
+      fetchUsers();
+    }
+  }, [teamMemberIds, isTeamLead, currentUserRole]);
 
   useEffect(() => {
     let filtered = users.filter(user => 
@@ -104,7 +176,16 @@ const TaskManager = () => {
       });
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
-      const usersData = data.users || data || [];
+      let usersData = data.users || data || [];
+      
+      // If user is a team lead (not admin), filter to only show team members
+      if (isTeamLead && currentUserRole !== 'admin' && teamMemberIds.length > 0) {
+        usersData = usersData.filter(user => {
+          const userId = user._id || user.id;
+          return teamMemberIds.includes(userId.toString());
+        });
+      }
+      
       setUsers(usersData);
       
       // Fetch task counts for each user
@@ -381,14 +462,25 @@ const TaskManager = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Task Manager</h1>
-              <p className="text-gray-600">Manage and view employee timesheets and tasks</p>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold text-gray-900">Task Manager</h1>
+                {isTeamLead && currentUserRole !== 'admin' && (
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
+                    Team Lead View
+                  </span>
+                )}
+              </div>
+              <p className="text-gray-600">
+                {isTeamLead && currentUserRole !== 'admin' 
+                  ? 'Manage and view tasks for your team members only'
+                  : 'Manage and view employee timesheets and tasks'}
+              </p>
             </div>
             <button
               onClick={handleCreateTask}
