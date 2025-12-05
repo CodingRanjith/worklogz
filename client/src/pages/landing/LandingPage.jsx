@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
 import LandingHeader from './components/LandingHeader';
 import LandingFooter from './components/LandingFooter';
 import HeroSection from './sections/HeroSection';
