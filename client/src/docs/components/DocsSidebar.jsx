@@ -50,7 +50,6 @@ const menuItems = [
     icon: <FiCloud />,
     children: [
       { label: 'Deployment Options', path: '/docs/deployment-options' },
-      { label: 'Self-Hosted Solution', path: '/docs/self-hosted' },
       { label: 'User Capacity & Scalability', path: '/docs/scalability' }
     ]
   },
@@ -86,7 +85,6 @@ const menuItems = [
     icon: <FiFileText />,
     children: [
       { label: 'Software Comparison', path: '/docs/comparison' },
-      { label: 'Testimonials & Cases', path: '/docs/testimonials' },
       { label: 'Roadmap & Future', path: '/docs/roadmap' },
       { label: 'FAQ Section', path: '/docs/faq' }
     ]

@@ -69,7 +69,6 @@ import Challenges from './docs/pages/Challenges';
 import Industries from './docs/pages/Industries';
 import TechnologyStack from './docs/pages/TechnologyStack';
 import DeploymentOptions from './docs/pages/DeploymentOptions';
-import SelfHosted from './docs/pages/SelfHosted';
 import Scalability from './docs/pages/Scalability';
 import RoleBasedAccess from './docs/pages/RoleBasedAccess';
 import Customization from './docs/pages/Customization';
@@ -80,12 +79,14 @@ import Integrations from './docs/pages/Integrations';
 import Performance from './docs/pages/Performance';
 import Onboarding from './docs/pages/Onboarding';
 import Comparison from './docs/pages/Comparison';
-import Testimonials from './docs/pages/Testimonials';
 import Support from './docs/pages/Support';
 import Roadmap from './docs/pages/Roadmap';
 import FAQ from './docs/pages/FAQ';
 import Legal from './docs/pages/Legal';
 import Contact from './docs/pages/Contact';
+
+// Landing Page
+import LandingPage from './pages/landing/LandingPage';
 
 function App() {
    const navigate = useNavigate();
@@ -118,6 +119,10 @@ function App() {
    
       <Routes>
 
+        {/* Landing Page */}
+        <Route path="/home" element={<LandingPage />} />
+        <Route path="/landing" element={<LandingPage />} />
+
         {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -141,7 +146,6 @@ function App() {
         <Route path="/docs/industries" element={<Industries />} />
         <Route path="/docs/technology-stack" element={<TechnologyStack />} />
         <Route path="/docs/deployment-options" element={<DeploymentOptions />} />
-        <Route path="/docs/self-hosted" element={<SelfHosted />} />
         <Route path="/docs/scalability" element={<Scalability />} />
         <Route path="/docs/role-based-access" element={<RoleBasedAccess />} />
         <Route path="/docs/customization" element={<Customization />} />
@@ -152,7 +156,6 @@ function App() {
         <Route path="/docs/performance" element={<Performance />} />
         <Route path="/docs/onboarding" element={<Onboarding />} />
         <Route path="/docs/comparison" element={<Comparison />} />
-        <Route path="/docs/testimonials" element={<Testimonials />} />
         <Route path="/docs/support" element={<Support />} />
         <Route path="/docs/roadmap" element={<Roadmap />} />
         <Route path="/docs/faq" element={<FAQ />} />
