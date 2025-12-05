@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  FiBook, FiMonitor, FiBriefcase, FiFactory, 
-  FiHeart, FiBuilding, FiGlobe, FiUser 
+  FiBook, FiMonitor, FiBriefcase, FiPackage, 
+  FiHeart, FiHome, FiGlobe, FiUser 
 } from 'react-icons/fi';
 import './SolutionsByIndustry.css';
 
@@ -27,7 +27,7 @@ const SolutionsByIndustry = () => {
       link: '/for-business'
     },
     {
-      icon: <FiFactory />,
+      icon: <FiPackage />,
       title: 'Manufacturing',
       description: 'Shift management, production hours, and workforce scheduling',
       link: '/for-business'
@@ -39,7 +39,7 @@ const SolutionsByIndustry = () => {
       link: '/for-enterprise'
     },
     {
-      icon: <FiBuilding />,
+      icon: <FiHome />,
       title: 'Construction',
       description: 'Site attendance, project tracking, and contractor management',
       link: '/for-business'
