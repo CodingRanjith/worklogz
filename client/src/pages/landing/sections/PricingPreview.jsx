@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FiCheck, FiArrowRight } from 'react-icons/fi';
+import { FiCheckCircle, FiArrowRight } from 'react-icons/fi';
 import './PricingPreview.css';
 
 const PricingPreview = () => {
@@ -79,7 +79,7 @@ const PricingPreview = () => {
               <ul className="plan-features">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex}>
-                    <FiCheck className="feature-check" />
+                    <FiCheckCircle className="feature-check" />
                     {feature}
                   </li>
                 ))}
