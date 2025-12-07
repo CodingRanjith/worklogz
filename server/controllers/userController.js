@@ -383,6 +383,140 @@ const userController = {
     }
   },
 
+  // Get sidebar access for a user
+  getSidebarAccess: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { scope = 'admin' } = req.query;
+      
+      const user = await User.findById(id).select('sidebarAccess');
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const access = user.sidebarAccess?.[scope] || [];
+      res.json({ userId: id, scope, paths: access });
+    } catch (error) {
+      console.error('Error fetching sidebar access:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // Update sidebar access for a user
+  updateSidebarAccess: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { paths, scope = 'admin' } = req.body;
+
+      if (!Array.isArray(paths)) {
+        return res.status(400).json({ error: 'Paths must be an array' });
+      }
+
+      if (!['admin', 'employee'].includes(scope)) {
+        return res.status(400).json({ error: 'Scope must be "admin" or "employee"' });
+      }
+
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Initialize sidebarAccess if it doesn't exist
+      if (!user.sidebarAccess) {
+        user.sidebarAccess = { admin: [], employee: [] };
+      }
+
+      // Update the specific scope
+      user.sidebarAccess[scope] = paths;
+      await user.save();
+
+      res.json({ 
+        message: 'Sidebar access updated successfully', 
+        userId: id, 
+        scope, 
+        paths: user.sidebarAccess[scope] 
+      });
+    } catch (error) {
+      console.error('Error updating sidebar access:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // Get sidebar access for multiple users (bulk)
+  getBulkSidebarAccess: async (req, res) => {
+    try {
+      const { userIds } = req.query;
+      const { scope = 'admin' } = req.query;
+
+      if (!userIds) {
+        return res.status(400).json({ error: 'userIds query parameter is required' });
+      }
+
+      const ids = Array.isArray(userIds) ? userIds : userIds.split(',');
+      
+      const users = await User.find(
+        { _id: { $in: ids } },
+        '_id sidebarAccess'
+      );
+
+      const accessMap = {};
+      users.forEach((user) => {
+        accessMap[user._id.toString()] = user.sidebarAccess?.[scope] || [];
+      });
+
+      res.json({ scope, accessMap });
+    } catch (error) {
+      console.error('Error fetching bulk sidebar access:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
+  // Update sidebar access for multiple users (bulk)
+  updateBulkSidebarAccess: async (req, res) => {
+    try {
+      const { userIds, paths, scope = 'admin' } = req.body;
+
+      if (!Array.isArray(userIds) || userIds.length === 0) {
+        return res.status(400).json({ error: 'userIds must be a non-empty array' });
+      }
+
+      if (!Array.isArray(paths)) {
+        return res.status(400).json({ error: 'Paths must be an array' });
+      }
+
+      if (!['admin', 'employee'].includes(scope)) {
+        return res.status(400).json({ error: 'Scope must be "admin" or "employee"' });
+      }
+
+      const users = await User.find({ _id: { $in: userIds } });
+      
+      if (users.length !== userIds.length) {
+        return res.status(400).json({ error: 'Some users were not found' });
+      }
+
+      // Update all users
+      const updatePromises = users.map((user) => {
+        if (!user.sidebarAccess) {
+          user.sidebarAccess = { admin: [], employee: [] };
+        }
+        user.sidebarAccess[scope] = paths;
+        return user.save();
+      });
+
+      await Promise.all(updatePromises);
+
+      res.json({ 
+        message: 'Sidebar access updated successfully for all users', 
+        userIds, 
+        scope, 
+        paths 
+      });
+    } catch (error) {
+      console.error('Error updating bulk sidebar access:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
+
 };
 
 module.exports = userController;

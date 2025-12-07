@@ -33,4 +33,10 @@ router.put('/:id/salary', auth, role('admin'), userController.updateSalary);
 // ✅ DELETE user and related data
 router.delete('/:id', auth, role('admin'), userController.deleteUser);
 
+// ✅ Sidebar Access Management
+router.get('/sidebar-access/bulk', auth, role('admin'), userController.getBulkSidebarAccess);
+router.put('/sidebar-access/bulk', auth, role('admin'), userController.updateBulkSidebarAccess);
+router.get('/:id/sidebar-access', auth, role('admin'), userController.getSidebarAccess);
+router.put('/:id/sidebar-access', auth, role('admin'), userController.updateSidebarAccess);
+
 module.exports = router;

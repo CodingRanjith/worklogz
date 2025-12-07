@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { 
@@ -17,7 +17,9 @@ import {
   FiDollarSign,
   FiTrendingUp,
   FiTarget,
-  FiBook
+  FiBook,
+  FiEdit3,
+  FiPlay
 } from 'react-icons/fi';
 import { filterMenuByPaths, getAccessForUser } from '../../utils/sidebarAccess';
 
@@ -29,6 +31,7 @@ export const employeeMenuItems = [
   { path: '/my-earnings', icon: <FiDollarSign />, label: 'Salary', color: 'emerald' },
   { path: '/apply-leave', icon: <FiCalendar />, label: 'Leave Management', color: 'orange' },
   { path: '/skill-development', icon: <FiBook />, label: 'Skill Development', color: 'amber' },
+  { path: '/employee/assessments', icon: <FiEdit3 />, label: 'Assessments', color: 'purple' },
   { path: '/goals-achievements', icon: <FiTarget />, label: 'Goals & Achievements', color: 'yellow' },
   { path: '/calendar', icon: <FiCalendar />, label: 'Calendar View', color: 'pink' },
   { path: '/performance', icon: <FiTrendingUp />, label: 'Performance', color: 'green' },
@@ -38,6 +41,7 @@ export const employeeMenuItems = [
   { path: '/documents', icon: <FiFileText />, label: 'Document Center', color: 'gray' },
   { path: '/helpdesk', icon: <FiHelpCircle />, label: 'Helpdesk', color: 'slate' },
   { path: '/employee/ai', icon: <FiStar />, label: 'AI Copilot', color: 'violet' },
+  { path: '/employee/worklogztube', icon: <FiPlay />, label: 'WorklogzTube', color: 'red' },
 ];
 
 const EmployeeNavigation = () => {
@@ -57,10 +61,24 @@ const EmployeeNavigation = () => {
     }
   }, [token]);
 
-  const allowedPaths = useMemo(
-    () => (currentUserId ? getAccessForUser(currentUserId, 'employee') : null),
-    [currentUserId]
-  );
+  const [allowedPaths, setAllowedPaths] = useState(null);
+
+  useEffect(() => {
+    const loadAllowedPaths = async () => {
+      if (!currentUserId) {
+        setAllowedPaths(null);
+        return;
+      }
+      try {
+        const paths = await getAccessForUser(currentUserId, 'employee');
+        setAllowedPaths(paths);
+      } catch (err) {
+        console.warn('Failed to load allowed paths', err);
+        setAllowedPaths(null);
+      }
+    };
+    loadAllowedPaths();
+  }, [currentUserId]);
 
   const visibleMenuItems = useMemo(
     () => filterMenuByPaths(employeeMenuItems, allowedPaths),
@@ -90,6 +108,7 @@ const EmployeeNavigation = () => {
       gray: active ? 'bg-gray-100 text-gray-600 border-l-4 border-gray-600' : 'text-gray-600 hover:bg-gray-50',
       slate: active ? 'bg-slate-100 text-slate-600 border-l-4 border-slate-600' : 'text-gray-600 hover:bg-slate-50',
       violet: active ? 'bg-violet-100 text-violet-600 border-l-4 border-violet-600' : 'text-gray-600 hover:bg-violet-50',
+      red: active ? 'bg-red-100 text-red-600 border-l-4 border-red-600' : 'text-gray-600 hover:bg-red-50',
     };
     return colors[color] || colors.blue;
   };

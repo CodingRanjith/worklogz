@@ -23,6 +23,8 @@ import {
   FiMenu,
   FiChevronLeft,
   FiClipboard,
+  FiEdit3,
+  FiPlay,
 } from 'react-icons/fi';
 import { getAccessForUser } from '../../../utils/sidebarAccess';
 import { API_ENDPOINTS } from '../../../utils/api';
@@ -45,10 +47,24 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     }
   }, [token]);
   
-  const allowedPaths = useMemo(
-    () => (currentUserId ? getAccessForUser(currentUserId, 'employee') : null),
-    [currentUserId]
-  );
+  const [allowedPaths, setAllowedPaths] = useState(null);
+
+  useEffect(() => {
+    const loadAllowedPaths = async () => {
+      if (!currentUserId) {
+        setAllowedPaths(null);
+        return;
+      }
+      try {
+        const paths = await getAccessForUser(currentUserId, 'employee');
+        setAllowedPaths(paths);
+      } catch (err) {
+        console.warn('Failed to load allowed paths', err);
+        setAllowedPaths(null);
+      }
+    };
+    loadAllowedPaths();
+  }, [currentUserId]);
 
   // Check if user is a team lead
   useEffect(() => {
@@ -90,6 +106,7 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
       { label: 'Salary', icon: <FiDollarSign />, path: '/my-earnings' },
       { label: 'Leave Management', icon: <FiCalendar />, path: '/apply-leave' },
       { label: 'Skill Development', icon: <FiBook />, path: '/skill-development' },
+      { label: 'Assessments', icon: <FiEdit3 />, path: '/employee/assessments' },
       { label: 'Goals & Achievements', icon: <FiTarget />, path: '/goals-achievements' },
       { label: 'Calendar View', icon: <FiCalendar />, path: '/calendar' },
       { label: 'Performance', icon: <FiTrendingUp />, path: '/performance' },
@@ -99,6 +116,7 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
       { label: 'Document Center', icon: <FiFolder />, path: '/documents' },
       { label: 'Helpdesk', icon: <FiHelpCircle />, path: '/helpdesk' },
       { label: 'AI Copilot', icon: <FiStar />, path: '/employee/ai' },
+      { label: 'WorklogzTube', icon: <FiPlay />, path: '/employee/worklogztube' },
     );
     
     return items;
@@ -193,6 +211,7 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
             <NavLink
               key={index}
               to={item.path}
+              end={item.path === '/home' || item.path === '/attendance'} // Use exact matching for home and attendance to prevent false positives
               className={({ isActive }) =>
                 `flex items-center rounded-md text-sm font-medium transition relative group ${
                   isActive

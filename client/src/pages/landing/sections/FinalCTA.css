@@ -1,5 +1,5 @@
 .final-cta-section {
-  padding: 120px 0;
+  padding: 80px 0;
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   position: relative;
   overflow: hidden;
@@ -20,7 +20,7 @@
 .cta-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
   position: relative;
   z-index: 1;
 }

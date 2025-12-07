@@ -32,6 +32,11 @@ export const API_ENDPOINTS = {
   updateUser: (userId) => `${BASE_URL}/users/${userId}`,
   deleteUser: (userId) => `${BASE_URL}/users/${userId}`,
   updateSalary: (userId) => `${BASE_URL}/users/${userId}/salary`,
+  // Sidebar Access
+  getSidebarAccess: (userId, scope = 'admin') => `${BASE_URL}/users/${userId}/sidebar-access?scope=${scope}`,
+  updateSidebarAccess: (userId) => `${BASE_URL}/users/${userId}/sidebar-access`,
+  getBulkSidebarAccess: (userIds, scope = 'admin') => `${BASE_URL}/users/sidebar-access/bulk?userIds=${Array.isArray(userIds) ? userIds.join(',') : userIds}&scope=${scope}`,
+  updateBulkSidebarAccess: `${BASE_URL}/users/sidebar-access/bulk`,
   getSchedules: `${BASE_URL}/schedules`,
   putUserSchedule: (userId) => `${BASE_URL}/schedules/${userId}`,
   getAllUsers: `${BASE_URL}/employeesAttendance`,
@@ -233,6 +238,20 @@ export const API_ENDPOINTS = {
   markNotificationAsRead: (id) => `${BASE_URL}/api/notifications/${id}/read`,
   markAllNotificationsAsRead: `${BASE_URL}/api/notifications/read-all`,
   deleteNotification: (id) => `${BASE_URL}/api/notifications/${id}`,
+
+  // -----------------
+  // Assessment APIs
+  // -----------------
+  getAssessments: `${BASE_URL}/api/assessments`,
+  getAssessmentById: (id) => `${BASE_URL}/api/assessments/${id}`,
+  createAssessment: `${BASE_URL}/api/assessments`,
+  updateAssessment: (id) => `${BASE_URL}/api/assessments/${id}`,
+  deleteAssessment: (id) => `${BASE_URL}/api/assessments/${id}`,
+  getMyAssessments: `${BASE_URL}/api/assessments/employee/my-assessments`,
+  startAssessment: (id) => `${BASE_URL}/api/assessments/${id}/start`,
+  submitAnswer: (id) => `${BASE_URL}/api/assessments/${id}/answer`,
+  submitAssessment: (id) => `${BASE_URL}/api/assessments/${id}/submit`,
+  getSubmission: (id, submissionId) => `${BASE_URL}/api/assessments/${id}/submissions/${submissionId}`,
 
 };
 

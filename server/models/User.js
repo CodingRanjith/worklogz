@@ -102,7 +102,23 @@ const UserSchema = new mongoose.Schema({
     type: [String],
     default: []
   },
-  bankDetails: BankDetailsSchema
+  bankDetails: BankDetailsSchema,
+  sidebarAccess: {
+    type: {
+      admin: {
+        type: [String],
+        default: []
+      },
+      employee: {
+        type: [String],
+        default: []
+      }
+    },
+    default: {
+      admin: [],
+      employee: []
+    }
+  }
 
 }, {
   timestamps: true
