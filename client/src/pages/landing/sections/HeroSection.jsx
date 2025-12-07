@@ -6,26 +6,51 @@ import './HeroSection.css';
 const HeroSection = () => {
   return (
     <section className="hero-section">
+      {/* Top Decorative Stripe */}
+      <div className="hero-top-stripe">
+        <div className="stripe-yellow"></div>
+        <div className="stripe-mint"></div>
+        <div className="stripe-peach"></div>
+      </div>
+
       <div className="hero-container">
         <div className="hero-content">
+          <div className="hero-badge">
+            <span className="badge-text">✨ Trusted by 10,000+ Teams Worldwide</span>
+          </div>
+
           <h1 className="hero-title">
             Complete Workforce Management{' '}
-            <span className="hero-title-highlight">Made Simple</span>
+            <span className="hero-title-highlight-made">Made</span>{' '}
+            <span className="hero-title-highlight-simple">Simple</span>
           </h1>
           
           <p className="hero-subtitle">
-            Streamline attendance, payroll, projects, and HR processes in one platform. Drive productivity and growth with Worklogz.
+            Streamline attendance, payroll, projects, and HR processes in one powerful platform. Drive productivity and growth with Worklogz - trusted by teams worldwide to simplify workforce management.
           </p>
 
-          <div className="hero-input-wrapper">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="hero-email-input"
-            />
+          <div className="hero-stats">
+            <div className="stat-item">
+              <div className="stat-number">10K+</div>
+              <div className="stat-label">Active Users</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">50K+</div>
+              <div className="stat-label">Hours Tracked</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">4.9★</div>
+              <div className="stat-label">User Rating</div>
+            </div>
+          </div>
+
+          <div className="hero-cta-wrapper">
             <Link to="/register" className="btn-primary-hero">
               Start Free Trial →
             </Link>
+            <button className="btn-secondary-hero">
+              Watch Demo
+            </button>
           </div>
 
           <div className="app-downloads">
@@ -43,31 +68,32 @@ const HeroSection = () => {
             </button>
           </div>
 
-          <div className="hero-features">
-            <div className="feature-check">
-              <FiCheckCircle className="check-icon" />
-              <span>Free forever</span>
-            </div>
-            <div className="feature-check">
-              <FiCheckCircle className="check-icon" />
-              <span>No credit card required</span>
-            </div>
-            <div className="feature-check">
-              <FiCheckCircle className="check-icon" />
-              <span>Cancel anytime</span>
-            </div>
-          </div>
         </div>
 
         <div className="hero-visual">
+          {/* Connection Lines */}
+          <svg className="device-connections" viewBox="0 0 1000 700" preserveAspectRatio="none">
+            <line className="connection-line" x1="50%" y1="50%" x2="85%" y2="20%" />
+            <line className="connection-line" x1="50%" y1="50%" x2="15%" y2="80%" />
+            <line className="connection-line" x1="15%" y1="15%" x2="50%" y2="50%" />
+          </svg>
+
           {/* Laptop Mockup */}
           <div className="device-mockup laptop-mockup">
             <div className="device-frame">
               <div className="device-screen">
-                <div className="screen-content">
-                  <div className="screen-calendar"></div>
-                  <div className="screen-projects"></div>
-                  <div className="screen-time-entries"></div>
+                <img 
+                  src="/hero.png" 
+                  alt="Worklogz Dashboard" 
+                  className="laptop-screen-image"
+                />
+                {/* Floating card inside laptop */}
+                <div className="screen-floating-card laptop-sync-card">
+                  <FiCheckCircle className="screen-card-icon" />
+                  <div className="screen-card-content">
+                    <div className="screen-card-text">All synced</div>
+                    <div className="screen-card-subtext">Across all devices</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -84,12 +110,37 @@ const HeroSection = () => {
                     <div className="mobile-header-label">Today's tracked time</div>
                   </div>
                 </div>
-                <div className="mobile-timer">00h 52m</div>
+                <div className="mobile-timer">
+                  <span className="timer-main">00h 00m</span>
+                  <span className="timer-secondary">00h 52m</span>
+                </div>
+                {/* Awards badges inside phone */}
+                <div className="mobile-awards">
+                  <div className="mobile-award-badge badge-capterra">
+                    Capterra BEST VALUE 2025
+                  </div>
+                  <div className="mobile-award-badge badge-getapp">
+                    GetApp BEST FUNCTIONALITY & FEATURES 2024
+                  </div>
+                  <div className="mobile-award-badge badge-software">
+                    Software Advice MOST RECOMMENDED 2024
+                  </div>
+                </div>
                 <div className="mobile-buttons">
                   <button className="mobile-btn pause">PAUSE</button>
                   <button className="mobile-btn stop">STOP</button>
                 </div>
-                <div className="mobile-entries"></div>
+              </div>
+            </div>
+            {/* Trustpilot rating below phone */}
+            <div className="trustpilot-rating phone-trustpilot">
+              <div className="trustpilot-logo">Trustpilot</div>
+              <div className="trustpilot-stars">
+                <span className="star">★</span>
+                <span className="star">★</span>
+                <span className="star">★</span>
+                <span className="star">★</span>
+                <span className="star">★</span>
               </div>
             </div>
           </div>
@@ -109,6 +160,16 @@ const HeroSection = () => {
                   <div className="chart-pie"></div>
                   <div className="chart-block"></div>
                 </div>
+                {/* Floating card inside tablet - bottom left */}
+                <div className="screen-floating-card tablet-sync-card">
+                  <FiCheckCircle className="screen-card-icon" />
+                  <div className="screen-card-content">
+                    <div className="screen-card-text">All synced</div>
+                    <div className="screen-card-subtext">Across all devices</div>
+                  </div>
+                </div>
+                {/* Small card in bottom right */}
+                <div className="screen-floating-card tablet-small-card"></div>
               </div>
             </div>
           </div>
@@ -120,52 +181,21 @@ const HeroSection = () => {
                 <div className="watch-brand">Worklogz</div>
                 <div className="watch-time">13:09</div>
                 <div className="watch-timer">00:52</div>
+                <div className="watch-timer-secondary">00:00</div>
                 <button className="watch-button"></button>
               </div>
             </div>
           </div>
 
-          {/* Floating Info Cards */}
-          <div className="floating-card card-today">
-            <FiClock className="card-icon" />
-            <div className="card-content">
-              <div className="card-value">8h 24m</div>
-              <div className="card-label">Today's tracked time</div>
+          {/* Floating Info Card above laptop */}
+          <div className="floating-info-card">
+            <FiClock className="floating-card-icon" />
+            <div className="floating-card-content">
+              <div className="floating-card-value">8h 24m</div>
+              <div className="floating-card-label">Today's tracked time</div>
             </div>
           </div>
 
-          <div className="floating-card card-synced">
-            <FiCheckCircle className="card-icon" />
-            <div className="card-content">
-              <div className="card-label">All synced</div>
-              <div className="card-sub-label">Across all devices</div>
-            </div>
-          </div>
-
-          {/* Trustpilot Rating */}
-          <div className="trustpilot-rating">
-            <div className="trustpilot-logo">Trustpilot</div>
-            <div className="trustpilot-stars">
-              <span className="star">★</span>
-              <span className="star">★</span>
-              <span className="star">★</span>
-              <span className="star">★</span>
-              <span className="star">★</span>
-            </div>
-          </div>
-
-          {/* Awards/Badges */}
-          <div className="awards-badges">
-            <div className="award-badge badge-capterra">
-              BEST VALUE 2025
-            </div>
-            <div className="award-badge badge-getapp">
-              BEST FUNCTIONALITY & FEATURES 2024
-            </div>
-            <div className="award-badge badge-software">
-              RECOMMENDED 2024
-            </div>
-          </div>
         </div>
       </div>
     </section>

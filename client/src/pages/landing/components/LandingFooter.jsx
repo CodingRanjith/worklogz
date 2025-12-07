@@ -10,8 +10,8 @@ const LandingFooter = () => {
       <div className="footer-cta-section">
         <div className="footer-cta-container">
           <div className="footer-cta-content">
-            <h2 className="footer-cta-title">Get Ready To Dive In!</h2>
-            <p className="footer-cta-subtitle">Get Early Access to Worklogz Software</p>
+            <h2 className="footer-cta-title">Transform Your HR Operations with Worklogz</h2>
+            <p className="footer-cta-subtitle">Empower your organization with cutting-edge HRMS solutions - Streamline operations, enhance engagement, and achieve excellence through intelligent automation</p>
           </div>
           <button className="footer-cta-button">Request Demo</button>
         </div>
@@ -28,8 +28,22 @@ const LandingFooter = () => {
               <span className="logo-text">Worklogz</span>
             </div>
             <p className="footer-tagline">
-              Worklogz is a product of Techackode IT Solutions Pvt Ltd, India and is a leading system Integrator with many years of expertise in implementing solutions to various corporations across the world. We help our clients to fully digitize their operations, improve their KPIs and massively optimize their operational cost. Our belief in the values of trust, transparency, flexibility and value-centricity ensures the continued pursuit of our customers best interests.
+              Worklogz is a comprehensive HRMS platform that empowers organizations to transform their human resource management. We provide cutting-edge solutions for attendance tracking, payroll processing, leave management, performance evaluation, and more. With Worklogz, streamline your HR operations, enhance employee engagement, and achieve operational excellence through intelligent automation and data-driven insights.
             </p>
+            <div className="footer-highlights">
+              <div className="footer-highlight-item">
+                <span className="highlight-icon">✓</span>
+                <span className="highlight-text">Intelligent Automation</span>
+              </div>
+              <div className="footer-highlight-item">
+                <span className="highlight-icon">✓</span>
+                <span className="highlight-text">Data-Driven Insights</span>
+              </div>
+              <div className="footer-highlight-item">
+                <span className="highlight-icon">✓</span>
+                <span className="highlight-text">Operational Excellence</span>
+              </div>
+            </div>
             
             <div className="footer-connect">
               <p className="footer-connect-label">Connect with Us :</p>
@@ -37,7 +51,7 @@ const LandingFooter = () => {
                 <a href="https://www.youtube.com/worklogz" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="social-link social-youtube">
                   <FiYoutube />
                 </a>
-                <a href="https://www.linkedin.com/company/techackode-" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="social-link social-linkedin">
+                <a href="https://www.linkedin.com/company/worklogz" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="social-link social-linkedin">
                   <FiLinkedin />
                 </a>
                 <a href="https://www.facebook.com/worklogz" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="social-link social-facebook">
@@ -48,76 +62,74 @@ const LandingFooter = () => {
                 </a>
               </div>
             </div>
-
-            <div className="footer-download">
-              <p className="footer-download-label">Download App</p>
-              <div className="app-download-buttons">
-                <a href="https://play.google.com/store/apps" className="app-download-btn google-play" target="_blank" rel="noopener noreferrer" aria-label="Download Worklogz on Google Play">
-                  <span className="app-btn-text">GET IT ON</span>
-                  <span className="app-btn-store">Google Play</span>
-                </a>
-                <a href="https://www.apple.com/app-store" className="app-download-btn app-store" target="_blank" rel="noopener noreferrer" aria-label="Download Worklogz on App Store">
-                  <span className="app-btn-text">Download on the</span>
-                  <span className="app-btn-store">App Store</span>
-                </a>
-              </div>
-            </div>
           </div>
 
-          {/* Home Column */}
+          {/* Company Column */}
           <div className="footer-column">
-            <h3 className="footer-title">Home</h3>
+            <h3 className="footer-title">Company</h3>
             <ul className="footer-links">
-              <li><span className="footer-link-arrow">></span><Link to="/">Overview</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/careers">Careers</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/about">About Us</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/contact">Contact Us</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/docs/legal">Terms & Conditions</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/">Home</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/about">About Worklogz</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features">Features</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/pricing">Pricing</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/careers">Careers</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/contact">Contact Us</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/blog">Blog</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/support">Support</Link></li>
             </ul>
           </div>
 
           {/* HR Features Column */}
           <div className="footer-column">
-            <h3 className="footer-title">HR Features</h3>
+            <h3 className="footer-title">Worklogz Features</h3>
             <ul className="footer-links">
-              <li><span className="footer-link-arrow">></span><Link to="/features/core-hrms">Core HR</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/payroll-management">Payroll Software</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/leave-management">Leave Management</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/attendance-management">Attendance Management</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/performance-management">Performance Management</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/recruitment">Recruitment</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/travel-management">Travel Management</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/task-manager">Task Management</Link></li>
-              <li><span className="footer-link-arrow">></span><Link to="/features/helpdesk">Help & Support</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/attendance-management">Attendance Management</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/leave-management">Leave Management</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/payroll-management">Payroll Management</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/performance-management">Performance Management</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/task-manager">Task Manager</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/helpdesk">Helpdesk & Support</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/user-profile-management">Employee Profiles</Link></li>
+              <li><span className="footer-link-arrow">{'>'}</span><Link to="/features/admin-dashboard">Analytics & Reports</Link></li>
             </ul>
           </div>
 
           {/* Newsletter & Sales Column */}
           <div className="footer-column">
-            <h3 className="footer-title">Subscribe to Newsletter</h3>
+            <h3 className="footer-title">Stay Updated with Worklogz</h3>
             <form className="newsletter-form">
               <input 
                 type="email" 
-                placeholder="Enter your organization email address" 
+                placeholder="Enter your work email address" 
                 className="newsletter-input"
+                required
               />
-              <button type="submit" className="newsletter-btn">Subscribe</button>
+              <button type="submit" className="newsletter-btn">Subscribe to Newsletter</button>
             </form>
+            <p className="newsletter-note">Get the latest HRMS insights, product updates, and industry trends delivered to your inbox.</p>
 
             <div className="footer-sales">
-              <h3 className="footer-title">Sales</h3>
+              <h3 className="footer-title">Get in Touch</h3>
               <div className="sales-contact">
                 <div className="sales-contact-item">
                   <FiMail className="sales-icon" />
-                  <a href="mailto:sales@worklogz.com" className="sales-link">sales@worklogz.com</a>
+                  <div className="sales-contact-info">
+                    <a href="mailto:sales@worklogz.com" className="sales-link">sales@worklogz.com</a>
+                    <span className="sales-label">Sales & Business</span>
+                  </div>
                 </div>
                 <div className="sales-contact-item">
                   <FiPhone className="sales-icon" />
-                  <a href="tel:+919487263288" className="sales-link">+91-9487263288</a>
+                  <div className="sales-contact-info">
+                    <a href="tel:6374129515" className="sales-link">+91 63741 29515</a>
+                    <span className="sales-label">Call us anytime</span>
+                  </div>
                 </div>
                 <div className="sales-contact-item">
                   <FiMapPin className="sales-icon" />
-                  <span className="sales-address">A Block 1st Floor, Tecci Park, 285, Rajiv Gandhi Salai, Kumaran Nagar, Elcot Sez, Karapakkam, Chennai, Tamil Nadu 600119</span>
+                  <div className="sales-contact-info">
+                    <span className="sales-address">15/12, Gandhi Nagar, Moolakadai, Chennai - 600118, Tamil Nadu, India</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -127,7 +139,7 @@ const LandingFooter = () => {
         {/* Bottom Footer Bar */}
         <div className="footer-bottom">
           <div className="footer-bottom-left">
-            <p>&copy; {new Date().getFullYear()} Techackode IT Solutions Pvt Ltd ®. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Worklogz ®. All rights reserved.</p>
           </div>
           <div className="footer-bottom-center">
             <div className="iso-certifications">
@@ -152,11 +164,13 @@ const LandingFooter = () => {
             </div>
           </div>
           <div className="footer-bottom-right">
-            <Link to="/docs/legal">Disclaimer</Link>
-            <span className="divider"> </span>
             <Link to="/docs/legal">Privacy Policy</Link>
-            <span className="divider"> </span>
-            <Link to="/docs/legal">Terms and Conditions</Link>
+            <span className="divider">|</span>
+            <Link to="/docs/legal">Terms of Service</Link>
+            <span className="divider">|</span>
+            <Link to="/docs/legal">Disclaimer</Link>
+            <span className="divider">|</span>
+            <Link to="/docs/legal">Cookie Policy</Link>
           </div>
         </div>
       </div>
