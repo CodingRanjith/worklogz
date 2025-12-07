@@ -210,3 +210,4 @@ AssessmentSchema.index({ company: 1, isActive: 1 });
 
 module.exports = mongoose.model('Assessment', AssessmentSchema);
 
+

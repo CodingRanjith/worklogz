@@ -36,3 +36,4 @@ const SalaryManagement = () => {
 
 export default SalaryManagement;
 
+

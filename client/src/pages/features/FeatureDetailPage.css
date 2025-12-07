@@ -206,6 +206,9 @@
   margin-bottom: 48px;
   width: 100%;
   max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .feature-section:last-child {
@@ -222,14 +225,15 @@
 
 .feature-list-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 24px;
   width: 100%;
-  max-width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
   justify-items: stretch;
   align-items: stretch;
   box-sizing: border-box;
+  justify-content: center;
 }
 
 .feature-list-item {
@@ -284,9 +288,9 @@
 
 .benefits-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
-  max-width: 100%;
+  max-width: 1400px;
   margin: 0 auto;
   justify-items: stretch;
   align-items: stretch;
@@ -328,8 +332,9 @@
 }
 
 .use-cases-list {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .use-case-item {
