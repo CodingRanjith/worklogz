@@ -15,14 +15,14 @@ html {
 
 /* Common section styles */
 .section-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
 }
 
 .section-header {
   text-align: center;
-  margin-bottom: 64px;
+  margin-bottom: 40px;
 }
 
 .section-title {
@@ -45,7 +45,7 @@ html {
 
 .section-cta {
   text-align: center;
-  margin-top: 48px;
+  margin-top: 32px;
 }
 
 .btn-link {
@@ -147,7 +147,7 @@ html {
   }
 
   .section-container {
-    padding: 0 16px;
+    padding: 0 12px;
   }
 }
 

@@ -1,14 +1,14 @@
 .how-it-works-section {
-  padding: 100px 0;
+  padding: 60px 0;
   background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
 }
 
 .steps-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 32px;
+  gap: 24px;
   position: relative;
-  padding: 40px 0;
+  padding: 32px 0;
 }
 
 .step-item {

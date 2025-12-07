@@ -1,29 +1,19 @@
 .hero-section {
-  padding: 120px 0 80px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+  padding: 60px 0 40px;
+  background: #ffffff;
   position: relative;
   overflow: hidden;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
-  pointer-events: none;
+  min-height: auto;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .hero-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 64px;
+  gap: 60px;
   align-items: center;
   position: relative;
   z-index: 1;
@@ -31,124 +21,543 @@
 
 .hero-content {
   max-width: 600px;
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(99, 102, 241, 0.1);
-  border-radius: 50px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #6366f1;
-  margin-bottom: 24px;
-}
-
-.badge-icon {
-  width: 16px;
-  height: 16px;
+  color: #1a1a1a;
 }
 
 .hero-title {
-  font-size: 64px;
-  font-weight: 800;
+  font-size: 56px;
+  font-weight: 700;
   color: #1a1a1a;
-  margin: 0 0 24px;
+  margin: 0 0 16px;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+}
+
+.hero-title-highlight {
+  color: #6366f1;
 }
 
 .hero-subtitle {
   font-size: 20px;
   color: #6b7280;
-  margin: 0 0 40px;
-  line-height: 1.6;
+  margin: 0 0 24px;
+  line-height: 1.7;
 }
 
-.hero-cta {
+.hero-input-wrapper {
   display: flex;
-  gap: 16px;
-  margin-bottom: 64px;
+  gap: 12px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
-.hero-trust-indicators {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
+.hero-email-input {
+  flex: 1;
+  min-width: 280px;
+  padding: 14px 20px;
+  font-size: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1a1a1a;
+  transition: all 0.2s ease;
 }
 
-.trust-item {
+.hero-email-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.hero-email-input::placeholder {
+  color: #9ca3af;
+}
+
+.btn-primary-hero {
+  display: inline-block;
+  padding: 14px 32px;
+  background: var(--primary-600);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+  white-space: nowrap;
+}
+
+.btn-primary-hero:hover {
+  background: var(--primary-700);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.app-downloads {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.app-store-btn,
+.google-play-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #ffffff;
+  color: #1a1a1a;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-store-btn:hover,
+.google-play-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.hero-features {
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
-.trust-number {
-  font-size: 32px;
-  font-weight: 700;
+.feature-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: #1a1a1a;
-  line-height: 1;
-  margin-bottom: 4px;
+  font-size: 15px;
 }
 
-.trust-label {
-  font-size: 14px;
-  color: #6b7280;
+.check-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--accent-green);
 }
 
 .hero-visual {
+  position: relative;
+  height: 650px;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
 }
 
-.hero-image-placeholder {
-  width: 100%;
-  max-width: 600px;
-  height: 400px;
-  position: relative;
+/* Device Mockups */
+.device-mockup {
+  position: absolute;
+  z-index: 2;
 }
 
-.dashboard-mockup {
-  width: 100%;
-  height: 100%;
+.laptop-mockup {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+}
+
+.phone-mockup {
+  top: 20%;
+  right: 10%;
+  z-index: 4;
+}
+
+.tablet-mockup {
+  bottom: 10%;
+  left: 5%;
+  z-index: 4;
+}
+
+.watch-mockup {
+  top: 10%;
+  left: 15%;
+  z-index: 5;
+}
+
+.device-frame {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.device-screen {
   background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.mockup-header {
-  height: 40px;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
   border-radius: 8px;
+  overflow: hidden;
 }
 
-.mockup-content {
+/* Laptop Screen */
+.laptop-mockup .device-frame {
+  width: 400px;
+  padding: 12px;
+}
+
+.laptop-mockup .device-screen {
+  height: 250px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.screen-calendar,
+.screen-projects,
+.screen-time-entries {
+  background: #f1f5f9;
+  border-radius: 4px;
+  height: 40px;
+}
+
+.screen-projects {
+  height: 80px;
+}
+
+.screen-time-entries {
+  height: 60px;
+}
+
+/* Phone Screen */
+.phone-mockup .device-frame {
+  width: 160px;
+  padding: 8px;
+}
+
+.phone-mockup .device-screen {
+  height: 320px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+}
+
+.mobile-header {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-header-icon {
+  width: 20px;
+  height: 20px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.mobile-header-text {
   flex: 1;
 }
 
-.mockup-card {
-  height: 60px;
-  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+.mobile-header-value {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.mobile-header-label {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.2;
+}
+
+.mobile-timer {
+  font-size: 48px;
+  font-weight: 700;
+  text-align: center;
+  margin: 30px 0 20px;
+  padding: 0 16px;
+}
+
+.mobile-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  padding: 0 16px;
+}
+
+.mobile-btn {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mobile-entries {
+  flex: 1;
+  width: 100%;
+  margin: 16px;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 8px;
 }
 
-.mockup-card:nth-child(2) {
-  height: 100px;
+/* Tablet Screen */
+.tablet-mockup .device-frame {
+  width: 300px;
+  padding: 12px;
 }
 
-.mockup-card:nth-child(3) {
+.tablet-mockup .device-screen {
+  height: 220px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+}
+
+.tablet-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  background: #1e293b;
+  border-radius: 6px;
+}
+
+.tablet-header-icon {
+  width: 18px;
+  height: 18px;
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.tablet-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tablet-header-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.tablet-header-subtext {
+  font-size: 11px;
+  color: #cbd5e1;
+  line-height: 1.2;
+}
+
+.tablet-charts {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  align-items: center;
+}
+
+.chart-pie {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: conic-gradient(#3b82f6 0deg 120deg, #8b5cf6 120deg 240deg, #ec4899 240deg 360deg);
+  flex-shrink: 0;
+}
+
+.chart-block {
+  flex: 1;
+  height: 120px;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  border-radius: 8px;
+}
+
+/* Watch Screen */
+.watch-mockup .device-frame {
+  width: 80px;
+  padding: 4px;
+  border-radius: 20px;
+}
+
+.watch-mockup .device-screen {
   height: 80px;
+  border-radius: 16px;
+  background: #000000;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  position: relative;
+}
+
+.watch-face {
+  text-align: center;
+  font-size: 8px;
+}
+
+.watch-brand {
+  font-size: 6px;
+  margin-bottom: 4px;
+}
+
+.watch-time {
+  font-size: 10px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.watch-timer {
+  font-size: 8px;
+  color: #ff6b35;
+}
+
+.watch-button {
+  position: absolute;
+  bottom: -12px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #dc2626;
+  border: none;
+}
+
+/* Floating Cards */
+.floating-card {
+  position: absolute;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 10;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: float 3s ease-in-out infinite;
+}
+
+.card-today {
+  top: 12%;
+  right: 8%;
+}
+
+.card-synced {
+  bottom: 25%;
+  left: 10%;
+  animation-delay: 1.5s;
+}
+
+.card-icon {
+  width: 24px;
+  height: 24px;
+  color: #ff6b35;
+  flex-shrink: 0;
+}
+
+.card-content {
+  color: #ffffff;
+}
+
+.card-value {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.card-label {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.card-sub-label {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* Trustpilot Rating */
+.trustpilot-rating {
+  position: absolute;
+  bottom: 15%;
+  right: 15%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.trustpilot-logo {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+
+.trustpilot-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #10b981;
+  font-size: 14px;
+}
+
+/* Awards Badges */
+.awards-badges {
+  position: absolute;
+  bottom: 8%;
+  right: 8%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+.award-badge {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.badge-capterra {
+  background: #3b82f6;
+}
+
+.badge-getapp {
+  background: #8b5cf6;
+}
+
+.badge-software {
+  background: #ff6b35;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @media (max-width: 1024px) {
@@ -162,45 +571,71 @@
     max-width: 100%;
   }
 
-  .hero-cta {
-    justify-content: center;
+  .hero-visual {
+    height: 500px;
   }
 
-  .hero-trust-indicators {
-    grid-template-columns: repeat(2, 1fr);
+  .device-mockup {
+    transform: scale(0.8);
+  }
+
+  .floating-card,
+  .trustpilot-rating,
+  .awards-badges {
+    display: none;
   }
 }
 
 @media (max-width: 768px) {
   .hero-section {
     padding: 80px 0 60px;
+    min-height: auto;
   }
 
   .hero-title {
-    font-size: 42px;
+    font-size: 36px;
   }
 
   .hero-subtitle {
-    font-size: 18px;
+    font-size: 16px;
   }
 
-  .hero-cta {
+  .hero-input-wrapper {
     flex-direction: column;
   }
 
-  .hero-cta button,
-  .hero-cta a {
+  .hero-email-input {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .btn-primary-hero {
+    width: 100%;
+    text-align: center;
+  }
+
+  .app-downloads {
+    flex-direction: column;
+  }
+
+  .app-store-btn,
+  .google-play-btn {
     width: 100%;
     justify-content: center;
   }
 
-  .hero-trust-indicators {
-    grid-template-columns: 1fr;
-    gap: 16px;
+  .hero-visual {
+    height: 400px;
   }
 
-  .hero-image-placeholder {
-    height: 300px;
+  .laptop-mockup .device-frame {
+    width: 300px;
+  }
+
+  .phone-mockup,
+  .tablet-mockup,
+  .watch-mockup {
+    display: none;
   }
 }
 

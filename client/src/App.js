@@ -69,6 +69,9 @@ import ProjectsWorkspace from './pages/admin/ProjectsWorkspace';
 import Helpdesk from './pages/admin/Helpdesk';
 import Plans from './pages/admin/Plans';
 import TeamManagement from './pages/admin/TeamManagement';
+import Assessments from './pages/admin/Assessments';
+import EmployeeAssessments from './pages/employee/Assessments';
+import WorklogzTube from './pages/employee/WorklogzTube';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 import EmployeeLayout from './components/employee-dashboard/layout/EmployeeLayout';
@@ -86,7 +89,7 @@ import Scalability from './docs/pages/Scalability';
 import RoleBasedAccess from './docs/pages/RoleBasedAccess';
 import Customization from './docs/pages/Customization';
 import WhiteLabeling from './docs/pages/WhiteLabeling';
-import Pricing from './docs/pages/Pricing';
+import DocsPricing from './docs/pages/Pricing';
 import Security from './docs/pages/Security';
 import Integrations from './docs/pages/Integrations';
 import Performance from './docs/pages/Performance';
@@ -100,6 +103,53 @@ import Contact from './docs/pages/Contact';
 
 // Landing Page
 import LandingPage from './pages/landing/LandingPage';
+
+// Static Pages
+import Pricing from './pages/static/Pricing';
+
+// Feature Detail Pages - User Modules
+import UserProfileManagement from './pages/features/UserProfileManagement';
+import AttendanceManagement from './pages/features/AttendanceManagement';
+import CommunityManagement from './pages/features/CommunityManagement';
+import TaskManagerFeature from './pages/features/TaskManager';
+import SalaryManagement from './pages/features/SalaryManagement';
+import LeaveManagementFeature from './pages/features/LeaveManagement';
+import PerformanceManagement from './pages/features/PerformanceManagement';
+import WorkspaceManagement from './pages/features/WorkspaceManagement';
+import ApplicationIntegrationManagement from './pages/features/ApplicationIntegrationManagement';
+import PeopleManagement from './pages/features/PeopleManagement';
+import TeamManagementFeature from './pages/features/TeamManagement';
+import DocumentCenterManagement from './pages/features/DocumentCenterManagement';
+import HelpdeskFeature from './pages/features/Helpdesk';
+import TeamTaskManagement from './pages/features/TeamTaskManagement';
+import NotificationManagement from './pages/features/NotificationManagement';
+import MailIntegration from './pages/features/MailIntegration';
+import AICopilot from './pages/features/AICopilot';
+
+// Feature Detail Pages - Admin Modules
+import AdminDashboard from './pages/features/AdminDashboard';
+import AnalyticsManagement from './pages/features/AnalyticsManagement';
+import MonthlyReportsManagement from './pages/features/MonthlyReportsManagement';
+import UserManagement from './pages/features/UserManagement';
+import UserCards from './pages/features/UserCards';
+import EmployeeSchedules from './pages/features/EmployeeSchedules';
+import UserPendingApprovals from './pages/features/UserPendingApprovals';
+import AdminTeamManagement from './pages/features/AdminTeamManagement';
+import AdminTaskManagement from './pages/features/AdminTaskManagement';
+import HelpdeskSolver from './pages/features/HelpdeskSolver';
+import CompanyOverallWorklogzManagement from './pages/features/CompanyOverallWorklogzManagement';
+import CompanyDepartmentManagement from './pages/features/CompanyDepartmentManagement';
+import ProjectWorkspaceManagement from './pages/features/ProjectWorkspaceManagement';
+import CustomizedInputCrmManagement from './pages/features/CustomizedInputCrmManagement';
+import HrManagement from './pages/features/HrManagement';
+import AdminLeaveManagement from './pages/features/AdminLeaveManagement';
+import PayrollManagement from './pages/features/PayrollManagement';
+import PlanManagement from './pages/features/PlanManagement';
+import AdminAccessControlManagement from './pages/features/AdminAccessControlManagement';
+import DocumentManagement from './pages/features/DocumentManagement';
+import CompanySettingsManagement from './pages/features/CompanySettingsManagement';
+import ExpenseManagement from './pages/features/ExpenseManagement';
+import AdminPerformanceManagement from './pages/features/AdminPerformanceManagement';
 
 function App() {
    const navigate = useNavigate();
@@ -119,7 +169,7 @@ function App() {
           // Only redirect if user is on login page
           if (currentPath === '/login') {
             if (decoded.role === 'admin') navigate('/dashboard');
-            else if (decoded.role === 'employee') navigate('/attendance');
+            else if (decoded.role === 'employee') navigate('/home');
           }
         }
       } catch (err) {
@@ -139,6 +189,51 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/pricing" element={<Pricing />} />
+        
+        {/* Feature Detail Pages - User Modules */}
+        <Route path="/features/user-profile-management" element={<UserProfileManagement />} />
+        <Route path="/features/attendance-management" element={<AttendanceManagement />} />
+        <Route path="/features/community-management" element={<CommunityManagement />} />
+        <Route path="/features/task-manager" element={<TaskManagerFeature />} />
+        <Route path="/features/salary-management" element={<SalaryManagement />} />
+        <Route path="/features/leave-management" element={<LeaveManagementFeature />} />
+        <Route path="/features/performance-management" element={<PerformanceManagement />} />
+        <Route path="/features/workspace-management" element={<WorkspaceManagement />} />
+        <Route path="/features/application-integration-management" element={<ApplicationIntegrationManagement />} />
+        <Route path="/features/people-management" element={<PeopleManagement />} />
+        <Route path="/features/team-management" element={<TeamManagementFeature />} />
+        <Route path="/features/document-center-management" element={<DocumentCenterManagement />} />
+        <Route path="/features/helpdesk" element={<HelpdeskFeature />} />
+        <Route path="/features/team-task-management" element={<TeamTaskManagement />} />
+        <Route path="/features/notification-management" element={<NotificationManagement />} />
+        <Route path="/features/mail-integration" element={<MailIntegration />} />
+        <Route path="/features/ai-copilot" element={<AICopilot />} />
+        
+        {/* Feature Detail Pages - Admin Modules */}
+        <Route path="/features/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/features/analytics-management" element={<AnalyticsManagement />} />
+        <Route path="/features/monthly-reports-management" element={<MonthlyReportsManagement />} />
+        <Route path="/features/user-management" element={<UserManagement />} />
+        <Route path="/features/user-cards" element={<UserCards />} />
+        <Route path="/features/employee-schedules" element={<EmployeeSchedules />} />
+        <Route path="/features/user-pending-approvals" element={<UserPendingApprovals />} />
+        <Route path="/features/admin-team-management" element={<AdminTeamManagement />} />
+        <Route path="/features/admin-task-management" element={<AdminTaskManagement />} />
+        <Route path="/features/helpdesk-solver" element={<HelpdeskSolver />} />
+        <Route path="/features/company-overall-worklogz-management" element={<CompanyOverallWorklogzManagement />} />
+        <Route path="/features/company-department-management" element={<CompanyDepartmentManagement />} />
+        <Route path="/features/project-workspace-management" element={<ProjectWorkspaceManagement />} />
+        <Route path="/features/customized-input-crm-management" element={<CustomizedInputCrmManagement />} />
+        <Route path="/features/hr-management" element={<HrManagement />} />
+        <Route path="/features/admin-leave-management" element={<AdminLeaveManagement />} />
+        <Route path="/features/payroll-management" element={<PayrollManagement />} />
+        <Route path="/features/plan-management" element={<PlanManagement />} />
+        <Route path="/features/admin-access-control-management" element={<AdminAccessControlManagement />} />
+        <Route path="/features/document-management" element={<DocumentManagement />} />
+        <Route path="/features/company-settings-management" element={<CompanySettingsManagement />} />
+        <Route path="/features/expense-management" element={<ExpenseManagement />} />
+        <Route path="/features/admin-performance-management" element={<AdminPerformanceManagement />} />
         
         {/* Protected Employee Layout Wrapper */}
         <Route element={<EmployeeLayout />}>
@@ -153,14 +248,16 @@ function App() {
           <Route path="/employee/ai" element={<AICopilotPage />} />
         <Route path="/apply-leave" element={<LeaveManagement />} />
         <Route path="/timesheet" element={<TimeSheet />} />
-        <Route path="/skill-development" element={<SkillDevelopment />} />
-        <Route path="/goals-achievements" element={<GoalsAchievements />} />
+          <Route path="/skill-development" element={<SkillDevelopment />} />
+          <Route path="/employee/assessments" element={<EmployeeAssessments />} />
+          <Route path="/goals-achievements" element={<GoalsAchievements />} />
         <Route path="/calendar" element={<CalendarView />} />
         <Route path="/performance" element={<PerformanceDashboard />} />
         <Route path="/my-earnings" element={<MyEarnings />} />
-        <Route path="/team-management" element={<EmployeeTeamManagement />} />
+          <Route path="/team-management" element={<EmployeeTeamManagement />} />
           <Route path="/documents" element={<DocumentCenter />} />
           <Route path="/helpdesk" element={<HelpdeskPage />} />
+          <Route path="/employee/worklogztube" element={<WorklogzTube />} />
           <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Employee Sidebar */}
         </Route>
         
@@ -177,7 +274,7 @@ function App() {
         <Route path="/docs/role-based-access" element={<RoleBasedAccess />} />
         <Route path="/docs/customization" element={<Customization />} />
         <Route path="/docs/white-labeling" element={<WhiteLabeling />} />
-        <Route path="/docs/pricing" element={<Pricing />} />
+        <Route path="/docs/pricing" element={<DocsPricing />} />
         <Route path="/docs/security" element={<Security />} />
         <Route path="/docs/integrations" element={<Integrations />} />
         <Route path="/docs/performance" element={<Performance />} />
@@ -223,6 +320,8 @@ function App() {
           <Route path="/helpdesk" element={<Helpdesk />} />
           <Route path="/plans" element={<Plans />} />
           <Route path="/admin/team-management" element={<TeamManagement />} />
+          <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Admin Sidebar */}
+          <Route path="/assessments" element={<Assessments />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

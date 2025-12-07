@@ -191,8 +191,9 @@ const TaskManager = () => {
         });
         setUsers(usersData);
       } else {
-        // Regular employee or no team members: show all (or empty if not team lead)
-        setUsers(usersData);
+        // Regular employee or no team members: show empty list
+        // Only admins and team leads should access this page
+        setUsers([]);
       }
       
       // Fetch task counts for each user
@@ -367,7 +368,26 @@ const TaskManager = () => {
       setCreateTaskLoading(true);
       const token = localStorage.getItem('token');
       
+      // Filter selected users - ensure team leads can only assign to their team members
       const selectedUsers = users.filter(u => taskForm.selectedUserIds.includes(u._id));
+      
+      // Additional validation for team leads: ensure all selected users are in their team
+      if (currentUserRole !== 'admin' && isTeamLead && teamMemberIds.length > 0) {
+        const invalidUsers = selectedUsers.filter(user => {
+          const userId = user._id || user.id;
+          return !teamMemberIds.includes(userId.toString());
+        });
+        
+        if (invalidUsers.length > 0) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'You can only assign tasks to your team members',
+          });
+          setCreateTaskLoading(false);
+          return;
+        }
+      }
       const createdTasks = [];
       const errors = [];
 

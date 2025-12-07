@@ -1,18 +1,20 @@
 import React from 'react';
-import { FiCheckCircle, FiUsers, FiShield, FiZap, FiTrendingUp, FiTarget, FiClock, FiBarChart2 } from 'react-icons/fi';
+import { FiCheckCircle, FiUsers, FiShield, FiZap, FiTrendingUp, FiTarget, FiClock, FiBarChart2, FiDollarSign, FiAward, FiGlobe } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import LandingHeader from '../landing/components/LandingHeader';
+import LandingFooter from '../landing/components/LandingFooter';
+import MetaTags from '../../components/SEO/MetaTags';
 
 const Pricing = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <Link to="/login" className="text-purple-600 hover:text-purple-700 font-semibold">
-            ← Back to Login
-          </Link>
-        </div>
-      </div>
+    <>
+      <MetaTags
+        title="Pricing Plans - Worklogz | Simple, Transparent Pricing for Your Team"
+        description="Choose the perfect plan for your team. All plans include a 14-day free trial. No credit card required. Per user, per month pricing starting from ₹749."
+        keywords="worklogz pricing, business management pricing, workforce management pricing, per user pricing, team plans, enterprise pricing"
+      />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex flex-col">
+        <LandingHeader />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-6 py-16">
@@ -20,82 +22,68 @@ const Pricing = () => {
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
             Simple, Transparent <span className="text-purple-600">Pricing</span>
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Choose the perfect plan for your needs. All plans include a 14-day free trial. No credit card required.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+            Choose the perfect plan for your team. All plans include a 14-day free trial. No credit card required.
           </p>
+          <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-800 px-4 py-2 rounded-full text-sm font-semibold">
+            <FiAward className="w-4 h-4" />
+            All prices in Indian Rupees (₹)
+          </div>
         </div>
 
-        {/* Individual Plans */}
+        {/* Team Plans - Per User Pricing */}
         <div className="mb-20">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">For Individuals</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Free Plan */}
-            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-purple-500 transition-colors bg-white">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Free</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹0</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Basic time tracking</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Up to 3 projects</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Basic reports</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Mobile app access</span>
-                </li>
-              </ul>
-              <Link
-                to="/register"
-                className="block w-full text-center bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
-
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Team Plans</h2>
+            <p className="text-lg text-gray-600">Per user, per month pricing. Scale as your team grows.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Pro Plan */}
-            <div className="border-2 border-purple-500 rounded-xl p-8 bg-gradient-to-br from-purple-50 to-indigo-50 relative">
-              <div className="absolute top-0 right-0 bg-purple-600 text-white px-4 py-1 rounded-bl-lg rounded-tr-xl text-sm font-bold">
-                Popular
+            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-purple-500 transition-colors bg-white shadow-lg hover:shadow-xl">
+              <div className="mb-4">
+                <FiUsers className="w-8 h-8 text-purple-600 mb-2" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
+                <p className="text-gray-600 text-sm">Perfect for small teams</p>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Pro</h3>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹499</span>
-                <span className="text-gray-600">/month</span>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold text-gray-900">₹749</span>
+                  <span className="text-gray-600 ml-2">/user/month</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">or ₹8,988/year (save 20%)</p>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-600">Unlimited time tracking</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Unlimited projects</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Unlimited projects & tasks</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Advanced analytics</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Team attendance management</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Goal tracking</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Advanced analytics & reports</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Export reports</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Leave management system</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Priority support</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Priority email support</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Mobile app access</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Basic integrations</span>
                 </li>
               </ul>
               <Link
@@ -106,164 +94,122 @@ const Pricing = () => {
               </Link>
             </div>
 
-            {/* Premium Plan */}
-            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-indigo-500 transition-colors bg-white">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹999</span>
-                <span className="text-gray-600">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Everything in Pro</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Client management</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Invoice generation</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Custom branding</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">API access</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">24/7 support</span>
-                </li>
-              </ul>
-              <Link
-                to="/register"
-                className="block w-full text-center bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Business Plans */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">For Business</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Starter Plan */}
-            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-blue-500 transition-colors bg-white">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Starter</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹1,999</span>
-                <span className="text-gray-600">/month</span>
-                <p className="text-sm text-gray-500 mt-1">Up to 10 employees</p>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Team attendance tracking</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Basic analytics</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Leave management</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Email support</span>
-                </li>
-              </ul>
-              <Link
-                to="/register"
-                className="block w-full text-center bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
-
-            {/* Professional Plan */}
-            <div className="border-2 border-blue-500 rounded-xl p-8 bg-gradient-to-br from-blue-50 to-indigo-50 relative">
+            {/* Business Plan - Popular */}
+            <div className="border-2 border-blue-500 rounded-xl p-8 bg-gradient-to-br from-blue-50 to-indigo-50 relative shadow-xl scale-105">
               <div className="absolute top-0 right-0 bg-blue-600 text-white px-4 py-1 rounded-bl-lg rounded-tr-xl text-sm font-bold">
                 Most Popular
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Professional</h3>
+              <div className="mb-4">
+                <FiTrendingUp className="w-8 h-8 text-blue-600 mb-2" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Business</h3>
+                <p className="text-gray-600 text-sm">Ideal for growing organizations</p>
+              </div>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹4,999</span>
-                <span className="text-gray-600">/month</span>
-                <p className="text-sm text-gray-500 mt-1">Up to 50 employees</p>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold text-gray-900">₹1,124</span>
+                  <span className="text-gray-600 ml-2">/user/month</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">or ₹13,488/year (save 20%)</p>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Everything in Starter</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 font-medium">Everything in Pro</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Advanced analytics</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Payroll & salary management</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Payroll integration</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Advanced CRM features</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Custom reports</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Custom reports & dashboards</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Priority support</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Document management system</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">API access</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Helpdesk & ticket system</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">API access & webhooks</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Priority phone & chat support</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Advanced security features</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Multi-department management</span>
                 </li>
               </ul>
               <Link
                 to="/register"
-                className="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                className="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-md"
               >
                 Start Free Trial
               </Link>
             </div>
 
             {/* Enterprise Plan */}
-            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-indigo-500 transition-colors bg-white">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+            <div className="border-2 border-gray-200 rounded-xl p-8 hover:border-indigo-500 transition-colors bg-white shadow-lg hover:shadow-xl">
+              <div className="mb-4">
+                <FiGlobe className="w-8 h-8 text-indigo-600 mb-2" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Enterprise</h3>
+                <p className="text-gray-600 text-sm">For large organizations</p>
+              </div>
               <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹9,999</span>
-                <span className="text-gray-600">/month</span>
-                <p className="text-sm text-gray-500 mt-1">Unlimited employees</p>
+                <div className="flex items-baseline">
+                  <span className="text-4xl font-bold text-gray-900">Custom</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Volume discounts available</p>
               </div>
               <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Everything in Professional</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 font-medium">Everything in Business</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Custom integrations</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Unlimited users</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Custom integrations & SSO</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">White-labeling options</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
                   <span className="text-gray-600">Dedicated account manager</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">White-label options</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">24/7 phone & priority support</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">24/7 phone support</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">SLA guarantees</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">SLA guarantee</span>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">On-premise deployment option</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <FiCheckCircle className="text-green-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-600">Custom training & onboarding</span>
                 </li>
               </ul>
               <Link
@@ -276,114 +222,47 @@ const Pricing = () => {
           </div>
         </div>
 
-        {/* Education Plans */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">For Education</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* School Plan */}
-            <div className="border-2 border-green-200 rounded-xl p-8 hover:border-green-500 transition-colors bg-white">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">School</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹2,499</span>
-                <span className="text-gray-600">/month</span>
-                <p className="text-sm text-gray-500 mt-1">Up to 100 students</p>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Student & faculty management</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Attendance tracking</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Academic calendar</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Basic reporting</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Email support</span>
-                </li>
-              </ul>
-              <Link
-                to="/register"
-                className="block w-full text-center bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-              >
-                Get Started
-              </Link>
+        {/* Features Comparison */}
+        <div className="mb-20 bg-white rounded-2xl shadow-xl p-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">All Plans Include</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <FiShield className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Security & Compliance</h3>
+              <p className="text-gray-600">Enterprise-grade security, data encryption, GDPR compliant</p>
             </div>
-
-            {/* University Plan */}
-            <div className="border-2 border-green-500 rounded-xl p-8 bg-gradient-to-br from-green-50 to-emerald-50 relative">
-              <div className="absolute top-0 right-0 bg-green-600 text-white px-4 py-1 rounded-bl-lg rounded-tr-xl text-sm font-bold">
-                Best Value
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">University</h3>
-              <div className="mb-6">
-                <span className="text-4xl font-bold text-gray-900">₹4,999</span>
-                <span className="text-gray-600">/month</span>
-                <p className="text-sm text-gray-500 mt-1">Unlimited students</p>
-              </div>
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Everything in School</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Advanced analytics</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Multi-campus support</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Custom integrations</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Priority support</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">Dedicated training</span>
-                </li>
-              </ul>
-              <Link
-                to="/register"
-                className="block w-full text-center bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-              >
-                Start Free Trial
-              </Link>
+            <div className="text-center">
+              <FiZap className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Fast & Reliable</h3>
+              <p className="text-gray-600">99.9% uptime SLA, cloud-based infrastructure, regular backups</p>
+            </div>
+            <div className="text-center">
+              <FiBarChart2 className="w-12 h-12 text-indigo-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Analytics & Insights</h3>
+              <p className="text-gray-600">Real-time dashboards, custom reports, data export</p>
             </div>
           </div>
         </div>
 
-        {/* Enterprise Section */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-12 text-white text-center">
+        {/* Enterprise CTA Section */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-12 text-white text-center mb-20">
           <h2 className="text-3xl font-bold mb-4">Need Enterprise Solutions?</h2>
           <p className="text-xl mb-8 opacity-90">
             Custom pricing and features tailored to your organization's needs. Contact our sales team for a personalized quote.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Link
-              to="/for-enterprise"
-              className="inline-block bg-white text-indigo-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors"
-            >
-              View Enterprise Plans
-            </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="mailto:sales@worklogz.com"
-              className="inline-block bg-indigo-700 text-white border-2 border-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-indigo-800 transition-colors"
+              className="inline-block bg-white text-indigo-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition-colors"
             >
               Contact Sales
             </a>
+            <Link
+              to="/register"
+              className="inline-block bg-indigo-700 text-white border-2 border-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-indigo-800 transition-colors"
+            >
+              Start Free Trial
+            </Link>
           </div>
         </div>
 
@@ -401,16 +280,27 @@ const Pricing = () => {
             </div>
             <div>
               <h3 className="font-bold text-lg mb-2">What payment methods do you accept?</h3>
-              <p className="text-gray-600">We accept all major credit cards, UPI, net banking, and bank transfers for Indian customers.</p>
+              <p className="text-gray-600">We accept all major credit cards, debit cards, UPI, net banking, and bank transfers for Indian customers.</p>
             </div>
             <div>
               <h3 className="font-bold text-lg mb-2">Do you offer discounts?</h3>
-              <p className="text-gray-600">Yes, we offer special pricing for annual subscriptions and educational institutions.</p>
+              <p className="text-gray-600">Yes, we offer special pricing for annual subscriptions (save 20%), educational institutions, and NGOs.</p>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-2">How does per-user pricing work?</h3>
+              <p className="text-gray-600">You only pay for active users in your organization. You can add or remove users at any time, and billing adjusts automatically.</p>
+            </div>
+            <div>
+              <h3 className="font-bold text-lg mb-2">Can I cancel anytime?</h3>
+              <p className="text-gray-600">Yes, you can cancel your subscription at any time. No long-term contracts or cancellation fees.</p>
             </div>
           </div>
         </div>
       </div>
+      
+      <LandingFooter />
     </div>
+    </>
   );
 };
 

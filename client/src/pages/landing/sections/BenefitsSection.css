@@ -1,12 +1,12 @@
 .benefits-section {
-  padding: 100px 0;
+  padding: 60px 0;
   background: #ffffff;
 }
 
 .benefits-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 32px;
+  gap: 24px;
 }
 
 .benefit-card {

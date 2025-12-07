@@ -2,6 +2,7 @@
 
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Team = require('../models/Team');
 
 const taskController = {
   // Get all tasks for the authenticated user
@@ -25,12 +26,93 @@ const taskController = {
       // Exclude deleted tasks by default
       filter.isDeleted = { $ne: true };
       
-      // If admin is requesting tasks for a specific user
-      if (userId && req.user.role === 'admin') {
-        filter.user = userId;
+      // If userId is provided, validate permissions
+      if (userId) {
+        // Admin can query tasks for any user
+        if (req.user.role === 'admin') {
+          filter.user = userId;
+        } 
+        // Team lead can query tasks for their team members
+        else if (req.user.role === 'employee') {
+          // Check if user is a team lead
+          const teams = await Team.find({
+            teamLead: req.user._id
+          }).populate('members', '_id');
+          
+          if (teams.length > 0) {
+            // Collect all team member IDs
+            const teamMemberIds = new Set();
+            teams.forEach(team => {
+              if (team.members && Array.isArray(team.members)) {
+                team.members.forEach(member => {
+                  const memberId = member._id || member;
+                  if (memberId) {
+                    teamMemberIds.add(memberId.toString());
+                  }
+                });
+              }
+            });
+            
+            // Check if requested user is in the team
+            if (teamMemberIds.has(userId.toString())) {
+              filter.user = userId;
+            } else {
+              return res.status(403).json({ 
+                error: 'You can only view tasks for your team members' 
+              });
+            }
+          } else {
+            // Not a team lead, can only see their own tasks
+            if (userId.toString() !== req.user._id.toString()) {
+              return res.status(403).json({ 
+                error: 'You can only view your own tasks' 
+              });
+            }
+            filter.user = req.user._id;
+          }
+        } else {
+          // Regular user can only see their own tasks
+          filter.user = req.user._id;
+        }
       } else {
-        // Regular user can only see their own tasks
-        filter.user = req.user._id;
+        // No userId specified - show tasks based on role
+        if (req.user.role === 'admin') {
+          // Admin sees all tasks (no user filter)
+          // filter.user is not set, so all tasks are returned
+        } else if (req.user.role === 'employee') {
+          // Check if user is a team lead
+          const teams = await Team.find({
+            teamLead: req.user._id
+          }).populate('members', '_id');
+          
+          if (teams.length > 0) {
+            // Team lead: show tasks for all team members
+            const teamMemberIds = [];
+            teams.forEach(team => {
+              if (team.members && Array.isArray(team.members)) {
+                team.members.forEach(member => {
+                  const memberId = member._id || member;
+                  if (memberId) {
+                    teamMemberIds.push(memberId);
+                  }
+                });
+              }
+            });
+            
+            if (teamMemberIds.length > 0) {
+              filter.user = { $in: teamMemberIds };
+            } else {
+              // No team members, show only own tasks
+              filter.user = req.user._id;
+            }
+          } else {
+            // Regular employee: show only own tasks
+            filter.user = req.user._id;
+          }
+        } else {
+          // Regular user can only see their own tasks
+          filter.user = req.user._id;
+        }
       }
 
       // Date range filter
@@ -107,15 +189,54 @@ const taskController = {
   getTaskById: async (req, res) => {
     try {
       const task = await Task.findOne({ 
-        _id: req.params.id, 
-        user: req.user._id 
+        _id: req.params.id,
+        isDeleted: { $ne: true }
       }).populate('user', 'name email');
 
       if (!task) {
         return res.status(404).json({ error: 'Task not found' });
       }
 
-      res.json(task);
+      // Check permissions
+      // Admin can view any task
+      if (req.user.role === 'admin') {
+        return res.json(task);
+      }
+
+      // User can view their own task
+      if (task.user._id.toString() === req.user._id.toString()) {
+        return res.json(task);
+      }
+
+      // Check if user is a team lead and task belongs to a team member
+      if (req.user.role === 'employee') {
+        const teams = await Team.find({
+          teamLead: req.user._id
+        }).populate('members', '_id');
+        
+        if (teams.length > 0) {
+          // Collect all team member IDs
+          const teamMemberIds = new Set();
+          teams.forEach(team => {
+            if (team.members && Array.isArray(team.members)) {
+              team.members.forEach(member => {
+                const memberId = member._id || member;
+                if (memberId) {
+                  teamMemberIds.add(memberId.toString());
+                }
+              });
+            }
+          });
+          
+          // Check if task belongs to a team member
+          if (teamMemberIds.has(task.user._id.toString())) {
+            return res.json(task);
+          }
+        }
+      }
+
+      // User doesn't have permission
+      return res.status(403).json({ error: 'You do not have permission to view this task' });
     } catch (err) {
       console.error('Get task by ID error:', err);
       if (err.name === 'CastError') {
@@ -156,14 +277,63 @@ const taskController = {
       // Determine the task owner
       let taskUserId = req.user._id; // Default to current user
       
-      // If admin is creating task for another user
-      if (userId && req.user.role === 'admin') {
+      // If userId is provided, validate permissions
+      if (userId) {
         // Verify the target user exists
         const targetUser = await User.findById(userId);
         if (!targetUser) {
           return res.status(400).json({ error: 'Target user not found' });
         }
-        taskUserId = userId;
+
+        // Admin can assign to any user
+        if (req.user.role === 'admin') {
+          taskUserId = userId;
+        } 
+        // Team lead can only assign to their team members
+        else if (req.user.role === 'employee') {
+          // Check if user is a team lead
+          const teams = await Team.find({
+            teamLead: req.user._id
+          }).populate('members', '_id');
+          
+          if (teams.length > 0) {
+            // Collect all team member IDs
+            const teamMemberIds = new Set();
+            teams.forEach(team => {
+              if (team.members && Array.isArray(team.members)) {
+                team.members.forEach(member => {
+                  const memberId = member._id || member;
+                  if (memberId) {
+                    teamMemberIds.add(memberId.toString());
+                  }
+                });
+              }
+            });
+            
+            // Check if target user is in the team
+            if (teamMemberIds.has(userId.toString())) {
+              taskUserId = userId;
+            } else {
+              return res.status(403).json({ 
+                error: 'You can only assign tasks to your team members' 
+              });
+            }
+          } else {
+            // Not a team lead, can only assign to themselves
+            if (userId.toString() !== req.user._id.toString()) {
+              return res.status(403).json({ 
+                error: 'You can only assign tasks to yourself' 
+              });
+            }
+          }
+        } else {
+          // Regular employee can only assign to themselves
+          if (userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ 
+              error: 'You can only assign tasks to yourself' 
+            });
+          }
+        }
       }
 
       const task = new Task({

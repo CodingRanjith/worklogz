@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
   FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
-  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield
+  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield, FiEdit3
 } from 'react-icons/fi';
 
 export const menuItems = [
@@ -21,6 +21,7 @@ export const menuItems = [
     ]
   },
   { label: 'Task Manager', icon: <FiClipboard />, path: '/task-manager' },
+  { label: 'Assessments', icon: <FiEdit3 />, path: '/assessments' },
   { label: 'Helpdesk', icon: <FiHelpCircle />, path: '/helpdesk' },
   { label: 'Company Worklogz', icon: <FiBriefcase />, path: '/company-worklogz' },
   { label: 'Company Departments', icon: <FiBriefcase />, path: '/company-departments' },
