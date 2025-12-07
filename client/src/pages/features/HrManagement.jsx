@@ -36,3 +36,4 @@ const HrManagement = () => {
 
 export default HrManagement;
 
+

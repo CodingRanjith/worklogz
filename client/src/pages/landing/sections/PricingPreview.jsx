@@ -7,7 +7,7 @@ const PricingPreview = () => {
   const plans = [
     {
       name: 'Starter',
-      price: '$9',
+      price: '₹750',
       period: '/user/month',
       description: 'Perfect for small teams',
       features: [
@@ -22,7 +22,7 @@ const PricingPreview = () => {
     },
     {
       name: 'Professional',
-      price: '$19',
+      price: '₹1,599',
       period: '/user/month',
       description: 'Ideal for growing organizations',
       features: [

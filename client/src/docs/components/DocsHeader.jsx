@@ -1,17 +1,15 @@
-import React, { useState } from 'react';
-import { FiMenu, FiSearch, FiGithub, FiMoon, FiSun } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiMenu, FiSearch } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import './DocsHeader.css';
 
 const DocsHeader = ({ sidebarOpen, setSidebarOpen }) => {
   const [searchOpen, setSearchOpen] = useState(false);
-  const [theme, setTheme] = useState('dark');
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
+  useEffect(() => {
+    // Force light mode only
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
 
   return (
     <header className="docs-header">
@@ -44,26 +42,6 @@ const DocsHeader = ({ sidebarOpen, setSidebarOpen }) => {
       </div>
 
       <div className="docs-header-right">
-        <a 
-          href="https://github.com" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="docs-header-icon"
-          aria-label="GitHub"
-        >
-          <FiGithub />
-        </a>
-        <button
-          className="docs-header-icon"
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <FiSun /> : <FiMoon />}
-        </button>
-        <div className="docs-header-dropdown">
-          <span>Auto</span>
-          <span className="docs-dropdown-arrow">▼</span>
-        </div>
       </div>
     </header>
   );
