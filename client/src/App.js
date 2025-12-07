@@ -106,6 +106,10 @@ import LandingPage from './pages/landing/LandingPage';
 
 // Static Pages
 import Pricing from './pages/static/Pricing';
+import ForBusiness from './pages/static/ForBusiness';
+import ForEnterprise from './pages/static/ForEnterprise';
+import ForEducation from './pages/static/ForEducation';
+import ForIndividuals from './pages/static/ForIndividuals';
 
 // Feature Detail Pages - User Modules
 import UserProfileManagement from './pages/features/UserProfileManagement';
@@ -190,6 +194,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/for-business" element={<ForBusiness />} />
+        <Route path="/for-enterprise" element={<ForEnterprise />} />
+        <Route path="/for-education" element={<ForEducation />} />
+        <Route path="/for-individuals" element={<ForIndividuals />} />
         
         {/* Feature Detail Pages - User Modules */}
         <Route path="/features/user-profile-management" element={<UserProfileManagement />} />
