@@ -14,7 +14,7 @@ import {
 import {Fragment} from 'react';
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
-import logo from "../../../assets/logo.png";
+import logo from "../../../assets/tech.png";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import PayslipDownloader from "./PayslipDownloader";
 
