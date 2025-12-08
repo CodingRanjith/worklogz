@@ -11,7 +11,7 @@ import HolidayModal from "../../components/holidays/HolidayModal";
 import ProfileCard from "./ProfileCard";
 import Swal from "sweetalert2";
 import techLogo from "../../assets/tech.png";
-import jobzenterLogo from "../../assets/jzlogo.png";
+import jobzenterLogo from "../../assets/tech.png";
 import "./AttendancePage.css";
 import "./AttendanceModern.css";
 import "../../styles/m365Theme.css";

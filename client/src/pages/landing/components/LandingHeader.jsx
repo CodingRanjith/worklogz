@@ -32,6 +32,7 @@ import {
   FiClipboard
 } from 'react-icons/fi';
 import './LandingHeader.css';
+import worklogzLogo from '../../../assets/worklogz-logo.png';
 
 const LandingHeader = () => {
   const location = useLocation();
@@ -126,8 +127,8 @@ const LandingHeader = () => {
       <header className="landing-header">
         <div className="header-container">
         <div className="header-left">
-          <Link to="/" className="logo">
-            <div className="logo-icon">W</div>
+          <Link to="/" className="logo" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src={worklogzLogo} alt="Worklogz logo" className="logo-image" />
             <span className="logo-text">Worklogz</span>
           </Link>
         </div>

@@ -17,7 +17,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import urbancodeLogoSrc from '../../../assets/tech.png';
-import jobzenterLogoSrc from '../../../assets/jzlogo.png';
+import jobzenterLogoSrc from '../../../assets/tech.png';
 
 const UserCard = ({ user, className = '', onEdit, onDelete, isDeleting = false }) => {
   const [showBankingDetails, setShowBankingDetails] = useState(false);

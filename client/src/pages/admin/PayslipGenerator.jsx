@@ -19,8 +19,8 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import dayjs from "dayjs";
 import axios from "axios";
-import uclogo from "../../assets/logo.png";
-import jzlogo from "../../assets/jzlogo.png";
+import uclogo from "../../assets/tech.png";
+import jzlogo from "../../assets/tech.png";
 import { API_ENDPOINTS } from "../../utils/api";
   import { createTheme, ThemeProvider } from '@mui/material/styles';
 const PayslipGenerator = () => {

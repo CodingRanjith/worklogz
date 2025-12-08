@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../utils/api';
 import urbancodeLogo from '../assets/tech.png';
-import jobzenterLogo from '../assets/jzlogo.png';
+import jobzenterLogo from '../assets/tech.png';
 import {FiMail, FiPhone, FiChevronLeft } from 'react-icons/fi';
 import {
   FiUserPlus,

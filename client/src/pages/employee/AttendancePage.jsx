@@ -37,7 +37,7 @@ import {
   FiStar,
 } from "react-icons/fi";
 import techLogo from "../../assets/tech.png";
-import jobzenterLogo from "../../assets/jzlogo.png";
+import jobzenterLogo from "../../assets/tech.png";
 
 function AttendancePage() {
   const navigate = useNavigate();
