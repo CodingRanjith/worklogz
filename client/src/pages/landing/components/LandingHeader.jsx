@@ -33,6 +33,7 @@ import {
 } from 'react-icons/fi';
 import './LandingHeader.css';
 import worklogzLogo from '../../../assets/worklogz-logo.png';
+import DemoRequestForm from '../../../components/DemoRequestForm';
 
 const LandingHeader = () => {
   const location = useLocation();
@@ -40,6 +41,7 @@ const LandingHeader = () => {
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [demoFormOpen, setDemoFormOpen] = useState(false);
 
   // Icon colors array for variety
   const iconColors = [
@@ -245,6 +247,7 @@ const LandingHeader = () => {
         </nav>
 
         <div className="header-right desktop-nav">
+          <button onClick={() => setDemoFormOpen(true)} className="btn-secondary" style={{ marginRight: '12px', cursor: 'pointer' }}>Request Demo</button>
           <Link to="/login" className="btn-secondary">Login</Link>
           <Link to="/register" className="btn-primary">Get Started</Link>
         </div>
@@ -319,10 +322,13 @@ const LandingHeader = () => {
           <Link to="/pricing" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
           <Link to="/docs" onClick={() => setMobileMenuOpen(false)}>Documentation</Link>
           <Link to="/docs/faq" onClick={() => setMobileMenuOpen(false)}>Resources</Link>
+          <button onClick={() => { setMobileMenuOpen(false); setDemoFormOpen(true); }} className="btn-secondary" style={{ width: '100%', marginBottom: '12px' }}>Request Demo</button>
           <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
           <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="btn-primary">Get Started</Link>
         </div>
       )}
+      
+      <DemoRequestForm isOpen={demoFormOpen} onClose={() => setDemoFormOpen(false)} />
       </header>
     </>
   );

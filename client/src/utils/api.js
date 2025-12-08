@@ -253,6 +253,11 @@ export const API_ENDPOINTS = {
   submitAssessment: (id) => `${BASE_URL}/api/assessments/${id}/submit`,
   getSubmission: (id, submissionId) => `${BASE_URL}/api/assessments/${id}/submissions/${submissionId}`,
 
+  // -----------------
+  // Demo Request APIs
+  // -----------------
+  requestDemo: `${BASE_URL}/api/demo/request`,
+
 };
 
 // -----------------
