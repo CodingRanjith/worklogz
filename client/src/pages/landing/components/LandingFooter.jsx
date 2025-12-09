@@ -2,6 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiFacebook, FiTwitter, FiLinkedin, FiInstagram, FiGithub, FiYoutube, FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
 import './LandingFooter.css';
+import worklogzLogo from '../../../assets/worklogz-logo.png';
+import ranjithImg from '../../../assets/dev/ranjith.jpg';
+import gayathriImg from '../../../assets/dev/gayathri.png';
+import pushparajImg from '../../../assets/dev/pushparaj.jpg';
 
 const LandingFooter = () => {
   return (
@@ -24,7 +28,7 @@ const LandingFooter = () => {
           {/* Left Column - Branding */}
           <div className="footer-column footer-column-brand">
             <div className="footer-logo">
-              <div className="logo-icon">W</div>
+              <img src={worklogzLogo} alt="Worklogz logo" className="footer-logo-img" />
               <span className="logo-text">Worklogz</span>
             </div>
             <p className="footer-tagline">
@@ -133,6 +137,52 @@ const LandingFooter = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Developer Profiles */}
+        <div className="footer-dev-profiles">
+          <h3 className="footer-title">Worklogz Developer Profiles</h3>
+          <div className="dev-profiles">
+            <a
+              className="dev-card"
+              href="https://www.linkedin.com/in/coding-ranjith"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="dev-avatar">
+                <img src={ranjithImg} alt="Ranjith Kumar C" />
+              </div>
+              <div className="dev-info">
+                <span className="dev-name">Ranjith</span>
+              </div>
+            </a>
+            <a
+              className="dev-card"
+              href="https://www.linkedin.com/in/gayathrib-dev"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="dev-avatar">
+                <img src={gayathriImg} alt="Gayathri B" />
+              </div>
+              <div className="dev-info">
+                <span className="dev-name">Gayathri</span>
+              </div>
+            </a>
+            <a
+              className="dev-card"
+              href="https://www.linkedin.com/in/pushparajraje"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="dev-avatar">
+                <img src={pushparajImg} alt="Pushparaj Raje P" />
+              </div>
+              <div className="dev-info">
+                <span className="dev-name">Pushparajraje</span>
+              </div>
+            </a>
           </div>
         </div>
 
