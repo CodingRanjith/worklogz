@@ -6,6 +6,8 @@ import worklogzLogo from '../../../assets/worklogz-logo.png';
 import ranjithImg from '../../../assets/dev/ranjith.jpg';
 import gayathriImg from '../../../assets/dev/gayathri.png';
 import pushparajImg from '../../../assets/dev/pushparaj.jpg';
+import vajuImg from '../../../assets/dev/vaju.jpg';
+import surendarImg from '../../../assets/dev/surendar.png';
 
 const LandingFooter = () => {
   return (
@@ -155,6 +157,7 @@ const LandingFooter = () => {
               </div>
               <div className="dev-info">
                 <span className="dev-name">Ranjith</span>
+                <span className="dev-role">AI & Cybersecurity Engineer</span>
               </div>
             </a>
             <a
@@ -168,6 +171,7 @@ const LandingFooter = () => {
               </div>
               <div className="dev-info">
                 <span className="dev-name">Gayathri</span>
+                <span className="dev-role">Application Developer (AI)</span>
               </div>
             </a>
             <a
@@ -180,7 +184,36 @@ const LandingFooter = () => {
                 <img src={pushparajImg} alt="Pushparaj Raje P" />
               </div>
               <div className="dev-info">
-                <span className="dev-name">Pushparajraje</span>
+                <span className="dev-name">Pushparaj Raje </span>
+                <span className="dev-role">Software Engineer (AI)</span>
+              </div>
+            </a>
+            <a
+              className="dev-card"
+              href="https://www.linkedin.com/in/e-vajjiravel"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="dev-avatar">
+                <img src={vajuImg} alt="Vajjuravel E" />
+              </div>
+              <div className="dev-info">
+                <span className="dev-name">Vajjuravel</span>
+                <span className="dev-role">Software QA Engineer</span>
+              </div>
+            </a>
+            <a
+              className="dev-card"
+              href="https://www.linkedin.com/in/surendar"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="dev-avatar">
+                <img src={surendarImg} alt="Surendar B" />
+              </div>
+              <div className="dev-info">
+                <span className="dev-name">Surendar B</span>
+                <span className="dev-role">UI & UX Designer</span>
               </div>
             </a>
           </div>

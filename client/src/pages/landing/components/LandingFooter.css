@@ -310,7 +310,7 @@
 .footer-dev-profiles {
   margin: 12px auto 32px;
   padding: 0;
-  max-width: 760px;
+  max-width: 100%;
 }
 
 .footer-dev-profiles .footer-title {
@@ -319,9 +319,9 @@
 }
 
 .dev-profiles {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px 16px;
 }
 
 .dev-card {
@@ -348,6 +348,18 @@
   z-index: 1;
 }
 
+.dev-avatar-initials {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3f3f7f, #2d2d66);
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .dev-avatar img {
   width: 100%;
   height: 100%;
@@ -357,10 +369,13 @@
 
 .dev-info {
   display: flex;
-  flex-direction: column;
-  gap: 0;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   position: relative;
   z-index: 1;
+  flex: 1;
 }
 
 .dev-name {
@@ -371,7 +386,32 @@
   text-decoration: none;
 }
 
+.dev-role {
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.9;
+  text-align: right;
+}
+
 /* dev-link styles removed; name is the clickable link */
+
+@media (max-width: 640px) {
+  .dev-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+  
+  .dev-role {
+    text-align: left;
+    font-size: 12px;
+  }
+  
+  .dev-profiles {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* HR Features Section Styles */
 .footer-features-section {
