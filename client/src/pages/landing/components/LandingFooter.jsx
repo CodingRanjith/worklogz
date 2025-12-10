@@ -8,6 +8,7 @@ import gayathriImg from '../../../assets/dev/gayathri.png';
 import pushparajImg from '../../../assets/dev/pushparaj.jpg';
 import vajuImg from '../../../assets/dev/vaju.jpg';
 import surendarImg from '../../../assets/dev/surendar.png';
+import sanjaiImg from '../../../assets/dev/sanjai.jpeg';
 
 const LandingFooter = () => {
   return (
@@ -190,6 +191,20 @@ const LandingFooter = () => {
             </a>
             <a
               className="dev-card"
+              href="https://www.linkedin.com/in/sanjaiprabhuk/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <div className="dev-avatar">
+                <img src={sanjaiImg} alt="Sanjai Prabhu" />
+              </div>
+              <div className="dev-info">
+                <span className="dev-name">Sanjai Prabhu</span>
+                <span className="dev-role">Full Stack Developer</span>
+              </div>
+            </a>
+            <a
+              className="dev-card"
               href="https://www.linkedin.com/in/e-vajjiravel"
               target="_blank"
               rel="noopener noreferrer"
@@ -216,6 +231,7 @@ const LandingFooter = () => {
                 <span className="dev-role">UI & UX Designer</span>
               </div>
             </a>
+            
           </div>
         </div>
 
