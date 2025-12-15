@@ -25,6 +25,7 @@ import {
   FiClipboard,
   FiEdit3,
   FiPlay,
+  FiCreditCard,
 } from 'react-icons/fi';
 import { getAccessForUser } from '../../../utils/sidebarAccess';
 import { API_ENDPOINTS } from '../../../utils/api';
@@ -117,6 +118,7 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
       { label: 'Helpdesk', icon: <FiHelpCircle />, path: '/helpdesk' },
       { label: 'AI Copilot', icon: <FiStar />, path: '/employee/ai' },
       { label: 'WorklogzTube', icon: <FiPlay />, path: '/employee/worklogztube' },
+      { label: 'Fee Payment', icon: <FiCreditCard />, path: '/employee/fee-payment' },
     );
     
     return items;

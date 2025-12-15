@@ -72,6 +72,8 @@ import TeamManagement from './pages/admin/TeamManagement';
 import Assessments from './pages/admin/Assessments';
 import EmployeeAssessments from './pages/employee/Assessments';
 import WorklogzTube from './pages/employee/WorklogzTube';
+import FeePayment from './pages/employee/FeePayment';
+import FeePaymentsManagement from './pages/admin/FeePaymentsManagement';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 import EmployeeLayout from './components/employee-dashboard/layout/EmployeeLayout';
@@ -266,6 +268,7 @@ function App() {
           <Route path="/documents" element={<DocumentCenter />} />
           <Route path="/helpdesk" element={<HelpdeskPage />} />
           <Route path="/employee/worklogztube" element={<WorklogzTube />} />
+          <Route path="/employee/fee-payment" element={<FeePayment />} />
           <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Employee Sidebar */}
         </Route>
         
@@ -330,6 +333,7 @@ function App() {
           <Route path="/admin/team-management" element={<TeamManagement />} />
           <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Admin Sidebar */}
           <Route path="/assessments" element={<Assessments />} />
+          <Route path="/fee-payments" element={<FeePaymentsManagement />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

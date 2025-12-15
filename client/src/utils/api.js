@@ -1,12 +1,12 @@
 
 
 // src/utils/api.js
-export const BASE_URL = 'https://worklogz.onrender.com';
+// export const BASE_URL = 'https://worklogz.onrender.com';
 
 // src/utils/api.js
 
 // // // // Base URL
-// export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
+export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
 
 // -----------------
 // Auth & User APIss
@@ -257,6 +257,18 @@ export const API_ENDPOINTS = {
   // Demo Request APIs
   // -----------------
   requestDemo: `${BASE_URL}/api/demo/request`,
+
+  // -----------------
+  // Fee Payment APIs
+  // -----------------
+  submitFeePayment: `${BASE_URL}/api/fee-payments/submit`,
+  getMyFeePayments: `${BASE_URL}/api/fee-payments/my-payments`,
+  getAllFeePayments: `${BASE_URL}/api/fee-payments`,
+  getFeePaymentById: (id) => `${BASE_URL}/api/fee-payments/${id}`,
+  createFeePayment: `${BASE_URL}/api/fee-payments`,
+  updateFeePayment: (id) => `${BASE_URL}/api/fee-payments/${id}`,
+  updateFeePaymentStatus: (id) => `${BASE_URL}/api/fee-payments/${id}/status`,
+  deleteFeePayment: (id) => `${BASE_URL}/api/fee-payments/${id}`,
 
 };
 

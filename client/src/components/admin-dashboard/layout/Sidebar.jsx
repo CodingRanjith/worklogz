@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
   FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
-  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield, FiEdit3
+  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield, FiEdit3, FiCreditCard
 } from 'react-icons/fi';
 
 export const menuItems = [
@@ -60,6 +60,7 @@ export const menuItems = [
   { label: 'Holiday List', icon: <FiCalendar />, path: '/holidays' },
   { label: 'Administration', icon: <FiShield />, path: '/administration/access-control' },
   { label: 'Plans', icon: <FiPackage />, path: '/plans' },
+  { label: 'Fee Payments', icon: <FiCreditCard />, path: '/fee-payments' },
   { label: 'Settings', icon: <FiSettings />, path: '/settings' }
 ];
 

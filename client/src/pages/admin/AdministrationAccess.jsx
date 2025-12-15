@@ -6,7 +6,7 @@ import { employeeMenuItems } from '../../components/employee/EmployeeNavigation'
 import {
   getAccessMap,
   getAllMenuPaths,
-  setAccessForUser
+  setAccessForUsers
 } from '../../utils/sidebarAccess';
 
 const AdministrationAccess = () => {
@@ -15,7 +15,10 @@ const AdministrationAccess = () => {
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [scope, setScope] = useState('admin'); // 'admin' or 'employee'
-  const [accessMap, setAccessMapState] = useState(getAccessMap('admin'));
+  const [accessMap, setAccessMapState] = useState({});
+  const [savedAccessMap, setSavedAccessMap] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const allPaths = useMemo(
     () => getAllMenuPaths(scope === 'admin' ? menuItems : employeeMenuItems),
     [scope]
@@ -40,9 +43,24 @@ const AdministrationAccess = () => {
     fetchUsers();
   }, [token]);
 
-  // Refresh access map when scope changes so UI shows correct values
+  // Load access map on mount and when scope changes
   useEffect(() => {
-    setAccessMapState(getAccessMap(scope));
+    const loadAccessMap = async () => {
+      setIsLoading(true);
+      try {
+        const map = await getAccessMap(scope);
+        setAccessMapState(map);
+        setSavedAccessMap(map);
+      } catch (err) {
+        console.error('Failed to load access map', err);
+        setAccessMapState({});
+        setSavedAccessMap({});
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAccessMap();
   }, [scope]);
 
   const filteredUsers = useMemo(() => {
@@ -84,7 +102,7 @@ const AdministrationAccess = () => {
   };
 
   const togglePath = (path) => {
-    // Apply to all selected users
+    // Apply to all selected users (only update local state, don't save yet)
     setAccessMapState((prev) => {
       const updated = { ...prev };
       selectedUserIds.forEach((userId) => {
@@ -93,23 +111,85 @@ const AdministrationAccess = () => {
         const hasPath = current.includes(path);
         const nextPaths = hasPath ? current.filter((p) => p !== path) : [...current, path];
         updated[userId] = nextPaths;
-        setAccessForUser(userId, nextPaths, scope);
       });
       return updated;
     });
   };
 
   const toggleAll = (enabled) => {
-    // Apply to all selected users
+    // Apply to all selected users (only update local state, don't save yet)
     setAccessMapState((prev) => {
       const updated = { ...prev };
       const nextPaths = enabled ? allPaths : [];
       selectedUserIds.forEach((userId) => {
         updated[userId] = nextPaths;
-        setAccessForUser(userId, nextPaths, scope);
       });
       return updated;
     });
+  };
+
+  // Check if there are unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    const allUserIds = new Set([...Object.keys(accessMap), ...Object.keys(savedAccessMap)]);
+    for (const userId of allUserIds) {
+      const current = accessMap[userId];
+      const saved = savedAccessMap[userId];
+      const defaultPaths = scope === 'admin' ? [] : allPaths;
+      const currentPaths = current !== undefined ? current : defaultPaths;
+      const savedPaths = saved !== undefined ? saved : defaultPaths;
+      
+      // Compare arrays
+      if (currentPaths.length !== savedPaths.length) return true;
+      const currentSet = new Set(currentPaths);
+      const savedSet = new Set(savedPaths);
+      if (currentSet.size !== savedSet.size) return true;
+      for (const path of currentSet) {
+        if (!savedSet.has(path)) return true;
+      }
+    }
+    return false;
+  }, [accessMap, savedAccessMap, scope, allPaths]);
+
+  // Save all changes
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // Get all users that have changes (either in current or saved map)
+      const allUserIds = new Set([...Object.keys(accessMap), ...Object.keys(savedAccessMap)]);
+      
+      if (allUserIds.size === 0) {
+        setIsSaving(false);
+        return;
+      }
+
+      // Group users by their paths to use bulk update efficiently
+      const pathGroups = new Map();
+      allUserIds.forEach((userId) => {
+        const defaultPaths = scope === 'admin' ? [] : allPaths;
+        const paths = accessMap[userId] !== undefined ? accessMap[userId] : defaultPaths;
+        const key = JSON.stringify(paths.sort());
+        if (!pathGroups.has(key)) {
+          pathGroups.set(key, []);
+        }
+        pathGroups.get(key).push(userId);
+      });
+
+      // Save each group
+      const savePromises = Array.from(pathGroups.entries()).map(([key, userIds]) => {
+        const paths = JSON.parse(key);
+        return setAccessForUsers(userIds, paths, scope);
+      });
+
+      await Promise.all(savePromises);
+      
+      // Update saved state to match current state
+      setSavedAccessMap({ ...accessMap });
+    } catch (err) {
+      console.error('Failed to save access changes', err);
+      alert('Failed to save changes. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const getPathState = (path) => {
@@ -130,6 +210,14 @@ const AdministrationAccess = () => {
   };
 
   const renderMenuControls = () => {
+    if (isLoading) {
+      return (
+        <div className="bg-white rounded-lg shadow p-6 text-gray-500">
+          Loading access settings...
+        </div>
+      );
+    }
+
     if (selectedUserIds.length === 0) {
       return (
         <div className="bg-white rounded-lg shadow p-6 text-gray-500">
@@ -156,8 +244,13 @@ const AdministrationAccess = () => {
               ))}
             </div>
             <p className="text-sm text-gray-500">
-              Control which sidebar items the selected users can see. Changes apply to all selected users and save locally.
+              Control which sidebar items the selected users can see. Changes apply to all selected users. Click Save to persist changes.
             </p>
+            {hasUnsavedChanges && (
+              <p className="text-sm text-orange-600 font-medium mt-1">
+                You have unsaved changes
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -171,6 +264,17 @@ const AdministrationAccess = () => {
               className="px-3 py-2 bg-gray-100 text-gray-800 rounded-md text-sm hover:bg-gray-200"
             >
               Disable All
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!hasUnsavedChanges || isSaving || selectedUserIds.length === 0}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                hasUnsavedChanges && !isSaving && selectedUserIds.length > 0
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </div>
@@ -236,7 +340,10 @@ const AdministrationAccess = () => {
         </div>
 
         <p className="text-xs text-gray-500 mt-3">
-          Changes apply to all {selectedUsers.length} selected {selectedUsers.length === 1 ? 'user' : 'users'}.
+          Changes apply to all {selectedUsers.length} selected {selectedUsers.length === 1 ? 'user' : 'users'}. 
+          {hasUnsavedChanges && (
+            <span className="text-orange-600 font-medium ml-1">Don't forget to save!</span>
+          )}
         </p>
       </div>
     );

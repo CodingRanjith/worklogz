@@ -19,7 +19,8 @@ import {
   FiTarget,
   FiBook,
   FiEdit3,
-  FiPlay
+  FiPlay,
+  FiCreditCard
 } from 'react-icons/fi';
 import { filterMenuByPaths, getAccessForUser } from '../../utils/sidebarAccess';
 
@@ -42,6 +43,7 @@ export const employeeMenuItems = [
   { path: '/helpdesk', icon: <FiHelpCircle />, label: 'Helpdesk', color: 'slate' },
   { path: '/employee/ai', icon: <FiStar />, label: 'AI Copilot', color: 'violet' },
   { path: '/employee/worklogztube', icon: <FiPlay />, label: 'WorklogzTube', color: 'red' },
+  { path: '/employee/fee-payment', icon: <FiCreditCard />, label: 'Fee Payment', color: 'indigo' },
 ];
 
 const EmployeeNavigation = () => {
