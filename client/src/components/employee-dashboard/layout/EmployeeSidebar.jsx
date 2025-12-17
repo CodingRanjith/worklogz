@@ -7,25 +7,24 @@ import {
   FiClock,
   FiUsers,
   FiBriefcase,
-  FiCheckSquare,
   FiDollarSign,
   FiCalendar,
-  FiGrid,
-  FiUser,
   FiFolder,
-  FiCompass,
-  FiHelpCircle,
-  FiStar,
-  FiLogOut,
-  FiTrendingUp,
+  FiShoppingCart,
+  FiPieChart,
+  FiBookOpen,
   FiTarget,
-  FiBook,
+  FiMessageCircle,
+  FiActivity,
+  FiShield,
+  FiZap,
+  FiCode,
+  FiSettings,
+  FiLogOut,
+  FiBarChart2,
   FiMenu,
   FiChevronLeft,
-  FiClipboard,
-  FiEdit3,
-  FiPlay,
-  FiCreditCard,
+  FiChevronRight,
 } from 'react-icons/fi';
 import { getAccessForUser } from '../../../utils/sidebarAccess';
 import { API_ENDPOINTS } from '../../../utils/api';
@@ -76,7 +75,6 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const teams = response.data || [];
-        // Check if user is a team lead in any team
         const userIsTeamLead = teams.some(team => 
           team.teamLead && (team.teamLead._id === currentUserId || team.teamLead.toString() === currentUserId)
         );
@@ -91,38 +89,368 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
 
   const menuItems = useMemo(() => {
     const items = [
+      // 🏠 Main Pages
       { label: 'Home', icon: <FiHome />, path: '/home' },
       { label: 'Attendance', icon: <FiClock />, path: '/attendance' },
-      { label: 'Community', icon: <FiUsers />, path: '/employee/community' },
-      { label: 'My Workspace', icon: <FiBriefcase />, path: '/employee/workspace' },
-      { label: 'Task Manager', icon: <FiCheckSquare />, path: '/timesheet' },
+      { label: 'Dashboard', icon: <FiBarChart2 />, path: '/dashboard' },
+      
+      // 👥 HR & Administration
+      {
+        label: 'HR & Administration',
+        icon: <FiUsers />,
+        subItems: [
+          { label: 'User & Employee Management', path: '#', isSection: true },
+          { label: 'People', path: '/employee/people' },
+          { label: 'Team Management', path: '/team-management' },
+          { label: 'Applications', path: '/employee/applications' },
+          { label: 'Roles & Permissions', path: '/administration/access-control' },
+          { label: 'Onboarding & Offboarding', path: '/hr/onboarding' },
+          { label: 'Employee Profiles', path: '/hr/employee-profiles' },
+          { label: 'HR Requests & Approvals', path: '/hr/approvals' },
+          { label: 'Org Chart', path: '/hr/org-chart' },
+          { label: 'HR Analytics', path: '/hr/analytics' }
+        ]
+      },
+      
+      // ⏱️ Time & Task Tracking
+      {
+        label: 'Time & Task Tracking',
+        icon: <FiClock />,
+        subItems: [
+          { label: 'Task Manager', path: '/timesheet' },
+          ...(isTeamLead ? [{ label: 'Admin Task Manager', path: '/task-manager' }] : []),
+          { label: 'Worklog Tracking', path: '/worklog-tracking' },
+          { label: 'Calendar View', path: '/calendar' },
+          { label: 'Timesheets', path: '/timesheets' },
+          { label: 'Productivity Reports', path: '/productivity-reports' },
+          { label: 'Shift Management', path: '/shift-management' },
+          { label: 'Overtime Tracking', path: '/overtime-tracking' },
+          { label: 'AI Time Insights', path: '/ai-time-insights' }
+        ]
+      },
+      
+      // 🌴 Leave Management
+      {
+        label: 'Leave Management',
+        icon: <FiCalendar />,
+        subItems: [
+          { label: 'Apply Leave', path: '/apply-leave' },
+          { label: 'Leave Records', path: '/leave-requests' },
+          { label: 'Late Reports', path: '/late-reports' },
+          { label: 'Holiday List', path: '/holidays' },
+          { label: 'Leave Policies', path: '/leave-policies' },
+          { label: 'Leave Approvals', path: '/leave-approvals' },
+          { label: 'Comp-Off Management', path: '/comp-off' },
+          { label: 'Shift-Based Leaves', path: '/shift-leaves' },
+          { label: 'Leave Analytics', path: '/leave-analytics' },
+          { label: 'AI Leave Insights', path: '/ai-leave-insights' }
+        ]
+      },
+      
+      // 💰 Finance & Compensation
+      {
+        label: 'Finance & Compensation',
+        icon: <FiDollarSign />,
+        subItems: [
+          { label: 'Salary', path: '/my-earnings' },
+          { label: 'Pay History', path: '/salaryhistory' },
+          { label: 'Payslip Generator', path: '/payslip' },
+          { label: 'Daily Salary Credit', path: '/daily-salary-credit' },
+          { label: 'Expense Claims', path: '/expense-claims' },
+          { label: 'Payroll Processing', path: '/payroll-processing' },
+          { label: 'Bonuses & Incentives', path: '/bonuses-incentives' },
+          { label: 'Tax & Compliance', path: '/tax-compliance' },
+          { label: 'Reimbursements', path: '/reimbursements' },
+          { label: 'Finance Analytics', path: '/finance-analytics' }
+        ]
+      },
+      
+      // 📁 Documents & Administration
+      {
+        label: 'Documents & Administration',
+        icon: <FiFolder />,
+        subItems: [
+          { label: 'Document Center', path: '/documents' },
+          { label: 'Offer Letters', path: '/offer-letters' },
+          { label: 'Experience Letters', path: '/experience-letters' },
+          { label: 'Relieving Letters', path: '/relieving-letters' },
+          { label: 'Upload Documents', path: '/upload-documents' },
+          { label: 'Document Templates', path: '/document-templates' },
+          { label: 'E-Sign & Approvals', path: '/document-approvals' },
+          { label: 'Version Control', path: '/document-versions' },
+          { label: 'Access & Permissions', path: '/document-access' },
+          { label: 'Audit Logs', path: '/document-audit' }
+        ]
+      },
+      
+      // 📁 Project Management
+      {
+        label: 'Project Management',
+        icon: <FiBriefcase />,
+        subItems: [
+          { label: 'Project Workspace', path: '#', isSection: true },
+          { label: 'Projects Workspace', path: '/projects' },
+          { label: 'My Workspace', path: '/employee/workspace' },
+          { label: 'Company Worklogz', path: '/company-worklogz' },
+          { label: 'Company Departments', path: '/company-departments' },
+          { label: 'Project Reports', path: '/project-reports' },
+          { label: 'Task Management', path: '#', isSection: true },
+          { label: 'Task Manager', path: '/timesheet' },
+          ...(isTeamLead ? [{ label: 'Admin Task Manager', path: '/task-manager' }] : []),
+          { label: 'Sub Tasks', path: '/sub-tasks' },
+          { label: 'Milestones', path: '/milestones' },
+          { label: 'Productivity Reports', path: '/productivity-reports' },
+          { label: 'Sprint & Agile Board', path: '/agile-board' },
+          { label: 'Resource Allocation', path: '/resource-allocation' },
+          { label: 'Risk & Issue Tracking', path: '/risk-management' },
+          { label: 'Project Timeline (Gantt)', path: '/gantt-view' },
+          { label: 'Project Automation (AI)', path: '/project-ai' }
+        ]
+      },
+      
+      // 💼 Sales & CRM
+      {
+        label: 'Sales & CRM',
+        icon: <FiShoppingCart />,
+        subItems: [
+          { label: 'Customer Relationship Management', path: '#', isSection: true },
+          { label: 'CRM Dashboard', path: '/crm/dashboard' },
+          { label: 'Course CRM', path: '/crm/course' },
+          { label: 'Internship CRM', path: '/crm/internship' },
+          { label: 'IT Projects CRM', path: '/crm/it-projects' },
+          { label: 'Custom CRM', path: '/crm/custom' },
+          { label: 'Leads Management', path: '/crm/leads' },
+          { label: 'Deals & Pipeline', path: '/crm/deals' },
+          { label: 'Contacts & Accounts', path: '/crm/contacts' },
+          { label: 'Follow-ups & Activities', path: '/crm/activities' },
+          { label: 'CRM Automation (n8n)', path: '/crm-automation' },
+          { label: 'Payment & Billing', path: '#', isSection: true },
+          { label: 'Fee Payments (Admin)', path: '/fee-payments' },
+          { label: 'Fee Payment (Employee)', path: '/employee/fee-payment' },
+          { label: 'Plans', path: '/plans' },
+          { label: 'Invoices', path: '/invoices' },
+          { label: 'Payment Reports', path: '/payment-reports' },
+          { label: 'Revenue Analytics', path: '/revenue-analytics' },
+          { label: 'Subscription Management', path: '/subscriptions' },
+          { label: 'Tax & Compliance', path: '/sales-tax' },
+          { label: 'Refunds & Adjustments', path: '/refunds' },
+          { label: 'AI Sales Insights', path: '/ai-sales-insights' }
+        ]
+      },
+      
+      // 📊 Marketing & Analytics
+      {
+        label: 'Marketing & Analytics',
+        icon: <FiPieChart />,
+        subItems: [
+          { label: 'Analytics & Reporting', path: '#', isSection: true },
+          { label: 'Analytics Dashboard', path: '/analytics' },
+          { label: 'Monthly Reports', path: '/reports' },
+          { label: 'Performance Metrics', path: '/performance-metrics' },
+          { label: 'Lead & Sales Analytics', path: '/lead-analytics' },
+          { label: 'Custom Reports', path: '/custom-reports' },
+          { label: 'Automation Workflows (n8n)', path: '/automation-workflows' },
+          { label: 'Real-Time Event Tracking', path: '/event-tracking' },
+          { label: 'Data Pipelines & ETL', path: '/data-pipelines' },
+          { label: 'Predictive Analytics (AI)', path: '/predictive-analytics' },
+          { label: 'Attribution & Funnel Analysis', path: '/funnel-analysis' },
+          { label: 'Embedded BI Dashboards', path: '/bi-dashboards' }
+        ]
+      },
+      
+      // 🎓 Edutech & Learning
+      {
+        label: 'Edutech & Learning',
+        icon: <FiBookOpen />,
+        subItems: [
+          { label: 'Learning & Development', path: '#', isSection: true },
+          { label: 'Skill Development', path: '/skill-development' },
+          { label: 'Assessments', path: '/employee/assessments' },
+          { label: 'WorklogzTube', path: '/employee/worklogztube' },
+          { label: 'Learning Paths', path: '/learning-paths' },
+          { label: 'Certifications', path: '/certifications' },
+          { label: 'AI Learning Copilot', path: '/ai-learning-copilot' },
+          { label: 'Personalized Learning Engine', path: '/personalized-learning' },
+          { label: 'Live Classes & Webinars', path: '/live-classes' },
+          { label: 'Assignments & Projects', path: '/assignments-projects' },
+          { label: 'Progress & Skill Analytics', path: '/learning-analytics' },
+          { label: 'Content Authoring (No-Code)', path: '/content-authoring' }
+        ]
+      },
+
+      // 🎯 Goals & Performance
+      {
+        label: 'Goals & Performance',
+        icon: <FiTarget />,
+        subItems: [
+          { label: 'Goals & Achievements', path: '/goals-achievements' },
+          { label: 'Performance Dashboard', path: '/performance' },
+          { label: 'KPI Tracking', path: '/kpi-tracking' },
+          { label: 'Feedback & Reviews', path: '/feedback-reviews' },
+          { label: 'OKR Management', path: '/okr-management' },
+          { label: '360° Feedback', path: '/360-feedback' },
+          { label: 'Review Cycles', path: '/review-cycles' },
+          { label: 'Skill Gap Analysis', path: '/skill-gap-analysis' },
+          { label: 'AI Performance Insights', path: '/ai-performance-insights' }
+        ]
+      },
+      
+      // 🤝 Collaboration & Communication
+      {
+        label: 'Collaboration & Communication',
+        icon: <FiMessageCircle />,
+        subItems: [
+          { label: 'Team Collaboration', path: '#', isSection: true },
+          { label: 'Community', path: '/employee/community' },
+          { label: 'People Directory', path: '/employee/people' },
+          { label: 'Team Management', path: '/team-management' },
+          { label: 'Announcements', path: '/announcements' },
+          { label: 'Internal Chat', path: '/internal-chat' },
+          { label: 'Channels & Groups', path: '/channels-groups' },
+          { label: 'Company Polls & Surveys', path: '/polls-surveys' },
+          { label: 'Knowledge Base / Wiki', path: '/knowledge-base' },
+          { label: 'File Sharing', path: '/file-sharing' },
+          { label: 'Mentions & Notifications', path: '/mentions' },
+          { label: 'Support & Workspace', path: '#', isSection: true },
+          { label: 'Helpdesk', path: '/helpdesk' },
+          { label: 'My Workspace', path: '/employee/workspace' },
+          { label: 'Document Center', path: '/documents' },
+          { label: 'Meeting Scheduler', path: '/meeting-scheduler' },
+          { label: 'Company Calendar', path: '/calendar' }
+        ]
+      },
+      
+      // 📈 Performance Management
+      {
+        label: 'Performance Management',
+        icon: <FiActivity />,
+        subItems: [
+          { label: 'Performance Tracking', path: '#', isSection: true },
+          { label: 'Performance Dashboard', path: '/performance' },
+          { label: 'Goals & Achievements', path: '/goals-achievements' },
+          { label: 'Calendar View', path: '/calendar' },
+          { label: 'Review Cycles', path: '/review-cycles' },
+          { label: 'Appraisal Reports', path: '/appraisal-reports' },
+          { label: 'KPI & OKR Tracking', path: '/kpi-okr' },
+          { label: '360° Feedback', path: '/360-feedback' },
+          { label: 'Skill Gap Analysis', path: '/skill-gap-analysis' },
+          { label: 'Promotion & Growth Plans', path: '/growth-plans' },
+          { label: 'AI Performance Insights', path: '/ai-performance' }
+        ]
+      },
+      
+      // 🛡️ Security & IT Management
+      {
+        label: 'Security & IT Management',
+        icon: <FiShield />,
+        subItems: [
+          { label: 'Role-Based Access Control', path: '/administration/access-control' },
+          { label: 'Login Activity', path: '/login-activity' },
+          { label: 'Device Management', path: '/device-management' },
+          { label: 'Audit Logs', path: '/audit-logs' },
+          { label: 'Data Backup', path: '/data-backup' },
+          { label: 'Single Sign-On (SSO)', path: '/sso-settings' },
+          { label: 'IP & Geo Restrictions', path: '/ip-restrictions' },
+          { label: 'Security Policies', path: '/security-policies' },
+          { label: 'Incident Management', path: '/incident-management' },
+          { label: 'Compliance Reports', path: '/compliance-reports' }
+        ]
+      },
+      
+      // 🤖 AI & Automation
+      {
+        label: 'AI & Automation',
+        icon: <FiZap />,
+        subItems: [
+          { label: 'AI Copilot', path: '/employee/ai' },
+          { label: 'AI Task Suggestions', path: '/ai-task-suggestions' },
+          { label: 'Smart Attendance', path: '/smart-attendance' },
+          { label: 'Auto Worklogs', path: '/auto-worklogs' },
+          { label: 'AI Reports', path: '/ai-reports' },
+          { label: 'Chatbot Assistant', path: '/chatbot-assistant' },
+          { label: 'Workflow Automation (n8n)', path: '/workflow-automation' },
+          { label: 'Predictive Analytics (AI)', path: '/predictive-analytics' },
+          { label: 'AI Performance Insights', path: '/ai-performance-insights' },
+          { label: 'AI Hiring & Screening', path: '/ai-hiring' },
+          { label: 'RPA Bots (No-Code)', path: '/rpa-bots' },
+          { label: 'AI Alerts & Triggers', path: '/ai-alerts' }
+        ]
+      },
+      
+      // 🧩 Development Platform
+      {
+        label: 'Development Platform',
+        icon: <FiCode />,
+        subItems: [
+          { label: 'API Management', path: '/api-management' },
+          { label: 'Custom Modules', path: '/custom-modules' },
+          { label: 'Integrations', path: '/integrations' },
+          { label: 'Webhooks', path: '/webhooks' },
+          { label: 'Developer Settings', path: '/developer-settings' },
+          { label: 'Low-Code Builder', path: '/low-code-builder' },
+          { label: 'Workflow Builder', path: '/workflow-builder' },
+          { label: 'Custom Objects & Fields', path: '/custom-objects' },
+          { label: 'Form Builder', path: '/form-builder' },
+          { label: 'App Marketplace', path: '/app-marketplace' },
+          { label: 'Environment Management', path: '/environments' }
+        ]
+      },
+
+      
+      // ⚙️ Core Navigation
+      {
+        label: 'Core Navigation',
+        icon: <FiSettings />,
+        subItems: [
+          { label: 'Notifications', path: '/notifications' },
+          { label: 'Profile Settings', path: '/profile-settings' },
+          { label: 'System Settings', path: '#', isSection: true },
+          { label: 'Company Settings', path: '/company-settings' },
+          { label: 'Theme & Branding', path: '/theme-branding' },
+          { label: 'Custom Fields', path: '/custom-fields' },
+          { label: 'Workflow Rules', path: '/workflow-rules' },
+          { label: 'Platform Controls', path: '#', isSection: true },
+          { label: 'Global Settings', path: '/settings' },
+          { label: 'Feature Toggles', path: '/feature-flags' },
+          { label: 'Data Import / Export', path: '/data-import-export' },
+          { label: 'Localization & Timezone', path: '/localization' },
+          { label: 'System Status', path: '/system-status' }
+        ]
+      }
+
     ];
-    
-    // Only add Admin Task Manager if user is a team lead
-    if (isTeamLead) {
-      items.push({ label: 'Admin Task Manager', icon: <FiClipboard />, path: '/task-manager' });
-    }
-    
-    items.push(
-      { label: 'Salary', icon: <FiDollarSign />, path: '/my-earnings' },
-      { label: 'Leave Management', icon: <FiCalendar />, path: '/apply-leave' },
-      { label: 'Skill Development', icon: <FiBook />, path: '/skill-development' },
-      { label: 'Assessments', icon: <FiEdit3 />, path: '/employee/assessments' },
-      { label: 'Goals & Achievements', icon: <FiTarget />, path: '/goals-achievements' },
-      { label: 'Calendar View', icon: <FiCalendar />, path: '/calendar' },
-      { label: 'Performance', icon: <FiTrendingUp />, path: '/performance' },
-      { label: 'Applications', icon: <FiGrid />, path: '/employee/applications' },
-      { label: 'People', icon: <FiUser />, path: '/employee/people' },
-      { label: 'Team Management', icon: <FiUsers />, path: '/team-management' },
-      { label: 'Document Center', icon: <FiFolder />, path: '/documents' },
-      { label: 'Helpdesk', icon: <FiHelpCircle />, path: '/helpdesk' },
-      { label: 'AI Copilot', icon: <FiStar />, path: '/employee/ai' },
-      { label: 'WorklogzTube', icon: <FiPlay />, path: '/employee/worklogztube' },
-      { label: 'Fee Payment', icon: <FiCreditCard />, path: '/employee/fee-payment' },
-    );
     
     return items;
   }, [isTeamLead]);
+  
+  // Initialize all items with subItems as expanded by default
+  const [expandedItems, setExpandedItems] = React.useState(() => {
+    const initialExpanded = {};
+    menuItems.forEach(item => {
+      if (item.subItems) {
+        initialExpanded[item.label] = true;
+      }
+    });
+    return initialExpanded;
+  });
+  
+  // Update expandedItems when menuItems changes
+  useEffect(() => {
+    const initialExpanded = {};
+    menuItems.forEach(item => {
+      if (item.subItems) {
+        initialExpanded[item.label] = true;
+      }
+    });
+    setExpandedItems(initialExpanded);
+  }, [menuItems]);
+
+  const toggleItem = (label) => {
+    setExpandedItems(prev => ({
+      ...prev,
+      [label]: !prev[label]
+    }));
+  };
 
   const visibleMenuItems = useMemo(() => {
     // For employees, if allowedPaths is null or undefined, show all items
@@ -131,10 +459,31 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
       return menuItems;
     }
     const allowedSet = new Set(allowedPaths);
-    // Always include Home and Admin Task Manager for employees
-    const filtered = menuItems.filter((item) => !item.path || allowedSet.has(item.path) || item.path === '/home' || item.path === '/task-manager');
+    
+    // Filter menu items, handling both regular items and items with subItems
+    const filtered = menuItems.map(item => {
+      if (item.subItems) {
+        // For items with subItems, filter the subItems based on allowed paths
+        const filteredSubItems = item.subItems.filter(subItem => 
+          subItem.isSection || allowedSet.has(subItem.path) || subItem.path === '/task-manager'
+        );
+        // Only include the category if it has at least one allowed subItem (excluding sections)
+        const hasAllowedItems = filteredSubItems.some(subItem => !subItem.isSection);
+        if (hasAllowedItems) {
+          return { ...item, subItems: filteredSubItems };
+        }
+        return null;
+      } else {
+        // For regular items, check if path is allowed
+        if (!item.path || allowedSet.has(item.path) || item.path === '/home' || item.path === '/attendance') {
+          return item;
+        }
+        return null;
+      }
+    }).filter(item => item !== null);
+    
     // Ensure Home is at the top
-    const homeItem = menuItems.find(item => item.path === '/home');
+    const homeItem = filtered.find(item => item.path === '/home');
     const otherItems = filtered.filter(item => item.path !== '/home');
     return homeItem ? [homeItem, ...otherItems] : filtered;
   }, [menuItems, allowedPaths]);
@@ -144,6 +493,19 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     setIsCollapsed(newCollapsed);
     if (onCollapseChange) {
       onCollapseChange(newCollapsed);
+    }
+    // Close all expanded items when collapsing, restore when expanding
+    if (newCollapsed) {
+      setExpandedItems({});
+    } else {
+      // Restore all items to expanded state when sidebar is expanded
+      const allExpanded = {};
+      menuItems.forEach(item => {
+        if (item.subItems) {
+          allExpanded[item.label] = true;
+        }
+      });
+      setExpandedItems(allExpanded);
     }
   };
 
@@ -209,37 +571,109 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
         </div>
 
         <nav className="mt-4 px-2 flex flex-col gap-1 overflow-y-auto overflow-x-visible h-[calc(100vh-80px)]">
-          {visibleMenuItems.map((item, index) => (
-            <NavLink
-              key={index}
-              to={item.path}
-              end={item.path === '/home' || item.path === '/attendance'} // Use exact matching for home and attendance to prevent false positives
-              className={({ isActive }) =>
-                `flex items-center rounded-md text-sm font-medium transition relative group ${
-                  isActive
-                    ? 'bg-gray-200 text-black'
-                    : 'text-gray-800 hover:bg-gray-100'
-                } ${isCollapsed ? 'px-2 py-2 justify-center' : 'px-4 py-2 gap-3'}`
-              }
-              onClick={() => {
-                setIsOpen(false);
-              }}
-              title={isCollapsed ? item.label : ''}
-            >
-              <span className="text-lg">{item.icon}</span>
-              {!isCollapsed && <span>{item.label}</span>}
-              
-              {/* Tooltip for collapsed menu items */}
-              {isCollapsed && (
-                <div className="absolute left-full ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
-                  {item.label}
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full">
-                    <div className="border-4 border-transparent border-r-gray-800"></div>
-                  </div>
+          {visibleMenuItems.map((item, index) => {
+            if (item.subItems) {
+              return (
+                <div key={index} className="mb-1 relative group">
+                  <button
+                    onClick={() => !isCollapsed && toggleItem(item.label)}
+                    className={`flex items-center justify-between w-full rounded-md hover:bg-gray-100 text-sm font-medium transition ${
+                      isCollapsed ? 'px-2 py-2 justify-center' : 'px-4 py-2'
+                    }`}
+                    title={isCollapsed ? item.label : ''}
+                  >
+                    <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
+                      <span className="text-lg">{item.icon}</span>
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </div>
+                    {!isCollapsed && (
+                      <FiChevronRight
+                        className={`transition-transform duration-200 ${
+                          expandedItems[item.label] ? 'rotate-90' : ''
+                        }`}
+                      />
+                    )}
+                  </button>
+
+                  {!isCollapsed && expandedItems[item.label] && (
+                    <div className="ml-8 mt-1 space-y-1">
+                      {item.subItems.map((subItem, subIndex) => {
+                        if (subItem.isSection) {
+                          return (
+                            <div
+                              key={subIndex}
+                              className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2 first:mt-0"
+                            >
+                              {subItem.label}
+                            </div>
+                          );
+                        }
+                        return (
+                          <NavLink
+                            key={subIndex}
+                            to={subItem.path}
+                            end={subItem.path === '/attendance'}
+                            className={({ isActive }) =>
+                              `block px-3 py-2 rounded-md text-sm font-medium ${
+                                isActive
+                                  ? 'bg-gray-200 text-black'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                              }`
+                            }
+                            onClick={() => setIsOpen(false)}
+                          >
+                            {subItem.label}
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Tooltip for collapsed submenu */}
+                  {isCollapsed && (
+                    <div className="absolute left-full ml-2 top-0 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
+                      {item.label}
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full">
+                        <div className="border-4 border-transparent border-r-gray-800"></div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </NavLink>
-          ))}
+              );
+            }
+
+            return (
+              <NavLink
+                key={index}
+                to={item.path}
+                end={item.path === '/home' || item.path === '/attendance'}
+                className={({ isActive }) =>
+                  `flex items-center rounded-md text-sm font-medium transition relative group ${
+                    isActive
+                      ? 'bg-gray-200 text-black'
+                      : 'text-gray-800 hover:bg-gray-100'
+                  } ${isCollapsed ? 'px-2 py-2 justify-center' : 'px-4 py-2 gap-3'}`
+                }
+                onClick={() => {
+                  setIsOpen(false);
+                }}
+                title={isCollapsed ? item.label : ''}
+              >
+                <span className="text-lg">{item.icon}</span>
+                {!isCollapsed && <span>{item.label}</span>}
+                
+                {/* Tooltip for collapsed menu items */}
+                {isCollapsed && (
+                  <div className="absolute left-full ml-2 bg-gray-800 text-white text-xs rounded py-1 px-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 whitespace-nowrap">
+                    {item.label}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full">
+                      <div className="border-4 border-transparent border-r-gray-800"></div>
+                    </div>
+                  </div>
+                )}
+              </NavLink>
+            );
+          })}
 
           {/* Notifications Component - Integrated in Sidebar */}
           <div className="mt-2">
@@ -281,5 +715,338 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
   );
 };
 
-export default EmployeeSidebar;
+// Static export of menu items for access control (includes all items including Admin Task Manager)
+export const getEmployeeMenuItems = () => {
+  return [
+    // 🏠 Main Pages
+    { label: 'Home', icon: <FiHome />, path: '/home' },
+    { label: 'Attendance', icon: <FiClock />, path: '/attendance' },
+    { label: 'Dashboard', icon: <FiBarChart2 />, path: '/dashboard' },
+    
+    // 👥 HR & Administration
+    {
+      label: 'HR & Administration',
+      icon: <FiUsers />,
+      subItems: [
+        { label: 'User & Employee Management', path: '#', isSection: true },
+        { label: 'People', path: '/employee/people' },
+        { label: 'Team Management', path: '/team-management' },
+        { label: 'Applications', path: '/employee/applications' },
+        { label: 'Roles & Permissions', path: '/administration/access-control' },
+        { label: 'Onboarding & Offboarding', path: '/hr/onboarding' },
+        { label: 'Employee Profiles', path: '/hr/employee-profiles' },
+        { label: 'HR Requests & Approvals', path: '/hr/approvals' },
+        { label: 'Org Chart', path: '/hr/org-chart' },
+        { label: 'HR Analytics', path: '/hr/analytics' }
+      ]
+    },
+    
+    // ⏱️ Time & Task Tracking
+    {
+      label: 'Time & Task Tracking',
+      icon: <FiClock />,
+      subItems: [
+        { label: 'Task Manager', path: '/timesheet' },
+        { label: 'Admin Task Manager', path: '/task-manager' },
+        { label: 'Worklog Tracking', path: '/worklog-tracking' },
+        { label: 'Calendar View', path: '/calendar' },
+        { label: 'Timesheets', path: '/timesheets' },
+        { label: 'Productivity Reports', path: '/productivity-reports' },
+        { label: 'Shift Management', path: '/shift-management' },
+        { label: 'Overtime Tracking', path: '/overtime-tracking' },
+        { label: 'AI Time Insights', path: '/ai-time-insights' }
+      ]
+    },
+    
+    // 🌴 Leave Management
+    {
+      label: 'Leave Management',
+      icon: <FiCalendar />,
+      subItems: [
+        { label: 'Apply Leave', path: '/apply-leave' },
+        { label: 'Leave Records', path: '/leave-requests' },
+        { label: 'Late Reports', path: '/late-reports' },
+        { label: 'Holiday List', path: '/holidays' },
+        { label: 'Leave Policies', path: '/leave-policies' },
+        { label: 'Leave Approvals', path: '/leave-approvals' },
+        { label: 'Comp-Off Management', path: '/comp-off' },
+        { label: 'Shift-Based Leaves', path: '/shift-leaves' },
+        { label: 'Leave Analytics', path: '/leave-analytics' },
+        { label: 'AI Leave Insights', path: '/ai-leave-insights' }
+      ]
+    },
+    
+    // 💰 Finance & Compensation
+    {
+      label: 'Finance & Compensation',
+      icon: <FiDollarSign />,
+      subItems: [
+        { label: 'Salary', path: '/my-earnings' },
+        { label: 'Pay History', path: '/salaryhistory' },
+        { label: 'Payslip Generator', path: '/payslip' },
+        { label: 'Daily Salary Credit', path: '/daily-salary-credit' },
+        { label: 'Expense Claims', path: '/expense-claims' },
+        { label: 'Payroll Processing', path: '/payroll-processing' },
+        { label: 'Bonuses & Incentives', path: '/bonuses-incentives' },
+        { label: 'Tax & Compliance', path: '/tax-compliance' },
+        { label: 'Reimbursements', path: '/reimbursements' },
+        { label: 'Finance Analytics', path: '/finance-analytics' }
+      ]
+    },
+    
+    // 📁 Documents & Administration
+    {
+      label: 'Documents & Administration',
+      icon: <FiFolder />,
+      subItems: [
+        { label: 'Document Center', path: '/documents' },
+        { label: 'Offer Letters', path: '/offer-letters' },
+        { label: 'Experience Letters', path: '/experience-letters' },
+        { label: 'Relieving Letters', path: '/relieving-letters' },
+        { label: 'Upload Documents', path: '/upload-documents' },
+        { label: 'Document Templates', path: '/document-templates' },
+        { label: 'E-Sign & Approvals', path: '/document-approvals' },
+        { label: 'Version Control', path: '/document-versions' },
+        { label: 'Access & Permissions', path: '/document-access' },
+        { label: 'Audit Logs', path: '/document-audit' }
+      ]
+    },
+    
+    // 📁 Project Management
+    {
+      label: 'Project Management',
+      icon: <FiBriefcase />,
+      subItems: [
+        { label: 'Project Workspace', path: '#', isSection: true },
+        { label: 'Projects Workspace', path: '/projects' },
+        { label: 'My Workspace', path: '/employee/workspace' },
+        { label: 'Company Worklogz', path: '/company-worklogz' },
+        { label: 'Company Departments', path: '/company-departments' },
+        { label: 'Project Reports', path: '/project-reports' },
+        { label: 'Task Management', path: '#', isSection: true },
+        { label: 'Task Manager', path: '/timesheet' },
+        { label: 'Admin Task Manager', path: '/task-manager' },
+        { label: 'Sub Tasks', path: '/sub-tasks' },
+        { label: 'Milestones', path: '/milestones' },
+        { label: 'Productivity Reports', path: '/productivity-reports' },
+        { label: 'Sprint & Agile Board', path: '/agile-board' },
+        { label: 'Resource Allocation', path: '/resource-allocation' },
+        { label: 'Risk & Issue Tracking', path: '/risk-management' },
+        { label: 'Project Timeline (Gantt)', path: '/gantt-view' },
+        { label: 'Project Automation (AI)', path: '/project-ai' }
+      ]
+    },
+    
+    // 💼 Sales & CRM
+    {
+      label: 'Sales & CRM',
+      icon: <FiShoppingCart />,
+      subItems: [
+        { label: 'Customer Relationship Management', path: '#', isSection: true },
+        { label: 'CRM Dashboard', path: '/crm/dashboard' },
+        { label: 'Course CRM', path: '/crm/course' },
+        { label: 'Internship CRM', path: '/crm/internship' },
+        { label: 'IT Projects CRM', path: '/crm/it-projects' },
+        { label: 'Custom CRM', path: '/crm/custom' },
+        { label: 'Leads Management', path: '/crm/leads' },
+        { label: 'Deals & Pipeline', path: '/crm/deals' },
+        { label: 'Contacts & Accounts', path: '/crm/contacts' },
+        { label: 'Follow-ups & Activities', path: '/crm/activities' },
+        { label: 'CRM Automation (n8n)', path: '/crm-automation' },
+        { label: 'Payment & Billing', path: '#', isSection: true },
+        { label: 'Fee Payments (Admin)', path: '/fee-payments' },
+        { label: 'Fee Payment (Employee)', path: '/employee/fee-payment' },
+        { label: 'Plans', path: '/plans' },
+        { label: 'Invoices', path: '/invoices' },
+        { label: 'Payment Reports', path: '/payment-reports' },
+        { label: 'Revenue Analytics', path: '/revenue-analytics' },
+        { label: 'Subscription Management', path: '/subscriptions' },
+        { label: 'Tax & Compliance', path: '/sales-tax' },
+        { label: 'Refunds & Adjustments', path: '/refunds' },
+        { label: 'AI Sales Insights', path: '/ai-sales-insights' }
+      ]
+    },
+    
+    // 📊 Marketing & Analytics
+    {
+      label: 'Marketing & Analytics',
+      icon: <FiPieChart />,
+      subItems: [
+        { label: 'Analytics & Reporting', path: '#', isSection: true },
+        { label: 'Analytics Dashboard', path: '/analytics' },
+        { label: 'Monthly Reports', path: '/reports' },
+        { label: 'Performance Metrics', path: '/performance-metrics' },
+        { label: 'Lead & Sales Analytics', path: '/lead-analytics' },
+        { label: 'Custom Reports', path: '/custom-reports' },
+        { label: 'Automation Workflows (n8n)', path: '/automation-workflows' },
+        { label: 'Real-Time Event Tracking', path: '/event-tracking' },
+        { label: 'Data Pipelines & ETL', path: '/data-pipelines' },
+        { label: 'Predictive Analytics (AI)', path: '/predictive-analytics' },
+        { label: 'Attribution & Funnel Analysis', path: '/funnel-analysis' },
+        { label: 'Embedded BI Dashboards', path: '/bi-dashboards' }
+      ]
+    },
+    
+    // 🎓 Edutech & Learning
+    {
+      label: 'Edutech & Learning',
+      icon: <FiBookOpen />,
+      subItems: [
+        { label: 'Learning & Development', path: '#', isSection: true },
+        { label: 'Skill Development', path: '/skill-development' },
+        { label: 'Assessments', path: '/employee/assessments' },
+        { label: 'WorklogzTube', path: '/employee/worklogztube' },
+        { label: 'Learning Paths', path: '/learning-paths' },
+        { label: 'Certifications', path: '/certifications' },
+        { label: 'AI Learning Copilot', path: '/ai-learning-copilot' },
+        { label: 'Personalized Learning Engine', path: '/personalized-learning' },
+        { label: 'Live Classes & Webinars', path: '/live-classes' },
+        { label: 'Assignments & Projects', path: '/assignments-projects' },
+        { label: 'Progress & Skill Analytics', path: '/learning-analytics' },
+        { label: 'Content Authoring (No-Code)', path: '/content-authoring' }
+      ]
+    },
+    
+    // 🎯 Goals & Performance
+    {
+      label: 'Goals & Performance',
+      icon: <FiTarget />,
+      subItems: [
+        { label: 'Goals & Achievements', path: '/goals-achievements' },
+        { label: 'Performance Dashboard', path: '/performance' },
+        { label: 'KPI Tracking', path: '/kpi-tracking' },
+        { label: 'Feedback & Reviews', path: '/feedback-reviews' },
+        { label: 'OKR Management', path: '/okr-management' },
+        { label: '360° Feedback', path: '/360-feedback' },
+        { label: 'Review Cycles', path: '/review-cycles' },
+        { label: 'Skill Gap Analysis', path: '/skill-gap-analysis' },
+        { label: 'AI Performance Insights', path: '/ai-performance-insights' }
+      ]
+    },
 
+    
+    // 🤝 Collaboration & Communication
+    {
+      label: 'Collaboration & Communication',
+      icon: <FiMessageCircle />,
+      subItems: [
+        { label: 'Team Collaboration', path: '#', isSection: true },
+        { label: 'Community', path: '/employee/community' },
+        { label: 'People Directory', path: '/employee/people' },
+        { label: 'Team Management', path: '/team-management' },
+        { label: 'Announcements', path: '/announcements' },
+        { label: 'Internal Chat', path: '/internal-chat' },
+        { label: 'Channels & Groups', path: '/channels-groups' },
+        { label: 'Company Polls & Surveys', path: '/polls-surveys' },
+        { label: 'Knowledge Base / Wiki', path: '/knowledge-base' },
+        { label: 'File Sharing', path: '/file-sharing' },
+        { label: 'Mentions & Notifications', path: '/mentions' },
+        { label: 'Support & Workspace', path: '#', isSection: true },
+        { label: 'Helpdesk', path: '/helpdesk' },
+        { label: 'My Workspace', path: '/employee/workspace' },
+        { label: 'Document Center', path: '/documents' },
+        { label: 'Meeting Scheduler', path: '/meeting-scheduler' },
+        { label: 'Company Calendar', path: '/calendar' }
+      ]
+    },
+    
+    // 📈 Performance Management
+    {
+      label: 'Performance Management',
+      icon: <FiActivity />,
+      subItems: [
+        { label: 'Performance Tracking', path: '#', isSection: true },
+        { label: 'Performance Dashboard', path: '/performance' },
+        { label: 'Goals & Achievements', path: '/goals-achievements' },
+        { label: 'Calendar View', path: '/calendar' },
+        { label: 'Review Cycles', path: '/review-cycles' },
+        { label: 'Appraisal Reports', path: '/appraisal-reports' },
+        { label: 'KPI & OKR Tracking', path: '/kpi-okr' },
+        { label: '360° Feedback', path: '/360-feedback' },
+        { label: 'Skill Gap Analysis', path: '/skill-gap-analysis' },
+        { label: 'Promotion & Growth Plans', path: '/growth-plans' },
+        { label: 'AI Performance Insights', path: '/ai-performance' }
+      ]
+    },
+    
+    // 🛡️ Security & IT Management
+    {
+      label: 'Security & IT Management',
+      icon: <FiShield />,
+      subItems: [
+        { label: 'Role-Based Access Control', path: '/administration/access-control' },
+        { label: 'Login Activity', path: '/login-activity' },
+        { label: 'Device Management', path: '/device-management' },
+        { label: 'Audit Logs', path: '/audit-logs' },
+        { label: 'Data Backup', path: '/data-backup' },
+        { label: 'Single Sign-On (SSO)', path: '/sso-settings' },
+        { label: 'IP & Geo Restrictions', path: '/ip-restrictions' },
+        { label: 'Security Policies', path: '/security-policies' },
+        { label: 'Incident Management', path: '/incident-management' },
+        { label: 'Compliance Reports', path: '/compliance-reports' }
+      ]
+    },
+    
+    // 🤖 AI & Automation
+    {
+      label: 'AI & Automation',
+      icon: <FiZap />,
+      subItems: [
+        { label: 'AI Copilot', path: '/employee/ai' },
+        { label: 'AI Task Suggestions', path: '/ai-task-suggestions' },
+        { label: 'Smart Attendance', path: '/smart-attendance' },
+        { label: 'Auto Worklogs', path: '/auto-worklogs' },
+        { label: 'AI Reports', path: '/ai-reports' },
+        { label: 'Chatbot Assistant', path: '/chatbot-assistant' },
+        { label: 'Workflow Automation (n8n)', path: '/workflow-automation' },
+        { label: 'Predictive Analytics (AI)', path: '/predictive-analytics' },
+        { label: 'AI Performance Insights', path: '/ai-performance-insights' },
+        { label: 'AI Hiring & Screening', path: '/ai-hiring' },
+        { label: 'RPA Bots (No-Code)', path: '/rpa-bots' },
+        { label: 'AI Alerts & Triggers', path: '/ai-alerts' }
+      ]
+    },
+    
+    // 🧩 Development Platform
+    {
+      label: 'Development Platform',
+      icon: <FiCode />,
+      subItems: [
+        { label: 'API Management', path: '/api-management' },
+        { label: 'Custom Modules', path: '/custom-modules' },
+        { label: 'Integrations', path: '/integrations' },
+        { label: 'Webhooks', path: '/webhooks' },
+        { label: 'Developer Settings', path: '/developer-settings' },
+        { label: 'Low-Code Builder', path: '/low-code-builder' },
+        { label: 'Workflow Builder', path: '/workflow-builder' },
+        { label: 'Custom Objects & Fields', path: '/custom-objects' },
+        { label: 'Form Builder', path: '/form-builder' },
+        { label: 'App Marketplace', path: '/app-marketplace' },
+        { label: 'Environment Management', path: '/environments' }
+      ]
+    },
+    
+    // ⚙️ Core Navigation
+    {
+      label: 'Core Navigation',
+      icon: <FiSettings />,
+      subItems: [
+        { label: 'Notifications', path: '/notifications' },
+        { label: 'Profile Settings', path: '/profile-settings' },
+        { label: 'System Settings', path: '#', isSection: true },
+        { label: 'Company Settings', path: '/company-settings' },
+        { label: 'Theme & Branding', path: '/theme-branding' },
+        { label: 'Custom Fields', path: '/custom-fields' },
+        { label: 'Workflow Rules', path: '/workflow-rules' },
+        { label: 'Platform Controls', path: '#', isSection: true },
+        { label: 'Global Settings', path: '/settings' },
+        { label: 'Feature Toggles', path: '/feature-flags' },
+        { label: 'Data Import / Export', path: '/data-import-export' },
+        { label: 'Localization & Timezone', path: '/localization' },
+        { label: 'System Status', path: '/system-status' }
+      ]
+    }
+  ];
+};
+
+export default EmployeeSidebar;

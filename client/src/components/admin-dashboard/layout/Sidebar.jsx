@@ -3,69 +3,95 @@ import { NavLink } from 'react-router-dom';
 import {
   FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
   FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
-  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield, FiEdit3, FiCreditCard
+  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield, FiEdit3, FiCreditCard,
+  FiClock, FiTrendingUp, FiStar, FiPlay, FiTarget, FiBook, FiUser, FiFolder, FiGrid
 } from 'react-icons/fi';
 
 export const menuItems = [
   { label: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
-  { label: 'Analytics', icon: <FiBarChart2 />, path: '/analytics' },
-  { label: 'Monthly Reports', icon: <FiCamera />, path: '/reports' },
   {
-    label: 'User Management',
-    icon: <FiUsers />,
+    label: 'Employee Features',
+    icon: <FiUser />,
     subItems: [
+      { label: 'Attendance', path: '/attendance' },
+      { label: 'Workspace & Collaboration', path: '#', isSection: true },
+      { label: 'Community', path: '/employee/community' },
+      { label: 'My Workspace', path: '/employee/workspace' },
+      { label: 'Task Manager', path: '/timesheet' },
+      { label: 'HR & Administration', path: '#', isSection: true },
+      { label: 'Leave Management', path: '/apply-leave' },
+      { label: 'People', path: '/employee/people' },
+      { label: 'Team Management', path: '/team-management' },
+      { label: 'Document Center', path: '/documents' },
+      { label: 'Calendar View', path: '/calendar' },
+      { label: 'Performance & Development', path: '#', isSection: true },
+      { label: 'Skill Development', path: '/skill-development' },
+      { label: 'Assessments', path: '/employee/assessments' },
+      { label: 'Goals & Achievements', path: '/goals-achievements' },
+      { label: 'Performance', path: '/performance' },
+      { label: 'Applications', path: '/employee/applications' },
+      { label: 'Expense Management', path: '#', isSection: true },
+      { label: 'Salary', path: '/my-earnings' },
+      { label: 'Fee Payment', path: '/employee/fee-payment' },
+      { label: 'Learning & Support', path: '#', isSection: true },
+      { label: 'AI Copilot', path: '/employee/ai' },
+      { label: 'WorklogzTube', path: '/employee/worklogztube' },
+      { label: 'Helpdesk', path: '/helpdesk' }
+    ]
+  },
+  {
+    label: 'Admin Features',
+    icon: <FiShield />,
+    subItems: [
+      { label: 'Analytics & Reports', path: '#', isSection: true },
+      { label: 'Analytics', path: '/analytics' },
+      { label: 'Monthly Reports', path: '/reports' },
+      { label: 'Workspace & Projects', path: '#', isSection: true },
+      { label: 'Task Manager', path: '/task-manager' },
+      { label: 'Company Worklogz', path: '/company-worklogz' },
+      { label: 'Company Departments', path: '/company-departments' },
+      { label: 'Projects Workspace', path: '/projects' },
+      { label: 'HR & Administration', path: '#', isSection: true },
       { label: 'User Cards', path: '/all-users' },
       { label: 'Employees Schedules', path: '/employees' },
       { label: 'Pending Approvals', path: '/pending-users' },
-      { label: 'Team Management', path: '/admin/team-management' }
-    ]
-  },
-  { label: 'Task Manager', icon: <FiClipboard />, path: '/task-manager' },
-  { label: 'Assessments', icon: <FiEdit3 />, path: '/assessments' },
-  { label: 'Helpdesk', icon: <FiHelpCircle />, path: '/helpdesk' },
-  { label: 'Company Worklogz', icon: <FiBriefcase />, path: '/company-worklogz' },
-  { label: 'Company Departments', icon: <FiBriefcase />, path: '/company-departments' },
-  { label: 'Projects Workspace', icon: <FiBriefcase />, path: '/projects' },
-  {
-    label: 'CRM',
-    icon: <FiLayers />,
-    subItems: [
-      { label: 'Course', path: '/crm/course' },
-      { label: 'Internship', path: '/crm/internship' },
-      { label: 'IT Projects', path: '/crm/it-projects' }
-    ]
-  },
-  {
-    label: 'Leaves & Lates',
-    icon: <FiCalendar />,
-    subItems: [
-      { label: 'Leave Management', path: '/apply-leave' },
+      { label: 'Team Management', path: '/admin/team-management' },
       { label: 'Leave Records', path: '/leave-requests' },
-      { label: 'Late Reports', path: '/late-reports' }
-    ]
-  },
-  {
-    label: 'Documents',
-    icon: <FiFileText />,
-    subItems: [
+      { label: 'Late Reports', path: '/late-reports' },
+      { label: 'Holiday List', path: '/holidays' },
       { label: 'Experience Letters', path: '/experience-letters' },
       { label: 'Offer Letters', path: '/offer-letters' },
       { label: 'Relieving Letters', path: '/relieving-letters' },
-      { label: 'Upload Documents', path: '/upload-documents' }
+      { label: 'Upload Documents', path: '/upload-documents' },
+      { label: 'Administration', path: '/administration/access-control' },
+      { label: 'Settings', path: '/settings' },
+      { label: 'Sales & CRM', path: '#', isSection: true },
+      { label: 'Course', path: '/crm/course' },
+      { label: 'Internship', path: '/crm/internship' },
+      { label: 'IT Projects', path: '/crm/it-projects' },
+      { label: 'Plans', path: '/plans' },
+      { label: 'Performance & Development', path: '#', isSection: true },
+      { label: 'Assessments', path: '/assessments' },
+      { label: 'Expense Management', path: '#', isSection: true },
+      { label: 'Pay History', path: '/salaryhistory' },
+      { label: 'Payslip Generator', path: '/payslip' },
+      { label: 'Daily Salary Credit', path: '/daily-salary-credit' },
+      { label: 'Fee Payments', path: '/fee-payments' }
     ]
-  },
-  { label: 'Pay History', icon: <FiDollarSign />, path: '/salaryhistory' },
-  { label: 'Payslip Generator', icon: <FiBarChart2 />, path: '/payslip' },
-  { label: 'Daily Salary Credit', icon: <FiDollarSign />, path: '/daily-salary-credit' },
-  { label: 'Holiday List', icon: <FiCalendar />, path: '/holidays' },
-  { label: 'Administration', icon: <FiShield />, path: '/administration/access-control' },
-  { label: 'Plans', icon: <FiPackage />, path: '/plans' },
-  { label: 'Fee Payments', icon: <FiCreditCard />, path: '/fee-payments' },
-  { label: 'Settings', icon: <FiSettings />, path: '/settings' }
+  }
 ];
 
 const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
-  const [expandedItems, setExpandedItems] = React.useState({});
+  // Initialize all items with subItems as expanded by default
+  const [expandedItems, setExpandedItems] = React.useState(() => {
+    const initialExpanded = {};
+    menuItems.forEach(item => {
+      if (item.subItems) {
+        initialExpanded[item.label] = true;
+      }
+    });
+    return initialExpanded;
+  });
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
   const toggleItem = (label) => {
@@ -82,9 +108,18 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     if (onCollapseChange) {
       onCollapseChange(newCollapsed);
     }
-    // Close all expanded items when collapsing
+    // Close all expanded items when collapsing, restore when expanding
     if (newCollapsed) {
       setExpandedItems({});
+    } else {
+      // Restore all items to expanded state when sidebar is expanded
+      const allExpanded = {};
+      menuItems.forEach(item => {
+        if (item.subItems) {
+          allExpanded[item.label] = true;
+        }
+      });
+      setExpandedItems(allExpanded);
     }
   };
 
@@ -176,22 +211,34 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
 
                   {!isCollapsed && expandedItems[item.label] && (
                     <div className="ml-8 mt-1 space-y-1">
-                      {item.subItems.map((subItem, subIndex) => (
-                        <NavLink
-                          key={subIndex}
-                          to={subItem.path}
-                          className={({ isActive }) =>
-                            `block px-3 py-2 rounded-md text-sm font-medium ${
-                              isActive
-                                ? 'bg-gray-200 text-black'
-                                : 'text-gray-700 hover:bg-gray-100'
-                            }`
-                          }
-                          onClick={() => setIsOpen(false)}
-                        >
-                          {subItem.label}
-                        </NavLink>
-                      ))}
+                      {item.subItems.map((subItem, subIndex) => {
+                        if (subItem.isSection) {
+                          return (
+                            <div
+                              key={subIndex}
+                              className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2 first:mt-0"
+                            >
+                              {subItem.label}
+                            </div>
+                          );
+                        }
+                        return (
+                          <NavLink
+                            key={subIndex}
+                            to={subItem.path}
+                            className={({ isActive }) =>
+                              `block px-3 py-2 rounded-md text-sm font-medium ${
+                                isActive
+                                  ? 'bg-gray-200 text-black'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                              }`
+                            }
+                            onClick={() => setIsOpen(false)}
+                          >
+                            {subItem.label}
+                          </NavLink>
+                        );
+                      })}
                     </div>
                   )}
 

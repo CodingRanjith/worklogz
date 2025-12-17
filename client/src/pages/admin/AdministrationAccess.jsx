@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../utils/api';
-import { menuItems } from '../../components/admin-dashboard/layout/Sidebar';
-import { employeeMenuItems } from '../../components/employee/EmployeeNavigation';
+import { getEmployeeMenuItems } from '../../components/employee-dashboard/layout/EmployeeSidebar';
 import {
   getAccessMap,
   getAllMenuPaths,
@@ -14,16 +13,17 @@ const AdministrationAccess = () => {
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState([]);
-  const [scope, setScope] = useState('admin'); // 'admin' or 'employee'
   const [accessMap, setAccessMapState] = useState({});
   const [savedAccessMap, setSavedAccessMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const scope = 'employee'; // Only employee menu now
+  const employeeMenuItems = useMemo(() => getEmployeeMenuItems(), []);
   const allPaths = useMemo(
-    () => getAllMenuPaths(scope === 'admin' ? menuItems : employeeMenuItems),
-    [scope]
+    () => getAllMenuPaths(employeeMenuItems),
+    [employeeMenuItems]
   );
-  const currentMenuItems = scope === 'admin' ? menuItems : employeeMenuItems;
+  const currentMenuItems = employeeMenuItems;
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -43,7 +43,7 @@ const AdministrationAccess = () => {
     fetchUsers();
   }, [token]);
 
-  // Load access map on mount and when scope changes
+  // Load access map on mount
   useEffect(() => {
     const loadAccessMap = async () => {
       setIsLoading(true);
@@ -97,8 +97,8 @@ const AdministrationAccess = () => {
     const userAccess = accessMap[userId];
     // If explicitly set, use it
     if (userAccess !== undefined) return userAccess;
-    // Default: admin menu starts empty (all disabled), employee menu shows all
-    return scope === 'admin' ? [] : allPaths;
+    // Default: employee menu shows all paths
+    return allPaths;
   };
 
   const togglePath = (path) => {
@@ -106,8 +106,7 @@ const AdministrationAccess = () => {
     setAccessMapState((prev) => {
       const updated = { ...prev };
       selectedUserIds.forEach((userId) => {
-        const defaultPaths = scope === 'admin' ? [] : allPaths;
-        const current = prev[userId] !== undefined ? prev[userId] : defaultPaths;
+        const current = prev[userId] !== undefined ? prev[userId] : allPaths;
         const hasPath = current.includes(path);
         const nextPaths = hasPath ? current.filter((p) => p !== path) : [...current, path];
         updated[userId] = nextPaths;
@@ -128,15 +127,36 @@ const AdministrationAccess = () => {
     });
   };
 
+  const toggleCategoryPaths = (paths, enable) => {
+    // Apply to all selected users
+    setAccessMapState((prev) => {
+      const updated = { ...prev };
+      selectedUserIds.forEach((userId) => {
+        const current = prev[userId] !== undefined ? prev[userId] : allPaths;
+        let nextPaths;
+        if (enable) {
+          // Add all paths that aren't already present
+          const currentSet = new Set(current);
+          paths.forEach(path => currentSet.add(path));
+          nextPaths = Array.from(currentSet);
+        } else {
+          // Remove all paths
+          nextPaths = current.filter(p => !paths.includes(p));
+        }
+        updated[userId] = nextPaths;
+      });
+      return updated;
+    });
+  };
+
   // Check if there are unsaved changes
   const hasUnsavedChanges = useMemo(() => {
     const allUserIds = new Set([...Object.keys(accessMap), ...Object.keys(savedAccessMap)]);
     for (const userId of allUserIds) {
       const current = accessMap[userId];
       const saved = savedAccessMap[userId];
-      const defaultPaths = scope === 'admin' ? [] : allPaths;
-      const currentPaths = current !== undefined ? current : defaultPaths;
-      const savedPaths = saved !== undefined ? saved : defaultPaths;
+      const currentPaths = current !== undefined ? current : allPaths;
+      const savedPaths = saved !== undefined ? saved : allPaths;
       
       // Compare arrays
       if (currentPaths.length !== savedPaths.length) return true;
@@ -148,7 +168,7 @@ const AdministrationAccess = () => {
       }
     }
     return false;
-  }, [accessMap, savedAccessMap, scope, allPaths]);
+  }, [accessMap, savedAccessMap, allPaths]);
 
   // Save all changes
   const handleSave = async () => {
@@ -165,8 +185,7 @@ const AdministrationAccess = () => {
       // Group users by their paths to use bulk update efficiently
       const pathGroups = new Map();
       allUserIds.forEach((userId) => {
-        const defaultPaths = scope === 'admin' ? [] : allPaths;
-        const paths = accessMap[userId] !== undefined ? accessMap[userId] : defaultPaths;
+        const paths = accessMap[userId] !== undefined ? accessMap[userId] : allPaths;
         const key = JSON.stringify(paths.sort());
         if (!pathGroups.has(key)) {
           pathGroups.set(key, []);
@@ -279,37 +298,117 @@ const AdministrationAccess = () => {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {currentMenuItems.map((item) => {
             if (item.subItems) {
+              // Get all non-section paths for this category
+              const categoryPaths = item.subItems
+                .filter(sub => !sub.isSection && sub.path !== '#')
+                .map(sub => sub.path);
+              
+              // Check if all category items are enabled for all selected users
+              const allCategoryEnabled = categoryPaths.length > 0 && 
+                categoryPaths.every(path => {
+                  const state = getPathState(path);
+                  return state.checked;
+                });
+
+              // Group sub-items by sections
+              const sections = [];
+              let currentSection = null;
+              
+              item.subItems.forEach((sub) => {
+                if (sub.isSection) {
+                  currentSection = {
+                    label: sub.label,
+                    items: []
+                  };
+                  sections.push(currentSection);
+                } else if (sub.path !== '#') {
+                  if (!currentSection) {
+                    currentSection = { label: null, items: [] };
+                    sections.push(currentSection);
+                  }
+                  currentSection.items.push(sub);
+                }
+              });
+
               return (
-                <div key={item.label} className="border rounded-md p-4">
-                  <div className="flex items-center justify-between mb-3">
+                <div key={item.label} className="border rounded-lg p-5 bg-gray-50">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{item.icon}</span>
+                      <div>
+                        <h4 className="font-semibold text-gray-800 text-lg">{item.label}</h4>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {categoryPaths.length} {categoryPaths.length === 1 ? 'option' : 'options'}
+                        </p>
+                      </div>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{item.icon}</span>
-                      <span className="font-medium text-gray-800">{item.label}</span>
+                      <button
+                        onClick={() => toggleCategoryPaths(categoryPaths, true)}
+                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                          allCategoryEnabled
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                        }`}
+                        title="Enable all items in this category"
+                      >
+                        {allCategoryEnabled ? 'All Enabled' : 'Enable All'}
+                      </button>
+                      <button
+                        onClick={() => toggleCategoryPaths(categoryPaths, false)}
+                        className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
+                        title="Disable all items in this category"
+                      >
+                        Disable All
+                      </button>
                     </div>
                   </div>
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {item.subItems.map((sub) => {
-                      const pathState = getPathState(sub.path);
-                      return (
-                        <label
-                          key={sub.path}
-                          className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={pathState.checked}
-                            ref={(el) => {
-                              if (el) el.indeterminate = pathState.indeterminate;
-                            }}
-                            onChange={() => togglePath(sub.path)}
-                          />
-                          <span className="text-sm text-gray-800">{sub.label}</span>
-                        </label>
-                      );
-                    })}
+                  
+                  <div className="space-y-4">
+                    {sections.map((section, sectionIdx) => (
+                      <div key={sectionIdx} className="space-y-2">
+                        {section.label && (
+                          <div className="px-2 py-1.5 bg-gray-200 rounded-md">
+                            <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                              {section.label}
+                            </h5>
+                          </div>
+                        )}
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 pl-2">
+                          {section.items.map((sub) => {
+                            const pathState = getPathState(sub.path);
+                            return (
+                              <label
+                                key={sub.path}
+                                className={`flex items-center gap-2 p-2.5 rounded-md border transition-colors cursor-pointer ${
+                                  pathState.checked
+                                    ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                                }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={pathState.checked}
+                                  ref={(el) => {
+                                    if (el) el.indeterminate = pathState.indeterminate;
+                                  }}
+                                  onChange={() => togglePath(sub.path)}
+                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                />
+                                <span className={`text-sm ${
+                                  pathState.checked ? 'text-gray-900 font-medium' : 'text-gray-700'
+                                }`}>
+                                  {sub.label}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
@@ -318,23 +417,27 @@ const AdministrationAccess = () => {
             const pathState = getPathState(item.path);
 
             return (
-              <label
-                key={item.path}
-                className="flex items-center gap-3 border rounded-md p-3 hover:bg-gray-50 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={pathState.checked}
-                  ref={(el) => {
-                    if (el) el.indeterminate = pathState.indeterminate;
-                  }}
-                  onChange={() => togglePath(item.path)}
-                />
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="text-sm font-medium text-gray-800">{item.label}</span>
-                </div>
-              </label>
+              <div key={item.path} className="border rounded-lg p-4 bg-gray-50">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={pathState.checked}
+                    ref={(el) => {
+                      if (el) el.indeterminate = pathState.indeterminate;
+                    }}
+                    onChange={() => togglePath(item.path)}
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                  />
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="text-xl">{item.icon}</span>
+                    <span className={`text-sm font-medium ${
+                      pathState.checked ? 'text-gray-900' : 'text-gray-700'
+                    }`}>
+                      {item.label}
+                    </span>
+                  </div>
+                </label>
+              </div>
             );
           })}
         </div>
@@ -351,28 +454,14 @@ const AdministrationAccess = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold text-gray-800">Administration</h2>
           <p className="text-sm text-gray-500">
-            Manage which sidebar options are visible for each user.
+            Manage which employee sidebar options are visible for each user.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex rounded-md overflow-hidden border text-sm">
-            <button
-              onClick={() => setScope('admin')}
-              className={`px-3 py-2 ${scope === 'admin' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
-            >
-              Admin Menu
-            </button>
-            <button
-              onClick={() => setScope('employee')}
-              className={`px-3 py-2 ${scope === 'employee' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
-            >
-              Employee Menu
-            </button>
-          </div>
           <input
             type="text"
             placeholder="Search users..."

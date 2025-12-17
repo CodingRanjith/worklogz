@@ -6,33 +6,35 @@ This document organizes all Worklogz menu items by business categories for easy 
 
 ---
 
-## 📋 Table of Contents
+## 📋 Employee of Contents
 
+### Main Pages
+- **Home** - Employee home page
+- **Attendance** - Employee attendance tracking
 - [HR & Administration](#hr--administration)
+- [Project Management](#project-management)
 - [Sales & CRM](#sales--crm)
 - [Marketing & Analytics](#marketing--analytics)
 - [Edutech & Learning](#edutech--learning)
-- [Project Management](#project-management)
 - [Collaboration & Communication](#collaboration--communication)
 - [Performance Management](#performance-management)
+- [Security & IT Management](#)
+- [AI & Automation]
+- [Development Platform]
 - [Core Navigation](#core-navigation)
 
 ---
 
+
 ## 👥 HR & Administration
 
 ### User & Employee Management
-- **User Management** - User management with sub-items:
-  - User Cards
-  - Employees Schedules
-  - Pending Approvals
-  - Team Management
+- **Team Management** - Team Management 
 - **People** - People directory
 - **Team Management** - Team management interface
 - **Applications** - Employee applications hub
 
-### Attendance & Time Tracking
-- **Attendance** - Employee attendance tracking
+### Time Tracking
 - **Task Manager** - Personal task and timesheet management
 - **Admin Task Manager** - Admin task management (only visible for Team Leads)
 
@@ -44,7 +46,7 @@ This document organizes all Worklogz menu items by business categories for easy 
 - **Leave Management** - Apply for leave
 - **Holiday List** - Company holiday calendar
 
-### Payroll & Compensation
+### Finance & Compensation
 - **Pay History** - Salary payment history
 - **Salary** - Employee salary/earnings view
 - **Payslip Generator** - Payslip generation tool
@@ -57,8 +59,8 @@ This document organizes all Worklogz menu items by business categories for easy 
   - Relieving Letters
   - Upload Documents
 - **Document Center** - Document center
-- **Administration** - Administration access control
-- **Settings** - Application settings
+
+
 
 ---
 
@@ -139,11 +141,26 @@ This document organizes all Worklogz menu items by business categories for easy 
 
 ---
 
-## 🏠 Core Navigation
+### Security & IT Management
 
-### Main Pages
-- **Home** - Employee home page
+### AI & Automation
+
+### Development Platform
+
+### 🏠 Core Navigation
+- **Notification**
+- **Settings** - Application settings
+
+
+
 - **Dashboard** - Employee/Admin dashboard
+- **Administration** - Administration access control
+- **User Management** - User management with sub-items:
+  - User Profiles Creation
+  - Employees Schedules
+  - Pending Approvals
+- **Company Settings**  
+
 
 ---
 
