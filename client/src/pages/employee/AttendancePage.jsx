@@ -18,6 +18,7 @@ import { API_ENDPOINTS } from "../../utils/api";
 import DateStrip from "../../components/attendance/DateStrip";
 import AttendanceCards from "../../components/attendance/AttendanceCards";
 import ActivityLog from "../../components/attendance/ActivityLog";
+import AttendanceProofRow from "../../components/attendance/AttendanceProofRow";
 import CameraView from "../../components/attendance/CameraView";
 import { compressImage } from "../../components/attendance/utils";
 import HolidayModal from "../../components/holidays/HolidayModal";
@@ -52,7 +53,7 @@ function AttendancePage() {
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [isCapturing, setIsCapturing] = useState(false);
   const [workMode, setWorkMode] = useState("office"); // office, remote, hybrid
-  const [skipCamera, setSkipCamera] = useState(false);
+  const [skipCamera, setSkipCamera] = useState(true); // start with camera OFF by default
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
@@ -81,6 +82,7 @@ function AttendancePage() {
   const [showHelpdeskOnly, setShowHelpdeskOnly] = useState(false);
   const [showAssistantOnly, setShowAssistantOnly] = useState(false);
   const [showTeamManagementOnly, setShowTeamManagementOnly] = useState(false);
+  const [useLocation, setUseLocation] = useState(false); // location sharing is optional
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -542,7 +544,7 @@ function AttendancePage() {
         Swal.fire({
           icon: "error",
           title: "Location Error",
-          text: "Please enable GPS to proceed.",
+          text: "We couldn't access your location. You can continue without sharing it.",
         })
     );
   };
@@ -591,7 +593,9 @@ function AttendancePage() {
           setImage(URL.createObjectURL(compressed));
           setCompressedBlob(compressed);
           setCapturedTime(new Date());
-          getLocation();
+          if (useLocation) {
+            getLocation();
+          }
         } else {
           Swal.fire({ icon: "error", title: "Compression Failed" });
         }
@@ -603,10 +607,12 @@ function AttendancePage() {
 
   const submitAttendance = async () => {
     if (isSubmitting) return;
-    if (!location) {
+
+    // If user opted in to location but we couldn't fetch it yet
+    if (useLocation && !location) {
       Swal.fire(
-        "Missing Data",
-        "Please enable location access to proceed.",
+        "Location Unavailable",
+        "We couldn't get your location. You can try again or turn off location sharing.",
         "warning"
       );
       return;
@@ -614,7 +620,9 @@ function AttendancePage() {
 
     const formData = new FormData();
     formData.append("type", type);
-    formData.append("location", location);
+    if (useLocation && location) {
+      formData.append("location", location);
+    }
     formData.append("workMode", workMode);
     formData.append("isInOffice", workMode === "office" || workMode === "hybrid");
     
@@ -643,6 +651,8 @@ function AttendancePage() {
       setSkipCamera(false);
       setWorkMode("office");
       stopCamera();
+      setIsCapturing(false);
+      setUseLocation(false);
       fetchAttendance();
     } catch (err) {
       Swal.fire("Failed", "Could not submit attendance", "error");
@@ -663,6 +673,10 @@ function AttendancePage() {
   });
   const formattedDate = currentTime.toLocaleDateString("en-US", {
     day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const currentMonthYear = currentTime.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
@@ -1017,59 +1031,23 @@ function AttendancePage() {
             ) : (
               <>
             <section className="stats-strip">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-green-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
-                  <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-xs sm:text-sm font-medium text-green-700 uppercase tracking-wide">
-                      Present Days
-                    </span>
-                  </div>
-                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-green-800 mb-2">
-                    {presentDays}
-                  </p>
-                  <div className="w-full bg-green-200 h-1.5 rounded-full">
-                    <div
-                      className="bg-gradient-to-r from-green-400 to-green-500 h-1.5 rounded-full transition-all duration-500"
-                      style={{ width: `${(presentDays / currentDayOfMonth) * 100}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-green-600 mt-2">Days Attended</p>
+              <div className="ms-stat-grid">
+                <div className="ms-stat-card emerald">
+                  <p className="label">Present days</p>
+                  <p className="value">{presentDays}</p>
+                  <p className="note">Days attended</p>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-orange-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
-                  <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-orange-500 rounded-full"></div>
-                    <span className="text-xs sm:text-sm font-medium text-orange-700 uppercase tracking-wide">
-                      Absent Days
-                    </span>
-                  </div>
-                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-orange-800 mb-2">
-                    {absentDays}
-                  </p>
-                  <div className="w-full bg-orange-200 h-1.5 rounded-full">
-                    <div
-                      className="bg-gradient-to-r from-orange-400 to-orange-500 h-1.5 rounded-full transition-all duration-500"
-                      style={{ width: `${(absentDays / currentDayOfMonth) * 100}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-orange-600 mt-2">Days Missed</p>
+                <div className="ms-stat-card amber">
+                  <p className="label">Absent days</p>
+                  <p className="value">{absentDays}</p>
+                  <p className="note">Days missed</p>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-blue-200/60 shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-5 md:p-6 text-center">
-                  <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full"></div>
-                    <span className="text-xs sm:text-sm font-medium text-blue-700 uppercase tracking-wide">
-                      Total Days
-                    </span>
-                  </div>
-                  <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-blue-800 mb-2">
-                    {currentDayOfMonth}
-                  </p>
-                  <div className="w-full bg-blue-200 h-1.5 rounded-full">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full w-full"></div>
-                  </div>
-                  <p className="text-xs text-blue-600 mt-2">Month Progress</p>
+                <div className="ms-stat-card blue">
+                  <p className="label">Total days</p>
+                  <p className="value">{currentDayOfMonth}</p>
+                  <p className="note">{currentMonthYear}</p>
                 </div>
               </div>
             </section>
@@ -1110,6 +1088,9 @@ function AttendancePage() {
                 </div>
               </div>
             </section>
+
+            {/* Separate component under Daily Attendance: today photo, location and map */}
+            <AttendanceProofRow attendanceHistory={attendanceHistory} />
 
             <section className="modern-card">
               {/* Light Multi-Color Weekly Analytics */}
@@ -1423,15 +1404,13 @@ function AttendancePage() {
       {isSelf && type && !isCapturing && (
         <div className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-30 w-full px-4 sm:px-6 flex justify-center">
           <button
-            onClick={async () => {
-              getLocation();
+            onClick={() => {
+              // Open capture modal without requesting camera or location yet.
               setIsCapturing(true);
-              setSkipCamera(false);
+              setSkipCamera(true); // camera off by default
+              setUseLocation(false); // location off by default
+              setLocation("");
               setWorkMode("office");
-              // Start camera after a small delay to ensure modal is open
-              setTimeout(() => {
-                startCamera();
-              }, 100);
             }}
             className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4 text-sm sm:text-base min-w-[180px] sm:min-w-[220px]"
           >
@@ -1519,6 +1498,29 @@ function AttendancePage() {
                 </div>
               </div>
 
+              {/* Optional Location Sharing */}
+              <div className="mb-4 sm:mb-6">
+                <label className="flex items-center justify-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useLocation}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      setUseLocation(enabled);
+                      if (enabled) {
+                        getLocation();
+                      } else {
+                        setLocation("");
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    Share location (optional)
+                  </span>
+                </label>
+              </div>
+
               {/* Skip Camera Option */}
               <div className="mb-4 sm:mb-6">
                 <label className="flex items-center justify-center gap-2 cursor-pointer">
@@ -1535,7 +1537,7 @@ function AttendancePage() {
                     }}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                   />
-                  <span className="text-xs sm:text-sm text-gray-700">Skip Camera (Optional)</span>
+                  <span className="text-xs sm:text-sm text-gray-700">Skip camera (optional)</span>
                 </label>
               </div>
 
@@ -1582,6 +1584,8 @@ function AttendancePage() {
                       onClick={() => {
                         setIsCapturing(false);
                         setSkipCamera(false);
+                        setUseLocation(false);
+                        setLocation("");
                         setWorkMode("office");
                       }}
                       className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
@@ -1642,6 +1646,8 @@ function AttendancePage() {
                         stopCamera();
                         setIsCapturing(false);
                         setSkipCamera(false);
+                        setUseLocation(false);
+                        setLocation("");
                         setWorkMode("office");
                       }}
                       className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"

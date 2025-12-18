@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../utils/api';
 
@@ -9,11 +9,7 @@ export const useTheme = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadTheme();
-  }, []);
-
-  const loadTheme = async () => {
+  const loadTheme = useCallback(async () => {
     try {
       // First check localStorage for quick load
       const storedPrimary = localStorage.getItem('theme-primary');
@@ -51,7 +47,11 @@ export const useTheme = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadTheme();
+  }, [loadTheme]);
 
   const applyThemeToDocument = (primary, secondary) => {
     document.documentElement.style.setProperty('--theme-primary', primary);

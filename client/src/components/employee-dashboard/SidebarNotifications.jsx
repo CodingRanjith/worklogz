@@ -11,7 +11,7 @@ const SidebarNotifications = ({ isCollapsed }) => {
   const fetchUnreadCount = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(API_ENDPOINTS.getUnreadNotificationCount, {
+      const response = await axios.get(API_ENDPOINTS.getUnreadCount, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUnreadCount(response.data.unreadCount || 0);

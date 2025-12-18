@@ -4,34 +4,35 @@ const haversine = require('haversine-distance');
 
 exports.markAttendance = async (req, res) => {
   try {
-    if (!req.body.location || !req.body.location.includes(',')) {
-      return res.status(400).json({ error: 'Invalid location format' });
-    }
-
-    const [lat, lon] = req.body.location.split(',').map(parseFloat);
-    const userLocation = { latitude: lat, longitude: lon };
+    const rawLocation = req.body.location;
 
     let isInOffice = false;
     let matchedOfficeName = null;
 
-    for (const office of officeLocation) {
-      const officeCoords = { latitude: office.latitude, longitude: office.longitude };
-      const distance = haversine(userLocation, officeCoords); // in meters
+    // Only try to compute in-office distance if a valid "lat,lon" string was sent
+    if (rawLocation && rawLocation.includes(',')) {
+      const [lat, lon] = rawLocation.split(',').map(parseFloat);
+      const userLocation = { latitude: lat, longitude: lon };
 
-      if (distance <= office.radiusMeters) {
-        isInOffice = true;
-        matchedOfficeName = office.name;
-        break;
+      for (const office of officeLocation) {
+        const officeCoords = { latitude: office.latitude, longitude: office.longitude };
+        const distance = haversine(userLocation, officeCoords); // in meters
+
+        if (distance <= office.radiusMeters) {
+          isInOffice = true;
+          matchedOfficeName = office.name;
+          break;
+        }
       }
     }
 
     const attendance = new Attendance({
       user: req.user._id,
       type: req.body.type,
-      location: req.body.location,
+      location: rawLocation || 'Location not provided',
       image: req.file?.path || '', // Cloudinary URL or fallback
       isInOffice,
-      officeName: matchedOfficeName || 'Outside Office',
+      officeName: matchedOfficeName || (rawLocation ? 'Outside Office' : 'Location not provided'),
       timestamp: new Date(),
     });
 

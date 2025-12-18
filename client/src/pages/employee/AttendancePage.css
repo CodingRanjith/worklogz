@@ -576,8 +576,35 @@
 
 .ms-stat-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  /* On desktop: keep three cards in a single row */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .ms-stat-grid {
+    /* On smaller screens, allow wrapping for readability */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Four-column stats grid for Daily Attendance cards */
+.ms-stat-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .ms-stat-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ms-stat-grid-4 {
+    grid-template-columns: 1fr;
+  }
 }
 
 .ms-stat-card {
