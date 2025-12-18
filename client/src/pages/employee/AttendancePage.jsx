@@ -1089,7 +1089,7 @@ function AttendancePage() {
               </div>
             </section>
 
-            {/* Separate component under Daily Attendance: today photo, location and map */}
+            {/* Separate component under Daily Attendance: today check-in/check-out photos */}
             <AttendanceProofRow attendanceHistory={attendanceHistory} />
 
             <section className="modern-card">

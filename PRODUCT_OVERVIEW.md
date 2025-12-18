@@ -39,6 +39,239 @@ Worklogz consolidates all your business operations into a single, intuitive plat
 
 ## 🎯 Core Features & Modules
 
+### Sidebar Modules & Feature Availability (Yes / No)
+
+Each sidebar category and option in Worklogz can be enabled or disabled based on your company needs.  
+By default, all the following modules are **available (Yes)** and can be controlled via role-based permissions.
+
+#### Home & Core
+- **Home** – Yes  
+- **Dashboard** – Yes  
+- **Attendance** – Yes  
+
+#### HR & Administration
+- **User & Employee Management** – Yes  
+- **People** – Yes  
+- **Team Management** – Yes  
+- **Applications** – Yes  
+- **Roles & Permissions** – Yes  
+- **Onboarding & Offboarding** – Yes  
+- **Employee Profiles** – Yes  
+- **HR Requests & Approvals** – Yes  
+- **Org Chart** – Yes  
+- **HR Analytics** – Yes  
+
+#### Time & Task Tracking
+- **Task Manager** – Yes  
+- **Admin Task Manager** – Yes  
+- **Worklog Tracking** – Yes  
+- **Calendar View** – Yes  
+- **Timesheets** – Yes  
+- **Productivity Reports** – Yes  
+- **Shift Management** – Yes  
+- **Overtime Tracking** – Yes  
+- **AI Time Insights** – Yes  
+
+#### Leave Management
+- **Apply Leave** – Yes  
+- **Leave Records** – Yes  
+- **Late Reports** – Yes  
+- **Holiday List** – Yes  
+- **Leave Policies** – Yes  
+- **Leave Approvals** – Yes  
+- **Comp-Off Management** – Yes  
+- **Shift-Based Leaves** – Yes  
+- **Leave Analytics** – Yes  
+- **AI Leave Insights** – Yes  
+
+#### Finance & Compensation
+- **Salary** – Yes  
+- **Pay History** – Yes  
+- **Payslip Generator** – Yes  
+- **Daily Salary Credit** – Yes  
+- **Expense Claims** – Yes  
+- **Payroll Processing** – Yes  
+- **Bonuses & Incentives** – Yes  
+- **Tax & Compliance** – Yes  
+- **Reimbursements** – Yes  
+- **Finance Analytics** – Yes  
+
+#### Documents & Administration
+- **Document Center** – Yes  
+- **Offer Letters** – Yes  
+- **Experience Letters** – Yes  
+- **Relieving Letters** – Yes  
+- **Upload Documents** – Yes  
+- **Document Templates** – Yes  
+- **E-Sign & Approvals** – Yes  
+- **Version Control** – Yes  
+- **Access & Permissions** – Yes  
+- **Audit Logs** – Yes  
+
+#### Project Management
+- **Project Workspace / Projects Workspace** – Yes  
+- **My Workspace** – Yes  
+- **Company Worklogz** – Yes  
+- **Company Departments** – Yes  
+- **Project Reports** – Yes  
+- **Task Manager (Project)** – Yes  
+- **Admin Task Manager (Project)** – Yes  
+- **Sub Tasks** – Yes  
+- **Milestones** – Yes  
+- **Productivity Reports (Project)** – Yes  
+- **Sprint & Agile Board** – Yes  
+- **Resource Allocation** – Yes  
+- **Risk & Issue Tracking** – Yes  
+- **Project Timeline (Gantt)** – Yes  
+- **Project Automation (AI)** – Yes  
+
+#### Sales & CRM
+- **Customer Relationship Management** – Yes  
+- **CRM Dashboard** – Yes  
+- **Course CRM** – Yes  
+- **Internship CRM** – Yes  
+- **IT Projects CRM** – Yes  
+- **Custom CRM** – Yes  
+- **Leads Management** – Yes  
+- **Deals & Pipeline** – Yes  
+- **Contacts & Accounts** – Yes  
+- **Follow-ups & Activities** – Yes  
+- **CRM Automation (n8n)** – Yes  
+
+##### Payment & Billing (Sales)
+- **Fee Payments (Admin)** – Yes  
+- **Fee Payment (Employee)** – Yes  
+- **Plans** – Yes  
+- **Invoices** – Yes  
+- **Payment Reports** – Yes  
+- **Revenue Analytics** – Yes  
+- **Subscription Management** – Yes  
+- **Tax & Compliance (Billing)** – Yes  
+- **Refunds & Adjustments** – Yes  
+- **AI Sales Insights** – Yes  
+
+#### Marketing & Analytics
+- **Analytics & Reporting** – Yes  
+- **Analytics Dashboard** – Yes  
+- **Monthly Reports** – Yes  
+- **Performance Metrics** – Yes  
+- **Lead & Sales Analytics** – Yes  
+- **Custom Reports** – Yes  
+- **Automation Workflows (n8n)** – Yes  
+- **Real-Time Event Tracking** – Yes  
+- **Data Pipelines & ETL** – Yes  
+- **Predictive Analytics (AI)** – Yes  
+- **Attribution & Funnel Analysis** – Yes  
+- **Embedded BI Dashboards** – Yes  
+
+#### Edutech & Learning
+- **Learning & Development** – Yes  
+- **Skill Development** – Yes  
+- **Assessments** – Yes  
+- **WorklogzTube** – Yes  
+- **Learning Paths** – Yes  
+- **Certifications** – Yes  
+- **AI Learning Copilot** – Yes  
+- **Personalized Learning Engine** – Yes  
+- **Live Classes & Webinars** – Yes  
+- **Assignments & Projects** – Yes  
+- **Progress & Skill Analytics** – Yes  
+- **Content Authoring (No-Code)** – Yes  
+
+#### Goals & Performance
+- **Goals & Achievements** – Yes  
+- **Performance Dashboard** – Yes  
+- **KPI Tracking** – Yes  
+- **Feedback & Reviews** – Yes  
+- **OKR Management** – Yes  
+- **360° Feedback** – Yes  
+- **Review Cycles** – Yes  
+- **Skill Gap Analysis** – Yes  
+- **AI Performance Insights** – Yes  
+
+#### Collaboration, Communication & Support
+- **Team Collaboration** – Yes  
+- **Community** – Yes  
+- **People Directory** – Yes  
+- **Team Management (Collaboration)** – Yes  
+- **Announcements** – Yes  
+- **Internal Chat** – Yes  
+- **Channels & Groups** – Yes  
+- **Company Polls & Surveys** – Yes  
+- **Knowledge Base / Wiki** – Yes  
+- **File Sharing** – Yes  
+- **Mentions & Notifications** – Yes  
+- **Helpdesk** – Yes  
+- **My Workspace** – Yes  
+- **Meeting Scheduler** – Yes  
+- **Company Calendar** – Yes  
+
+#### Performance Management
+- **Performance Tracking** – Yes  
+- **Performance Dashboard (PM)** – Yes  
+- **Goals & Achievements (PM)** – Yes  
+- **Calendar View (PM)** – Yes  
+- **Review Cycles (PM)** – Yes  
+- **Appraisal Reports** – Yes  
+- **KPI & OKR Tracking** – Yes  
+- **360° Feedback (PM)** – Yes  
+- **Skill Gap Analysis (PM)** – Yes  
+- **Promotion & Growth Plans** – Yes  
+- **AI Performance Insights (PM)** – Yes  
+
+#### Security & IT Management
+- **Role-Based Access Control** – Yes  
+- **Login Activity** – Yes  
+- **Device Management** – Yes  
+- **Audit Logs (Security)** – Yes  
+- **Data Backup** – Yes  
+- **Single Sign-On (SSO)** – Yes  
+- **IP & Geo Restrictions** – Yes  
+- **Security Policies** – Yes  
+- **Incident Management** – Yes  
+- **Compliance Reports** – Yes  
+
+#### AI & Automation
+- **AI Copilot** – Yes  
+- **AI Task Suggestions** – Yes  
+- **Smart Attendance** – Yes  
+- **Auto Worklogs** – Yes  
+- **AI Reports** – Yes  
+- **Chatbot Assistant** – Yes  
+- **Workflow Automation (n8n)** – Yes  
+- **Predictive Analytics (AI)** – Yes  
+- **AI Performance Insights (AI module)** – Yes  
+- **AI Hiring & Screening** – Yes  
+- **RPA Bots (No-Code)** – Yes  
+- **AI Alerts & Triggers** – Yes  
+
+#### Development Platform
+- **API Management** – Yes  
+- **Custom Modules** – Yes  
+- **Integrations** – Yes  
+- **Webhooks** – Yes  
+- **Developer Settings** – Yes  
+- **Low-Code Builder** – Yes  
+- **Workflow Builder** – Yes  
+- **Custom Objects & Fields** – Yes  
+- **Form Builder** – Yes  
+- **App Marketplace** – Yes  
+- **Environment Management** – Yes  
+
+#### Core Navigation & Platform Controls
+- **Notifications** – Yes  
+- **Profile Settings** – Yes  
+- **System Settings** – Yes  
+- **Company Settings** – Yes  
+- **Theme & Branding** – Yes  
+- **Custom Fields** – Yes  
+- **Workflow Rules** – Yes  
+- **Global Settings** – Yes  
+- **Feature Toggles** – Yes  
+- **Data Import / Export** – Yes  
+- **Localization & Timezone** – Yes  
+- **System Status** – Yes  
+
 ### 1. **Attendance Management System**
 **Smart, Automated, Fraud-Proof**
 

@@ -49,7 +49,13 @@ export const API_ENDPOINTS = {
   deleteCustomField: (id) => `${BASE_URL}/api/custom-fields/${id}`,
   toggleCustomFieldStatus: (id) => `${BASE_URL}/api/custom-fields/${id}/toggle`,
   bulkCreateCustomFields: `${BASE_URL}/api/custom-fields/bulk`,
-  // Sidebar Access
+
+  // -----------------
+  // Sidebar Menus (structure)
+  // -----------------
+  getSidebarMenu: (scope = 'employee') => `${BASE_URL}/api/sidebar-menu/${scope}`,
+  updateSidebarMenu: (scope = 'employee') => `${BASE_URL}/api/sidebar-menu/${scope}`,
+  // Sidebar Access (per-user)
   getSidebarAccess: (userId, scope = 'admin') => `${BASE_URL}/users/${userId}/sidebar-access?scope=${scope}`,
   updateSidebarAccess: (userId) => `${BASE_URL}/users/${userId}/sidebar-access`,
   getBulkSidebarAccess: (userIds, scope = 'admin') => `${BASE_URL}/users/sidebar-access/bulk?userIds=${Array.isArray(userIds) ? userIds.join(',') : userIds}&scope=${scope}`,

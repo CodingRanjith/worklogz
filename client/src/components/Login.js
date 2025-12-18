@@ -42,9 +42,15 @@ function Login() {
       });
 
       setTimeout(() => {
-        if (decoded.role === 'admin') navigate('/dashboard');
-        else if (decoded.role === 'employee') navigate('/home');
-        else navigate('/');
+        if (decoded.role === 'admin') {
+          navigate('/admin');
+        } else if (decoded.role) {
+          // Any non-admin role goes to employee home
+          navigate('/home');
+        } else {
+          // If no role is present on the token
+          navigate('/');
+        }
       }, 2000);
 
     } catch (err) {

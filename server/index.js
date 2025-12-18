@@ -153,6 +153,7 @@ app.use('/api/assessments', require('./routes/assessmentRoutes'));
 app.use('/api/demo', require('./routes/demoRoutes'));
 app.use('/api/fee-payments', require('./routes/feePaymentRoutes'));
 app.use('/api/company-settings', require('./routes/companySettingsRoutes'));
+app.use('/api/sidebar-menu', require('./routes/sidebarMenuRoutes'));
 
 // Custom Fields Routes
 try {

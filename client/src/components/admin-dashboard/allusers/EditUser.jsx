@@ -401,12 +401,10 @@ const EditUser = ({ userId, onClose, onUpdated }) => {
                     <option value="">Select Role</option>
                     {roleFields.length > 0 ? (
                       roleFields.map((field) => {
-                        // Map role values to database enum format
+                        // Normalize role value (lowercase, no spaces) but DON'T force to "employee"
                         const roleValue = field.value.toLowerCase().replace(/\s+/g, '');
-                        const validRoles = ['employee', 'admin', 'manager', 'hr', 'supervisor', 'teamlead'];
-                        const mappedValue = validRoles.includes(roleValue) ? roleValue : 'employee';
                         return (
-                          <option key={field._id || field.value} value={mappedValue}>
+                          <option key={field._id || field.value} value={roleValue}>
                             {field.value}
                           </option>
                         );

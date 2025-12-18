@@ -26,6 +26,11 @@ const menuItems = [
     icon: <FiLayers />
   },
   {
+    label: 'Solution Configurator',
+    path: '/docs/solution-configurator',
+    icon: <FiBarChart2 />
+  },
+  {
     label: 'Detailed Features',
     path: '/docs/detailed-features',
     icon: <FiBarChart2 />

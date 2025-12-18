@@ -12,6 +12,9 @@ const AdministrationAccess = () => {
   const token = localStorage.getItem('token');
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');
+  const [selectedRole, setSelectedRole] = useState('all');
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
+  const [selectedCompany, setSelectedCompany] = useState('all');
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [accessMap, setAccessMapState] = useState({});
   const [savedAccessMap, setSavedAccessMap] = useState({});
@@ -63,15 +66,57 @@ const AdministrationAccess = () => {
     loadAccessMap();
   }, [scope]);
 
+  // Derive available filters from users list
+  const roleOptions = useMemo(() => {
+    const set = new Set();
+    users.forEach((u) => {
+      if (u.role) set.add(u.role);
+    });
+    return Array.from(set).sort();
+  }, [users]);
+
+  const departmentOptions = useMemo(() => {
+    const set = new Set();
+    users.forEach((u) => {
+      if (u.department) set.add(u.department);
+    });
+    return Array.from(set).sort();
+  }, [users]);
+
+  const companyOptions = useMemo(() => {
+    const set = new Set();
+    users.forEach((u) => {
+      if (u.company) set.add(u.company);
+    });
+    return Array.from(set).sort();
+  }, [users]);
+
   const filteredUsers = useMemo(() => {
     const query = search.toLowerCase();
-    return users.filter(
-      (u) =>
+    return users.filter((u) => {
+      const matchesSearch =
+        !query ||
         u.name?.toLowerCase().includes(query) ||
         u.email?.toLowerCase().includes(query) ||
-        u.employeeId?.toLowerCase().includes(query)
-    );
-  }, [search, users]);
+        u.employeeId?.toLowerCase().includes(query);
+
+      const matchesRole = selectedRole === 'all' || u.role === selectedRole;
+      const matchesDept = selectedDepartment === 'all' || u.department === selectedDepartment;
+      const matchesCompany = selectedCompany === 'all' || u.company === selectedCompany;
+
+      return matchesSearch && matchesRole && matchesDept && matchesCompany;
+    });
+  }, [search, users, selectedRole, selectedDepartment, selectedCompany]);
+
+  const hasActiveFilters =
+    !!search || selectedRole !== 'all' || selectedDepartment !== 'all' || selectedCompany !== 'all';
+
+  const clearFilters = () => {
+    setSearch('');
+    setSelectedRole('all');
+    setSelectedDepartment('all');
+    setSelectedCompany('all');
+  };
 
   const selectedUsers = users.filter((u) => selectedUserIds.includes(u._id));
 
@@ -454,21 +499,68 @@ const AdministrationAccess = () => {
 
   return (
     <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold text-gray-800">Administration</h2>
-          <p className="text-sm text-gray-500">
-            Manage which employee sidebar options are visible for each user.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm w-64"
-          />
+      <div className="bg-white rounded-lg shadow p-4 flex flex-col gap-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Administration</h2>
+            <p className="text-sm text-gray-500">
+              Manage which employee sidebar options are visible for each user.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm w-48 md:w-64"
+            />
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="border rounded-md px-2 py-2 text-sm"
+            >
+              <option value="all">All roles</option>
+              {roleOptions.map((role) => (
+                <option key={role} value={role}>
+                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="border rounded-md px-2 py-2 text-sm"
+            >
+              <option value="all">All departments</option>
+              {departmentOptions.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              className="border rounded-md px-2 py-2 text-sm"
+            >
+              <option value="all">All companies</option>
+              {companyOptions.map((company) => (
+                <option key={company} value={company}>
+                  {company}
+                </option>
+              ))}
+            </select>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

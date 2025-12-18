@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   FiMenu, 
@@ -42,6 +42,7 @@ const LandingHeader = () => {
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [demoFormOpen, setDemoFormOpen] = useState(false);
+  const closeTimeoutRef = useRef(null);
 
   // Icon colors array for variety
   const iconColors = [
@@ -57,6 +58,29 @@ const LandingHeader = () => {
 
   const getIconColor = (index) => {
     return iconColors[index % iconColors.length];
+  };
+
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
+
+  const handleMenuEnter = (menu) => {
+    clearCloseTimeout();
+    if (menu === 'features') setFeaturesOpen(true);
+    if (menu === 'solutions') setSolutionsOpen(true);
+    if (menu === 'resources') setResourcesOpen(true);
+  };
+
+  const handleMenuLeave = (menu) => {
+    clearCloseTimeout();
+    closeTimeoutRef.current = setTimeout(() => {
+      if (menu === 'features') setFeaturesOpen(false);
+      if (menu === 'solutions') setSolutionsOpen(false);
+      if (menu === 'resources') setResourcesOpen(false);
+    }, 150);
   };
 
   // User Modules
@@ -138,8 +162,8 @@ const LandingHeader = () => {
         <nav className="header-nav desktop-nav">
           <div 
             className="nav-item dropdown features-dropdown-wrapper"
-            onMouseEnter={() => setFeaturesOpen(true)}
-            onMouseLeave={() => setFeaturesOpen(false)}
+            onMouseEnter={() => handleMenuEnter('features')}
+            onMouseLeave={() => handleMenuLeave('features')}
           >
             <span className="nav-link">
               Features <FiChevronDown className="dropdown-icon" />
@@ -147,7 +171,11 @@ const LandingHeader = () => {
             {featuresOpen && (
               <>
                 <div className="dropdown-bridge"></div>
-                <div className="dropdown-menu features-dropdown" onMouseEnter={() => setFeaturesOpen(true)} onMouseLeave={() => setFeaturesOpen(false)}>
+                <div 
+                  className="dropdown-menu features-dropdown" 
+                  onMouseEnter={() => handleMenuEnter('features')} 
+                  onMouseLeave={() => handleMenuLeave('features')}
+                >
                   {/* User Modules Section */}
                   <div className="dropdown-section">
                     <h3 className="dropdown-section-title">
@@ -208,19 +236,26 @@ const LandingHeader = () => {
 
           <div 
             className="nav-item dropdown"
-            onMouseEnter={() => setSolutionsOpen(true)}
-            onMouseLeave={() => setSolutionsOpen(false)}
+            onMouseEnter={() => handleMenuEnter('solutions')}
+            onMouseLeave={() => handleMenuLeave('solutions')}
           >
             <span className="nav-link">
               Solutions <FiChevronDown className="dropdown-icon" />
             </span>
             {solutionsOpen && (
-              <div className="dropdown-menu">
-                <Link to="/for-business">For Business</Link>
-                <Link to="/for-enterprise">For Enterprise</Link>
-                <Link to="/for-education">For Education</Link>
-                <Link to="/for-individuals">For Individuals</Link>
-              </div>
+              <>
+                <div className="dropdown-bridge"></div>
+                <div 
+                  className="dropdown-menu"
+                  onMouseEnter={() => handleMenuEnter('solutions')}
+                  onMouseLeave={() => handleMenuLeave('solutions')}
+                >
+                  <Link to="/for-business">For Business</Link>
+                  <Link to="/for-enterprise">For Enterprise</Link>
+                  <Link to="/for-education">For Education</Link>
+                  <Link to="/for-individuals">For Individuals</Link>
+                </div>
+              </>
             )}
           </div>
 
@@ -230,18 +265,27 @@ const LandingHeader = () => {
 
           <div 
             className="nav-item dropdown"
-            onMouseEnter={() => setResourcesOpen(true)}
-            onMouseLeave={() => setResourcesOpen(false)}
+            onMouseEnter={() => handleMenuEnter('resources')}
+            onMouseLeave={() => handleMenuLeave('resources')}
           >
             <span className="nav-link">
               Resources <FiChevronDown className="dropdown-icon" />
             </span>
             {resourcesOpen && (
-              <div className="dropdown-menu">
-                <Link to="/docs/faq">FAQ</Link>
-                <Link to="/docs/support">Support</Link>
-                <Link to="/docs/roadmap">Roadmap</Link>
-              </div>
+              <>
+                <div className="dropdown-bridge"></div>
+                <div 
+                  className="dropdown-menu"
+                  onMouseEnter={() => handleMenuEnter('resources')}
+                  onMouseLeave={() => handleMenuLeave('resources')}
+                >
+                  <Link to="/product-overview">Product Overview</Link>
+                  <Link to="/product-configurator">Product PDF Configurator</Link>
+                  <Link to="/docs/faq">FAQ</Link>
+                  <Link to="/docs/support">Support</Link>
+                  <Link to="/docs/roadmap">Roadmap</Link>
+                </div>
+              </>
             )}
           </div>
         </nav>
@@ -321,6 +365,8 @@ const LandingHeader = () => {
           <Link to="/docs/industries" onClick={() => setMobileMenuOpen(false)}>Industries</Link>
           <Link to="/pricing" onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
           <Link to="/docs" onClick={() => setMobileMenuOpen(false)}>Documentation</Link>
+          <Link to="/product-overview" onClick={() => setMobileMenuOpen(false)}>Product Overview</Link>
+          <Link to="/product-configurator" onClick={() => setMobileMenuOpen(false)}>Product PDF Configurator</Link>
           <Link to="/docs/faq" onClick={() => setMobileMenuOpen(false)}>Resources</Link>
           <button onClick={() => { setMobileMenuOpen(false); setDemoFormOpen(true); }} className="btn-secondary" style={{ width: '100%', marginBottom: '12px' }}>Request Demo</button>
           <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>

@@ -21,6 +21,7 @@ import Attendance from './pages/admin/Attendance';
 import Reports from './pages/admin/Reports';
 import LeaveRequestsAdmin from './pages/admin/LeaveRequests';
 import AdministrationAccess from './pages/admin/AdministrationAccess';
+import MasterControl from './pages/admin/MasterControl';
 
 
 import AttendancePage from './pages/employee/AttendancePage';
@@ -39,6 +40,7 @@ import DocumentCenter from './pages/employee/DocumentCenter';
 import HelpdeskPage from './pages/employee/HelpdeskPage';
 import HomePage from './pages/employee/HomePage';
 import NotificationPage from './pages/employee/NotificationPage';
+import Invoices from './pages/employee/Invoices';
 import EditUser from './components/EditUser';
 import PendingUsers from './pages/admin/PendingUsers';
 import AllUsers from './pages/admin/AllUsers';
@@ -64,6 +66,7 @@ import Settings from './pages/admin/Settings';
 import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
 import ThemeBranding from './pages/admin/ThemeBranding';
 import CourseCRM from './pages/admin/CourseCRM';
+import WorkflowRules from './pages/admin/WorkflowRules';
 import InternshipCRM from './pages/admin/InternshipCRM';
 import ITProjectsCRM from './pages/admin/ITProjectsCRM';
 import ProjectsWorkspace from './pages/admin/ProjectsWorkspace';
@@ -77,6 +80,7 @@ import WorklogzTube from './pages/employee/WorklogzTube';
 import FeePayment from './pages/employee/FeePayment';
 import FeePaymentsManagement from './pages/admin/FeePaymentsManagement';
 import ProfileSettings from './pages/employee/ProfileSettings';
+import Company from './pages/admin/Company';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 import EmployeeLayout from './components/employee-dashboard/layout/EmployeeLayout';
@@ -105,9 +109,11 @@ import Roadmap from './docs/pages/Roadmap';
 import FAQ from './docs/pages/FAQ';
 import Legal from './docs/pages/Legal';
 import Contact from './docs/pages/Contact';
+import SolutionConfigurator from './docs/pages/SolutionConfigurator';
 
-// Landing Page
+// Landing Pages
 import LandingPage from './pages/landing/LandingPage';
+import PublicLandingPage from './pages/landing/PublicLandingPage';
 
 // Static Pages
 import Pricing from './pages/static/Pricing';
@@ -115,6 +121,8 @@ import ForBusiness from './pages/static/ForBusiness';
 import ForEnterprise from './pages/static/ForEnterprise';
 import ForEducation from './pages/static/ForEducation';
 import ForIndividuals from './pages/static/ForIndividuals';
+import ProductOverview from './pages/static/ProductOverview';
+import ProductPdfConfigurator from './pages/static/ProductPdfConfigurator';
 
 // Feature Detail Pages - User Modules
 import UserProfileManagement from './pages/features/UserProfileManagement';
@@ -191,9 +199,10 @@ function App() {
    
       <Routes>
 
-        {/* Landing Page */}
+        {/* Landing Pages */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/landing" element={<LandingPage />} />
+        <Route path="/public" element={<PublicLandingPage />} />
 
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
@@ -203,6 +212,8 @@ function App() {
         <Route path="/for-enterprise" element={<ForEnterprise />} />
         <Route path="/for-education" element={<ForEducation />} />
         <Route path="/for-individuals" element={<ForIndividuals />} />
+        <Route path="/product-overview" element={<ProductOverview />} />
+        <Route path="/product-configurator" element={<ProductPdfConfigurator />} />
         
         {/* Feature Detail Pages - User Modules */}
         <Route path="/features/user-profile-management" element={<UserProfileManagement />} />
@@ -274,6 +285,7 @@ function App() {
           <Route path="/employee/worklogztube" element={<WorklogzTube />} />
           <Route path="/employee/fee-payment" element={<FeePayment />} />
           <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Employee Sidebar */}
+          <Route path="/invoices" element={<Invoices />} />
         </Route>
         
         {/* Documentation Routes */}
@@ -300,11 +312,11 @@ function App() {
         <Route path="/docs/faq" element={<FAQ />} />
         <Route path="/docs/legal" element={<Legal />} />
         <Route path="/docs/contact" element={<Contact />} />
+        <Route path="/docs/solution-configurator" element={<SolutionConfigurator />} />
 
         {/* Protected Admin Layout Wrapper */}
         <Route element={<Layout />}>
-          <Route path="/admin" element={<DashSavi />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin" element={<Company />} />
           <Route path="/employees" element={<Employees />} />
           <Route path="/salaryhistory" element={<PayslipList />} />
           <Route path="/attendances" element={<Attendance />} />
@@ -332,6 +344,7 @@ function App() {
           <Route path="/theme-branding" element={<ThemeBranding />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/administration/access-control" element={<AdministrationAccess />} />
+          <Route path="/master-control" element={<MasterControl />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />
           <Route path="/helpdesk" element={<Helpdesk />} />
           <Route path="/plans" element={<Plans />} />
@@ -340,6 +353,7 @@ function App() {
           <Route path="/assessments" element={<Assessments />} />
           <Route path="/fee-payments" element={<FeePaymentsManagement />} />
           <Route path="/custom-fields" element={<CustomFields />} />
+          <Route path="/workflow-rules" element={<WorkflowRules />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

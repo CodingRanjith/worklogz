@@ -6,8 +6,9 @@ import {
 } from 'react-icons/fi';
 
 export const menuItems = [
-  { label: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
+  { label: 'Dashboard', icon: <FiHome />, path: '/admin' },
   { label: 'Administration', icon: <FiShield />, path: '/administration/access-control' },
+  { label: 'Master Control', icon: <FiSettings />, path: '/master-control' },
   {
     label: 'User Management',
     icon: <FiUsers />,

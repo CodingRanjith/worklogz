@@ -257,64 +257,72 @@ const userController = {
   },
 
   updateUser: async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      password,
-      phone,
-      position,
-      company,
-      employeeId,
-      location,
-      gender,
-      maritalStatus,
-      salary,
-      department,
-      qualification,
-      dateOfJoining,
-      dateOfBirth,
-      skills,
-      rolesAndResponsibility,
-      profilePic,
-      bankDetails
-    } = req.body;
+    try {
+      const {
+        name,
+        email,
+        role,
+        password,
+        phone,
+        position,
+        company,
+        employeeId,
+        location,
+        gender,
+        maritalStatus,
+        salary,
+        department,
+        qualification,
+        dateOfJoining,
+        dateOfBirth,
+        skills,
+        rolesAndResponsibility,
+        profilePic,
+        bankDetails
+      } = req.body;
 
-    const updateData = {};
-    if (name) updateData.name = name;
-    if (email) updateData.email = email;
-    if (phone) updateData.phone = phone;
-    if (position) updateData.position = position;
-    if (company) updateData.company = company;
-    if (employeeId !== undefined) updateData.employeeId = employeeId;
-    if (location) updateData.location = location;
-    if (gender) updateData.gender = gender;
-    if (maritalStatus) updateData.maritalStatus = maritalStatus;
-    if (salary !== undefined) updateData.salary = salary;
-    if (department) updateData.department = department;
-    if (qualification) updateData.qualification = qualification;
-    if (profilePic) updateData.profilePic = profilePic;
-    if (Array.isArray(skills)) updateData.skills = skills;
-    if (Array.isArray(rolesAndResponsibility)) updateData.rolesAndResponsibility = rolesAndResponsibility;
-    if (bankDetails && typeof bankDetails === 'object') updateData.bankDetails = bankDetails;
-    if (dateOfJoining) updateData.dateOfJoining = new Date(dateOfJoining);
-    if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth);
-    if (password) updateData.password = await bcrypt.hash(password, 10);
+      const updateData = {};
+      if (name) updateData.name = name;
+      if (email) updateData.email = email;
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    ).select('-password');
+      // Allow updating role from custom fields (store normalized value)
+      if (role) {
+        const normalizedRole = role.toString().toLowerCase().trim();
+        updateData.role = normalizedRole;
+      }
 
-    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+      if (phone) updateData.phone = phone;
+      if (position) updateData.position = position;
+      if (company) updateData.company = company;
+      if (employeeId !== undefined) updateData.employeeId = employeeId;
+      if (location) updateData.location = location;
+      if (gender) updateData.gender = gender;
+      if (maritalStatus) updateData.maritalStatus = maritalStatus;
+      if (salary !== undefined) updateData.salary = salary;
+      if (department) updateData.department = department;
+      if (qualification) updateData.qualification = qualification;
+      if (profilePic) updateData.profilePic = profilePic;
+      if (Array.isArray(skills)) updateData.skills = skills;
+      if (Array.isArray(rolesAndResponsibility)) updateData.rolesAndResponsibility = rolesAndResponsibility;
+      if (bankDetails && typeof bankDetails === 'object') updateData.bankDetails = bankDetails;
+      if (dateOfJoining) updateData.dateOfJoining = new Date(dateOfJoining);
+      if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth);
+      if (password) updateData.password = await bcrypt.hash(password, 10);
 
-    res.json({ message: 'User updated successfully', user: updatedUser });
-  } catch (err) {
-    console.error('Error updating user:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-},
+      const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true }
+      ).select('-password');
+
+      if (!updatedUser) return res.status(404).json({ error: 'User not found' });
+
+      res.json({ message: 'User updated successfully', user: updatedUser });
+    } catch (err) {
+      console.error('Error updating user:', err);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  },
 
   updateSalary: async (req, res) => {
     try {
