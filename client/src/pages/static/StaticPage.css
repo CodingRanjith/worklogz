@@ -21,18 +21,66 @@
   padding: 0 var(--spacing-xl);
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--spacing-lg);
 }
 
-.static-header-link {
-  color: var(--primary-600);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: var(--font-size-base);
-  transition: color var(--transition-fast);
+.static-header-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.static-header-brand {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.75rem;
+}
+
+.static-header-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.static-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--neutral-900);
+  margin: 0;
+}
+
+.static-header-subtitle {
+  font-size: 0.9rem;
+  color: var(--neutral-500);
+  margin: 0;
+}
+
+.static-header-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  border: none;
+  background: var(--primary-600);
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--transition-fast), transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.static-header-primary:hover {
+  background: var(--primary-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.static-header-primary-icon {
+  font-size: 1rem;
 }
 
 .static-header-link:hover {
@@ -50,6 +98,13 @@
   margin: 0 auto;
   padding: 0 16px;
   text-align: center;
+}
+
+.static-hero-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  margin-bottom: 1rem;
 }
 
 .static-hero-title {
@@ -275,11 +330,203 @@
   border: 1px solid var(--neutral-300);
 }
 
+.product-config-table--compact th,
+.product-config-table--compact td {
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.product-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 1280px) {
+  .product-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .product-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.product-summary-card {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid var(--neutral-200);
+  padding: 0.75rem 0.9rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.product-summary-main {
+  margin: 0 0 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--neutral-700);
+}
+
+.product-summary-sub {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--neutral-900);
+}
+
+.product-summary-decision {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--neutral-600);
+}
+
+.product-config-decision-toggle {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.product-config-decision-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pdf-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pdf-summary-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.pdf-summary-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--neutral-900);
+}
+
+.pdf-summary-subtitle {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--neutral-600);
+}
+
+.static-section-lead {
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+  color: var(--neutral-600);
+  max-width: 46rem;
+}
+
+.product-config-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .product-config-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.product-config-card {
+  background: #ffffff;
+  border: 1px solid var(--neutral-200);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-xs);
+}
+
+.product-config-card-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--neutral-900);
+}
+
+.product-config-card-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.product-config-card-controls input[type='text'] {
+  min-width: 220px;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--neutral-300);
+  font-size: 0.9rem;
+}
+
+.product-config-card-controls button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--primary-200);
+  background: var(--primary-50);
+  color: var(--primary-700);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.product-config-card-controls button:hover {
+  background: var(--primary-100);
+}
+
+.product-config-card-label {
+  font-weight: 500;
+}
+
+.product-config-card-label-separator {
+  color: var(--neutral-300);
+}
+
+.product-config-select-all {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--neutral-200);
+  background: #ffffff;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.product-config-select-all-yes {
+  color: #16a34a;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.product-config-select-all-no {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
 @media print {
-  .static-header,
-  .mobile-menu-toggle,
-  .btn-secondary,
-  .btn-primary {
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  /* Keep the visual layout the same as on screen.
+     Only hide the print button and mobile toggle. */
+  .static-header-primary,
+  .mobile-menu-toggle {
     display: none !important;
   }
 
@@ -287,8 +534,18 @@
     background: #ffffff !important;
   }
 
-  .static-content-container {
-    padding: 0 !important;
+  /* In print, show one full-width module card per row,
+     and force a page break after every 4 cards (4 modules per page) */
+  .product-config-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .product-config-card {
+    break-inside: avoid-page;
+  }
+
+  .product-config-card:nth-of-type(4n) {
+    break-after: page;
   }
 }
 

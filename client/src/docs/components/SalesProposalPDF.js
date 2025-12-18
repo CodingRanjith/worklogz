@@ -196,3 +196,4 @@ const SalesProposalPDF = ({ clientInfo, categories, globalNotes }) => {
 export default SalesProposalPDF;
 
 
+

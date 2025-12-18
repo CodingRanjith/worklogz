@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import MetaTags from '../../components/SEO/MetaTags';
 import './StaticPage.css';
+import worklogzLogo from '../../assets/worklogz-logo.png';
 
-// Sidebar modules & sub-modules based on PRODUCT_OVERVIEW.md (lines 46–274)
+// Sidebar modules & sub-modules based on the internal Worklogz product overview
 const MODULE_GROUPS = [
   {
     key: 'home-core',
@@ -313,7 +314,7 @@ const buildInitialSelections = () => {
         groupLabel: group.label,
         name: item,
         include: true,
-        decision: 'yes',
+        decision: '',
         remarks: '',
         custom: '',
       };
@@ -326,18 +327,23 @@ const ProductPdfConfigurator = () => {
   const [selections, setSelections] = useState(buildInitialSelections);
   const [customInputs, setCustomInputs] = useState({});
 
-  const handleToggleInclude = (id) => {
-    setSelections((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], include: !prev[id].include },
-    }));
-  };
-
   const handleDecisionChange = (id, value) => {
     setSelections((prev) => ({
       ...prev,
       [id]: { ...prev[id], decision: value },
     }));
+  };
+
+  const handleBulkDecisionForGroup = (groupKey, value) => {
+    setSelections((prev) => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach((id) => {
+        if (updated[id].groupKey === groupKey) {
+          updated[id] = { ...updated[id], decision: value };
+        }
+      });
+      return updated;
+    });
   };
 
   const handleFieldChange = (id, field, value) => {
@@ -351,7 +357,8 @@ const ProductPdfConfigurator = () => {
     window.print();
   };
 
-  const includedModules = Object.values(selections).filter((m) => m.include);
+  // For PDF snapshot, include all modules as they appear on the page
+  const includedModules = Object.values(selections);
 
   return (
     <div className="static-page">
@@ -363,170 +370,174 @@ const ProductPdfConfigurator = () => {
 
       <header className="static-header">
         <div className="static-header-content">
-          <button className="static-header-link" onClick={handlePrint}>
-            <span>🖨️</span>
-            <span>Generate PDF (Print / Save as PDF)</span>
+          <div className="static-header-title-group">
+            <div className="static-header-brand">
+              <img src={worklogzLogo} alt="Worklogz logo" className="static-header-logo" />
+              <div>
+                <h1 className="static-header-title">Worklogz Proposal Configurator</h1>
+                <p className="static-header-subtitle">
+                  Configure modules for a tailored Worklogz implementation proposal.
+                </p>
+              </div>
+            </div>
+          </div>
+          <button className="static-header-primary" onClick={handlePrint}>
+            <span className="static-header-primary-icon">🖨️</span>
+            <span>Generate Proposal PDF</span>
           </button>
         </div>
       </header>
 
       <section className="static-hero">
         <div className="static-hero-content">
+          <img
+            src={worklogzLogo}
+            alt="Worklogz logo"
+            className="static-hero-logo"
+          />
           <h1 className="static-hero-title">
             Configure Your <span className="static-hero-title-highlight">Worklogz Product Overview</span>
           </h1>
           <p className="static-hero-description">
-            Select which core modules from the Worklogz Product Overview you want to include,
-            mark them as Yes or No for the client, and add remarks or additional custom notes.
-            Then use the print button to generate a proposal-style PDF.
+            Select which core modules from Worklogz you want to include and mark them as Yes or No for the client.
+            Then use the print button to generate a clean, proposal-style PDF with your selected modules.
           </p>
         </div>
       </section>
 
       <main className="static-content">
         <div className="static-content-container">
-          <section className="static-section">
-            <h2 className="static-section-title">Module Selection (Based on PRODUCT_OVERVIEW.md)</h2>
-            <p style={{ marginBottom: '16px' }}>
-              Each main module (sidebar category) from the Product Overview has its own table. For every sub-menu item,
-              choose Yes/No, add remarks, and optional custom notes. Everything will be included in the PDF summary below.
+          <section className="static-section product-config-section">
+            <h2 className="static-section-title">Module selection</h2>
+            <p className="static-section-lead">
+              For each Worklogz module, decide whether it is part of this proposal. Only selected rows will appear in the
+              summary below and in the final PDF.
             </p>
 
-            {MODULE_GROUPS.map((group) => {
-              const rows = Object.values(selections).filter(
-                (m) => m.groupKey === group.key
-              );
-              return (
-                <div key={group.key} style={{ marginBottom: '32px' }}>
-                  <h3 style={{ marginBottom: '8px' }}>{group.label}</h3>
-                  <div
-                    style={{
-                      marginBottom: '8px',
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                      Add custom sub module:
-                    </span>
-                    <input
-                      type="text"
-                      placeholder="Custom sub module name"
-                      value={customInputs[group.key] || ''}
-                      onChange={(e) =>
-                        setCustomInputs((prev) => ({
-                          ...prev,
-                          [group.key]: e.target.value,
-                        }))
-                      }
-                      style={{ minWidth: '220px' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const name = (customInputs[group.key] || '').trim();
-                        if (!name) return;
-                        const id = `${group.key}:custom:${Date.now()}:${name}`;
-                        setSelections((prev) => ({
-                          ...prev,
-                          [id]: {
-                            id,
-                            groupKey: group.key,
-                            groupLabel: group.label,
-                            name,
-                            include: true,
-                            decision: 'yes',
-                            remarks: '',
-                            custom: '',
-                          },
-                        }));
-                        setCustomInputs((prev) => ({ ...prev, [group.key]: '' }));
-                      }}
-                    >
-                      Add
-                    </button>
-                  </div>
-                  <div className="product-config-table-wrapper">
-                    <table className="product-config-table">
-                      <thead>
-                        <tr>
-                          <th>Include</th>
-                          <th>Sub Module</th>
-                          <th>Decision (Yes / No)</th>
-                          <th>Remarks</th>
-                          <th>Additional Custom</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rows.map((module) => (
-                          <tr key={module.id}>
-                            <td>
-                              <input
-                                type="checkbox"
-                                checked={module.include}
-                                onChange={() => handleToggleInclude(module.id)}
-                              />
-                            </td>
-                            <td>{module.name}</td>
-                            <td>
-                              <select
-                                value={module.decision}
-                                onChange={(e) =>
-                                  handleDecisionChange(
-                                    module.id,
-                                    e.target.value
-                                  )
-                                }
-                              >
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
-                              </select>
-                            </td>
-                            <td>
-                              <input
-                                type="text"
-                                placeholder="Remarks (e.g., Phase 2, optional, etc.)"
-                                value={module.remarks}
-                                onChange={(e) =>
-                                  handleFieldChange(
-                                    module.id,
-                                    'remarks',
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </td>
-                            <td>
-                              <input
-                                type="text"
-                                placeholder="Additional custom notes"
-                                value={module.custom}
-                                onChange={(e) =>
-                                  handleFieldChange(
-                                    module.id,
-                                    'custom',
-                                    e.target.value
-                                  )
-                                }
-                              />
-                            </td>
+            <div className="product-config-grid">
+              {MODULE_GROUPS.map((group) => {
+                const rows = Object.values(selections).filter(
+                  (m) => m.groupKey === group.key
+                );
+                return (
+                  <div key={group.key} className="product-config-card">
+                    <h3 className="product-config-card-title">{group.label}</h3>
+                    <div className="product-config-card-controls">
+                      <span className="product-config-card-label">
+                        Add custom sub module:
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Custom sub module name"
+                        value={customInputs[group.key] || ''}
+                        onChange={(e) =>
+                          setCustomInputs((prev) => ({
+                            ...prev,
+                            [group.key]: e.target.value,
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const name = (customInputs[group.key] || '').trim();
+                          if (!name) return;
+                          const id = `${group.key}:custom:${Date.now()}:${name}`;
+                          setSelections((prev) => ({
+                            ...prev,
+                            [id]: {
+                              id,
+                              groupKey: group.key,
+                              groupLabel: group.label,
+                              name,
+                              include: true,
+                              decision: '',
+                              remarks: '',
+                              custom: '',
+                            },
+                          }));
+                          setCustomInputs((prev) => ({ ...prev, [group.key]: '' }));
+                        }}
+                      >
+                        Add
+                      </button>
+                      <span className="product-config-card-label-separator">|</span>
+                      <button
+                        type="button"
+                        className="product-config-select-all product-config-select-all-yes"
+                        onClick={() => handleBulkDecisionForGroup(group.key, 'yes')}
+                      >
+                        Select all Yes
+                      </button>
+                      <button
+                        type="button"
+                        className="product-config-select-all product-config-select-all-no"
+                        onClick={() => handleBulkDecisionForGroup(group.key, 'no')}
+                      >
+                        Select all No
+                      </button>
+                    </div>
+                    <div className="product-config-table-wrapper">
+                      <table className="product-config-table">
+                        <thead>
+                          <tr>
+                            <th>Sub Module</th>
+                            <th>Decision</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {rows.map((module) => (
+                            <tr key={module.id}>
+                              <td>{module.name}</td>
+                              <td>
+                                <div className="product-config-decision-toggle">
+                                  <label>
+                                    <input
+                                      type="checkbox"
+                                      checked={module.decision === 'yes'}
+                                      onChange={() =>
+                                        handleDecisionChange(module.id, 'yes')
+                                      }
+                                    />{' '}
+                                    Yes
+                                  </label>
+                                  <label>
+                                    <input
+                                      type="checkbox"
+                                      checked={module.decision === 'no'}
+                                      onChange={() =>
+                                        handleDecisionChange(module.id, 'no')
+                                      }
+                                    />{' '}
+                                    No
+                                  </label>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </section>
 
-          <section className="static-section">
+          <section className="static-section pdf-summary-section">
             <h2 className="static-section-title">PDF Summary Preview</h2>
+            <div className="pdf-summary-header">
+              <img src={worklogzLogo} alt="Worklogz logo" className="pdf-summary-logo" />
+              <div>
+                <h3 className="pdf-summary-title">Worklogz Proposal Summary</h3>
+                <p className="pdf-summary-subtitle">
+                  Modules and capabilities selected for this client.
+                </p>
+              </div>
+            </div>
             <p style={{ marginBottom: '16px' }}>
               This section will appear cleanly when you use <strong>Print / Save as PDF</strong>. It is based
-              on the official <strong>PRODUCT_OVERVIEW.md</strong> content, but filtered by the modules you selected above.
+              on the official Worklogz product feature catalog, but filtered by the modules you selected above.
             </p>
 
             <h3>Executive Summary</h3>
@@ -538,38 +549,28 @@ const ProductPdfConfigurator = () => {
             </p>
 
             <h3>Selected Modules for This Client</h3>
-            <table className="product-config-table">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Main Module</th>
-                  <th>Sub Module</th>
-                  <th>Decision</th>
-                  <th>Remarks</th>
-                  <th>Additional Custom</th>
-                </tr>
-              </thead>
-              <tbody>
-                {includedModules.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '16px' }}>
-                      No modules selected. Please select at least one module above.
-                    </td>
-                  </tr>
-                ) : (
-                  includedModules.map((module, index) => (
-                    <tr key={module.name}>
-                      <td>{index + 1}</td>
-                      <td>{module.groupLabel}</td>
-                      <td>{module.name}</td>
-                      <td>{module.decision === 'yes' ? 'Yes' : 'No'}</td>
-                      <td>{module.remarks || '-'}</td>
-                      <td>{module.custom || '-'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+            {includedModules.length === 0 ? (
+              <p style={{ textAlign: 'center', padding: '12px' }}>
+                No modules selected. Please select at least one module above.
+              </p>
+            ) : (
+              <div className="product-summary-grid">
+                {includedModules.map((module, index) => (
+                  <div key={`${module.groupKey}-${module.name}-${index}`} className="product-summary-card">
+                    <p className="product-summary-main">{module.groupLabel}</p>
+                    <p className="product-summary-sub">{module.name}</p>
+                    <p className="product-summary-decision">
+                      {module.decision === 'yes' ? 'Included' : 'Not Included'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p style={{ marginTop: '24px', fontSize: '0.85rem', color: '#6b7280' }}>
+              Proposal experience crafted by <strong>C Ranjith Kumar</strong>, <strong>B Gayathri</strong> and the Worklogz
+              product team.
+            </p>
           </section>
         </div>
       </main>
