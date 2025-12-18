@@ -32,6 +32,23 @@ export const API_ENDPOINTS = {
   updateUser: (userId) => `${BASE_URL}/users/${userId}`,
   deleteUser: (userId) => `${BASE_URL}/users/${userId}`,
   updateSalary: (userId) => `${BASE_URL}/users/${userId}/salary`,
+  // -----------------
+  // Company Settings
+  // -----------------
+  getCompanySettings: `${BASE_URL}/api/company-settings`,
+  updateCompanySettings: `${BASE_URL}/api/company-settings`,
+  deleteCompanyLogo: `${BASE_URL}/api/company-settings/logo`,
+  // -----------------
+  // Custom Fields
+  // -----------------
+  getCustomFields: `${BASE_URL}/api/custom-fields`,
+  getCustomFieldsByType: (fieldType) => `${BASE_URL}/api/custom-fields/type/${fieldType}`,
+  getCustomFieldsSummary: `${BASE_URL}/api/custom-fields/summary`,
+  createCustomField: `${BASE_URL}/api/custom-fields`,
+  updateCustomField: (id) => `${BASE_URL}/api/custom-fields/${id}`,
+  deleteCustomField: (id) => `${BASE_URL}/api/custom-fields/${id}`,
+  toggleCustomFieldStatus: (id) => `${BASE_URL}/api/custom-fields/${id}/toggle`,
+  bulkCreateCustomFields: `${BASE_URL}/api/custom-fields/bulk`,
   // Sidebar Access
   getSidebarAccess: (userId, scope = 'admin') => `${BASE_URL}/users/${userId}/sidebar-access?scope=${scope}`,
   updateSidebarAccess: (userId) => `${BASE_URL}/users/${userId}/sidebar-access`,

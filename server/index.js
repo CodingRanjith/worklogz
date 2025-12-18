@@ -122,12 +122,7 @@ app.use(express.json());
 
 // Static uploads folder
 const uploadsPath = path.join(__dirname, 'uploads');
-app.use('/uploads', express.static(uploadsPath, {
-  setHeaders: (res, filePath) => {
-    const mime = require('mime');
-    res.setHeader('Content-Type', mime.getType(filePath));
-  }
-}));
+app.use('/uploads', express.static(uploadsPath));
 
 // Ping Route
 app.get('/ping', (req, res) => res.send('pong'));
@@ -157,6 +152,15 @@ app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/assessments', require('./routes/assessmentRoutes'));
 app.use('/api/demo', require('./routes/demoRoutes'));
 app.use('/api/fee-payments', require('./routes/feePaymentRoutes'));
+app.use('/api/company-settings', require('./routes/companySettingsRoutes'));
+
+// Custom Fields Routes
+try {
+  app.use('/api/custom-fields', require('./routes/customFieldRoutes'));
+  console.log('Custom fields routes registered successfully');
+} catch (error) {
+  console.error('Error loading custom fields routes:', error);
+}
 
 // Default Admin Setup
 const User = require('./models/User');

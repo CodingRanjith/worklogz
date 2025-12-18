@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
 import {
@@ -25,13 +25,17 @@ import {
   FiMenu,
   FiChevronLeft,
   FiChevronRight,
+  FiFileText,
 } from 'react-icons/fi';
 import { getAccessForUser } from '../../../utils/sidebarAccess';
 import { API_ENDPOINTS } from '../../../utils/api';
 import SidebarNotifications from '../SidebarNotifications';
+import { useTheme } from '../../../hooks/useTheme';
 
 const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
+  const { theme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
   const [isTeamLead, setIsTeamLead] = useState(false);
 
@@ -92,13 +96,15 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
       // 🏠 Main Pages
       { label: 'Home', icon: <FiHome />, path: '/home' },
       { label: 'Attendance', icon: <FiClock />, path: '/attendance' },
-      { label: 'Dashboard', icon: <FiBarChart2 />, path: '/dashboard' },
-      
+    
       // 👥 HR & Administration
       {
         label: 'HR & Administration',
         icon: <FiUsers />,
         subItems: [
+          { label: 'Dashboard', icon: <FiBarChart2 />, path: '/dashboard' },
+          { label: 'Analytics', icon: <FiPieChart />, path: '/analytics' },
+          { label: 'Monthly Reports', icon: <FiFileText />, path: '/reports' },
           { label: 'User & Employee Management', path: '#', isSection: true },
           { label: 'People', path: '/employee/people' },
           { label: 'Team Management', path: '/team-management' },
@@ -406,15 +412,6 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
           { label: 'Profile Settings', path: '/profile-settings' },
           { label: 'System Settings', path: '#', isSection: true },
           { label: 'Company Settings', path: '/company-settings' },
-          { label: 'Theme & Branding', path: '/theme-branding' },
-          { label: 'Custom Fields', path: '/custom-fields' },
-          { label: 'Workflow Rules', path: '/workflow-rules' },
-          { label: 'Platform Controls', path: '#', isSection: true },
-          { label: 'Global Settings', path: '/settings' },
-          { label: 'Feature Toggles', path: '/feature-flags' },
-          { label: 'Data Import / Export', path: '/data-import-export' },
-          { label: 'Localization & Timezone', path: '/localization' },
-          { label: 'System Status', path: '/system-status' }
         ]
       }
 
@@ -423,12 +420,12 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     return items;
   }, [isTeamLead]);
   
-  // Initialize all items with subItems as expanded by default
+  // Initialize all items with subItems as collapsed by default
   const [expandedItems, setExpandedItems] = React.useState(() => {
     const initialExpanded = {};
     menuItems.forEach(item => {
       if (item.subItems) {
-        initialExpanded[item.label] = true;
+        initialExpanded[item.label] = false;
       }
     });
     return initialExpanded;
@@ -439,7 +436,7 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     const initialExpanded = {};
     menuItems.forEach(item => {
       if (item.subItems) {
-        initialExpanded[item.label] = true;
+        initialExpanded[item.label] = false;
       }
     });
     setExpandedItems(initialExpanded);
@@ -544,14 +541,14 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
                   fontSize: '0.85rem',
                   letterSpacing: '0.08em',
                   fontWeight: '700',
-                  color: '#1c1f33',
+                  color: theme.primary || '#1c1f33',
                   lineHeight: '1.3',
                   minWidth: 0
                 }}>
                   <div>WORKLOGZ</div>
                   <small style={{
                     display: 'block',
-                    color: '#94a3b8',
+                    color: theme.secondary || '#94a3b8',
                     marginTop: '6px',
                     fontWeight: '600',
                     fontSize: '0.7rem',
@@ -608,18 +605,32 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
                             </div>
                           );
                         }
+                        const isActive = location.pathname === subItem.path || 
+                          (subItem.path !== '#' && location.pathname.startsWith(subItem.path));
                         return (
                           <NavLink
                             key={subIndex}
                             to={subItem.path}
                             end={subItem.path === '/attendance'}
-                            className={({ isActive }) =>
-                              `block px-3 py-2 rounded-md text-sm font-medium ${
-                                isActive
-                                  ? 'bg-gray-200 text-black'
-                                  : 'text-gray-700 hover:bg-gray-100'
-                              }`
-                            }
+                            className={`block px-3 py-2 rounded-md text-sm font-medium transition ${
+                              isActive
+                                ? 'text-white'
+                                : 'text-gray-700'
+                            }`}
+                            style={{
+                              backgroundColor: isActive ? (theme.primary || '#1c1f33') : 'transparent',
+                              color: isActive ? '#ffffff' : undefined
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isActive) {
+                                e.currentTarget.style.backgroundColor = `${theme.primary || '#1c1f33'}20`;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isActive) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              }
+                            }}
                             onClick={() => setIsOpen(false)}
                           >
                             {subItem.label}
@@ -642,18 +653,32 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
               );
             }
 
+            const isActive = location.pathname === item.path || 
+              (item.path === '/home' && location.pathname === '/');
             return (
               <NavLink
                 key={index}
                 to={item.path}
                 end={item.path === '/home' || item.path === '/attendance'}
-                className={({ isActive }) =>
-                  `flex items-center rounded-md text-sm font-medium transition relative group ${
-                    isActive
-                      ? 'bg-gray-200 text-black'
-                      : 'text-gray-800 hover:bg-gray-100'
-                  } ${isCollapsed ? 'px-2 py-2 justify-center' : 'px-4 py-2 gap-3'}`
-                }
+                className={`flex items-center rounded-md text-sm font-medium transition relative group ${
+                  isActive
+                    ? 'text-white'
+                    : 'text-gray-800'
+                } ${isCollapsed ? 'px-2 py-2 justify-center' : 'px-4 py-2 gap-3'}`}
+                style={{
+                  backgroundColor: isActive ? (theme.primary || '#1c1f33') : 'transparent',
+                  color: isActive ? '#ffffff' : undefined
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = `${theme.primary || '#1c1f33'}20`;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
                 onClick={() => {
                   setIsOpen(false);
                 }}

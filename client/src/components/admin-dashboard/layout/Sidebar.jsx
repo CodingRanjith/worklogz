@@ -1,84 +1,38 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  FiHome, FiUsers, FiCalendar, FiBarChart2, FiSettings, FiLogOut,
-  FiFileText, FiDollarSign, FiCamera, FiChevronRight, FiClipboard, FiBriefcase,
-  FiMenu, FiChevronLeft, FiLayers, FiHelpCircle, FiPackage, FiShield, FiEdit3, FiCreditCard,
-  FiClock, FiTrendingUp, FiStar, FiPlay, FiTarget, FiBook, FiUser, FiFolder, FiGrid
+  FiHome, FiSettings, FiLogOut, FiChevronRight, FiMenu, FiChevronLeft,
+  FiShield, FiUsers
 } from 'react-icons/fi';
 
 export const menuItems = [
   { label: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
+  { label: 'Administration', icon: <FiShield />, path: '/administration/access-control' },
   {
-    label: 'Employee Features',
-    icon: <FiUser />,
+    label: 'User Management',
+    icon: <FiUsers />,
     subItems: [
-      { label: 'Attendance', path: '/attendance' },
-      { label: 'Workspace & Collaboration', path: '#', isSection: true },
-      { label: 'Community', path: '/employee/community' },
-      { label: 'My Workspace', path: '/employee/workspace' },
-      { label: 'Task Manager', path: '/timesheet' },
-      { label: 'HR & Administration', path: '#', isSection: true },
-      { label: 'Leave Management', path: '/apply-leave' },
-      { label: 'People', path: '/employee/people' },
-      { label: 'Team Management', path: '/team-management' },
-      { label: 'Document Center', path: '/documents' },
-      { label: 'Calendar View', path: '/calendar' },
-      { label: 'Performance & Development', path: '#', isSection: true },
-      { label: 'Skill Development', path: '/skill-development' },
-      { label: 'Assessments', path: '/employee/assessments' },
-      { label: 'Goals & Achievements', path: '/goals-achievements' },
-      { label: 'Performance', path: '/performance' },
-      { label: 'Applications', path: '/employee/applications' },
-      { label: 'Expense Management', path: '#', isSection: true },
-      { label: 'Salary', path: '/my-earnings' },
-      { label: 'Fee Payment', path: '/employee/fee-payment' },
-      { label: 'Learning & Support', path: '#', isSection: true },
-      { label: 'AI Copilot', path: '/employee/ai' },
-      { label: 'WorklogzTube', path: '/employee/worklogztube' },
-      { label: 'Helpdesk', path: '/helpdesk' }
+      { label: 'User Profiles Creation', path: '/all-users' },
+      { label: 'Employees Schedules', path: '/employees' },
+      { label: 'Pending Approvals', path: '/pending-users' }
     ]
   },
   {
-    label: 'Admin Features',
-    icon: <FiShield />,
+    label: 'Company Settings',
+    icon: <FiSettings />,
     subItems: [
-      { label: 'Analytics & Reports', path: '#', isSection: true },
-      { label: 'Analytics', path: '/analytics' },
-      { label: 'Monthly Reports', path: '/reports' },
-      { label: 'Workspace & Projects', path: '#', isSection: true },
-      { label: 'Task Manager', path: '/task-manager' },
-      { label: 'Company Worklogz', path: '/company-worklogz' },
-      { label: 'Company Departments', path: '/company-departments' },
-      { label: 'Projects Workspace', path: '/projects' },
-      { label: 'HR & Administration', path: '#', isSection: true },
-      { label: 'User Cards', path: '/all-users' },
-      { label: 'Employees Schedules', path: '/employees' },
-      { label: 'Pending Approvals', path: '/pending-users' },
-      { label: 'Team Management', path: '/admin/team-management' },
-      { label: 'Leave Records', path: '/leave-requests' },
-      { label: 'Late Reports', path: '/late-reports' },
-      { label: 'Holiday List', path: '/holidays' },
-      { label: 'Experience Letters', path: '/experience-letters' },
-      { label: 'Offer Letters', path: '/offer-letters' },
-      { label: 'Relieving Letters', path: '/relieving-letters' },
-      { label: 'Upload Documents', path: '/upload-documents' },
-      { label: 'Administration', path: '/administration/access-control' },
-      { label: 'Settings', path: '/settings' },
-      { label: 'Sales & CRM', path: '#', isSection: true },
-      { label: 'Course', path: '/crm/course' },
-      { label: 'Internship', path: '/crm/internship' },
-      { label: 'IT Projects', path: '/crm/it-projects' },
-      { label: 'Plans', path: '/plans' },
-      { label: 'Performance & Development', path: '#', isSection: true },
-      { label: 'Assessments', path: '/assessments' },
-      { label: 'Expense Management', path: '#', isSection: true },
-      { label: 'Pay History', path: '/salaryhistory' },
-      { label: 'Payslip Generator', path: '/payslip' },
-      { label: 'Daily Salary Credit', path: '/daily-salary-credit' },
-      { label: 'Fee Payments', path: '/fee-payments' }
+      { label: 'Theme & Branding', path: '/theme-branding' },
+      { label: 'Custom Fields', path: '/custom-fields' },
+      { label: 'Workflow Rules', path: '/workflow-rules' },
+      { label: 'Platform Controls', path: '#', isSection: true },
+      { label: 'Global Settings', path: '/settings' },
+      { label: 'Feature Toggles', path: '/feature-flags' },
+      { label: 'Data Import / Export', path: '/data-import-export' },
+      { label: 'Localization & Timezone', path: '/localization' },
+      { label: 'System Status', path: '/system-status' }
     ]
-  }
+  },
+  { label: 'Settings', icon: <FiSettings />, path: '/settings' }
 ];
 
 const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {

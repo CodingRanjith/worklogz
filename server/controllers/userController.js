@@ -81,6 +81,7 @@ const userController = {
         phone: 1,
         position: 1,
         company: 1,
+        employeeId: 1,
         salary: 1,
         department: 1,
         qualification: 1,
@@ -370,6 +371,39 @@ const userController = {
     } catch (error) {
       console.error('Error generating employee ID:', error);
       res.status(500).json({ error: 'Failed to generate employee ID' });
+    }
+  },
+
+  assignMissingEmployeeIds: async (req, res) => {
+    try {
+      const usersWithoutId = await User.find({
+        $or: [
+          { employeeId: { $exists: false } },
+          { employeeId: null },
+          { employeeId: '' },
+          { employeeId: 'N/A' }
+        ],
+        name: { $ne: 'Admin' }
+      });
+
+      let assignedCount = 0;
+      for (const user of usersWithoutId) {
+        try {
+          const nextId = await getNextEmployeeIdValue();
+          await User.findByIdAndUpdate(user._id, { employeeId: nextId });
+          assignedCount++;
+        } catch (error) {
+          console.error(`Error assigning employee ID to user ${user._id}:`, error);
+        }
+      }
+
+      res.json({ 
+        message: `Assigned employee IDs to ${assignedCount} users`,
+        assignedCount 
+      });
+    } catch (error) {
+      console.error('Error assigning employee IDs:', error);
+      res.status(500).json({ error: 'Failed to assign employee IDs' });
     }
   },
 

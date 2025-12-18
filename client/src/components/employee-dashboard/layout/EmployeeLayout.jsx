@@ -5,6 +5,7 @@ import EmployeeTopNavbar from './EmployeeTopNavbar';
 import { Outlet } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../../utils/api';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../../hooks/useTheme';
 
 const EmployeeLayout = () => {
   const navigate = useNavigate();
@@ -12,8 +13,12 @@ const EmployeeLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const { loadTheme } = useTheme();
 
   useEffect(() => {
+    // Load theme on mount
+    loadTheme();
+    
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
@@ -35,7 +40,7 @@ const EmployeeLayout = () => {
     };
 
     fetchUser();
-  }, [navigate]);
+  }, [navigate, loadTheme]);
 
   if (loadingUser) {
     return (

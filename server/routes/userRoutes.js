@@ -21,6 +21,9 @@ router.put('/me', auth, upload.single('profilePic'), userController.updateMyProf
 // ✅ Get next employee ID
 router.get('/next/employee-id', auth, role('admin'), userController.getNextEmployeeId);
 
+// ✅ Assign missing employee IDs to existing users
+router.post('/assign-employee-ids', auth, role('admin'), userController.assignMissingEmployeeIds);
+
 // ✅ GET user by ID
 router.get('/:id', auth, role('admin'), userController.getSingleUser);
 

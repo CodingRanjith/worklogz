@@ -62,6 +62,7 @@ import RelievingLetters from './pages/admin/RelievingLetters';
 import UploadDocuments from './pages/admin/UploadDocuments';
 import Settings from './pages/admin/Settings';
 import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
+import ThemeBranding from './pages/admin/ThemeBranding';
 import CourseCRM from './pages/admin/CourseCRM';
 import InternshipCRM from './pages/admin/InternshipCRM';
 import ITProjectsCRM from './pages/admin/ITProjectsCRM';
@@ -70,10 +71,12 @@ import Helpdesk from './pages/admin/Helpdesk';
 import Plans from './pages/admin/Plans';
 import TeamManagement from './pages/admin/TeamManagement';
 import Assessments from './pages/admin/Assessments';
+import CustomFields from './pages/admin/CustomFields';
 import EmployeeAssessments from './pages/employee/Assessments';
 import WorklogzTube from './pages/employee/WorklogzTube';
 import FeePayment from './pages/employee/FeePayment';
 import FeePaymentsManagement from './pages/admin/FeePaymentsManagement';
+import ProfileSettings from './pages/employee/ProfileSettings';
 // Layout
 import Layout from './components/admin-dashboard/layout/Layout';
 import EmployeeLayout from './components/employee-dashboard/layout/EmployeeLayout';
@@ -248,22 +251,23 @@ function App() {
         {/* Protected Employee Layout Wrapper */}
         <Route element={<EmployeeLayout />}>
           <Route path="/home" element={<HomePage />} />
-        <Route path="/attendance" element={<AttendancePage />} />
-        <Route path="/attendance/:userId" element={<AttendancePage />} />
+          <Route path="/attendance" element={<AttendancePage />} />
+          <Route path="/attendance/:userId" element={<AttendancePage />} />
           <Route path="/notifications" element={<NotificationPage />} />
+          <Route path="/profile-settings" element={<ProfileSettings />} />
           <Route path="/employee/community" element={<CommunityPage />} />
           <Route path="/employee/workspace" element={<WorkspacePage />} />
           <Route path="/employee/applications" element={<ApplicationsPage />} />
           <Route path="/employee/people" element={<PeoplePage />} />
           <Route path="/employee/ai" element={<AICopilotPage />} />
-        <Route path="/apply-leave" element={<LeaveManagement />} />
-        <Route path="/timesheet" element={<TimeSheet />} />
+          <Route path="/apply-leave" element={<LeaveManagement />} />
+          <Route path="/timesheet" element={<TimeSheet />} />
           <Route path="/skill-development" element={<SkillDevelopment />} />
           <Route path="/employee/assessments" element={<EmployeeAssessments />} />
           <Route path="/goals-achievements" element={<GoalsAchievements />} />
-        <Route path="/calendar" element={<CalendarView />} />
-        <Route path="/performance" element={<PerformanceDashboard />} />
-        <Route path="/my-earnings" element={<MyEarnings />} />
+          <Route path="/calendar" element={<CalendarView />} />
+          <Route path="/performance" element={<PerformanceDashboard />} />
+          <Route path="/my-earnings" element={<MyEarnings />} />
           <Route path="/team-management" element={<EmployeeTeamManagement />} />
           <Route path="/documents" element={<DocumentCenter />} />
           <Route path="/helpdesk" element={<HelpdeskPage />} />
@@ -325,6 +329,7 @@ function App() {
           <Route path="/offer-letters" element={<OfferLetters />} />
           <Route path="/relieving-letters" element={<RelievingLetters />} />
           <Route path="/upload-documents" element={<UploadDocuments />} />
+          <Route path="/theme-branding" element={<ThemeBranding />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/administration/access-control" element={<AdministrationAccess />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />
@@ -334,6 +339,7 @@ function App() {
           <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Admin Sidebar */}
           <Route path="/assessments" element={<Assessments />} />
           <Route path="/fee-payments" element={<FeePaymentsManagement />} />
+          <Route path="/custom-fields" element={<CustomFields />} />
           {/* Add other admin routes here */}
           <Route path="/edit-user" element={<EditUser />} />
         </Route>

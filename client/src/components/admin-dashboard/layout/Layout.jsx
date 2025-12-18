@@ -63,8 +63,8 @@ const Layout = () => {
         <TopNavbar setSidebarOpen={setSidebarOpen} />
         
         {/* Main content - padding-top to account for fixed navbar height */}
-        <main className="flex-1 pt-16 p-6 overflow-y-auto"> {/* pt-16 matches navbar height */}
-          <div className="max-w-7xl mx-auto">
+        <main className="flex-1 pt-16 overflow-y-auto"> {/* pt-16 matches navbar height */}
+          <div className="w-full px-4 md:px-6">
             <Outlet />
           </div>
         </main>
