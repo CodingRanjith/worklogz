@@ -323,13 +323,8 @@ const buildInitialSelections = () => {
 };
 
 const ProductPdfConfigurator = () => {
-  const [selectedGroupKey, setSelectedGroupKey] = useState(MODULE_GROUPS[0].key);
   const [selections, setSelections] = useState(buildInitialSelections);
-
-  const currentGroup = MODULE_GROUPS.find((g) => g.key === selectedGroupKey);
-  const currentRows = currentGroup
-    ? currentGroup.items.map((item) => selections[`${currentGroup.key}:${item}`])
-    : [];
+  const [customInputs, setCustomInputs] = useState({});
 
   const handleToggleInclude = (id) => {
     setSelections((prev) => ({
@@ -393,82 +388,138 @@ const ProductPdfConfigurator = () => {
           <section className="static-section">
             <h2 className="static-section-title">Module Selection (Based on PRODUCT_OVERVIEW.md)</h2>
             <p style={{ marginBottom: '16px' }}>
-              Step 1: select a <strong>Main Module</strong> (sidebar category). Step 2: configure its{' '}
-              <strong>sub-menu items</strong> with Yes/No, remarks, and additional custom notes.
+              Each main module (sidebar category) from the Product Overview has its own table. For every sub-menu item,
+              choose Yes/No, add remarks, and optional custom notes. Everything will be included in the PDF summary below.
             </p>
 
-            <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span style={{ fontWeight: 500 }}>Main Module:</span>
-              <select
-                value={selectedGroupKey}
-                onChange={(e) => setSelectedGroupKey(e.target.value)}
-              >
-                {MODULE_GROUPS.map((group) => (
-                  <option key={group.key} value={group.key}>
-                    {group.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="product-config-table-wrapper">
-              <table className="product-config-table">
-                <thead>
-                  <tr>
-                    <th>Include</th>
-                    <th>Sub Module</th>
-                    <th>Decision (Yes / No)</th>
-                    <th>Remarks</th>
-                    <th>Additional Custom</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentRows.map((module) => (
-                    <tr key={module.id}>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={module.include}
-                          onChange={() => handleToggleInclude(module.id)}
-                        />
-                      </td>
-                      <td>{module.name}</td>
-                      <td>
-                        <select
-                          value={module.decision}
-                          onChange={(e) =>
-                            handleDecisionChange(module.id, e.target.value)
-                          }
-                        >
-                          <option value="yes">Yes</option>
-                          <option value="no">No</option>
-                        </select>
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          placeholder="Remarks (e.g., Phase 2, optional, etc.)"
-                          value={module.remarks}
-                          onChange={(e) =>
-                            handleFieldChange(module.id, 'remarks', e.target.value)
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          placeholder="Additional custom notes"
-                          value={module.custom}
-                          onChange={(e) =>
-                            handleFieldChange(module.id, 'custom', e.target.value)
-                          }
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {MODULE_GROUPS.map((group) => {
+              const rows = Object.values(selections).filter(
+                (m) => m.groupKey === group.key
+              );
+              return (
+                <div key={group.key} style={{ marginBottom: '32px' }}>
+                  <h3 style={{ marginBottom: '8px' }}>{group.label}</h3>
+                  <div
+                    style={{
+                      marginBottom: '8px',
+                      display: 'flex',
+                      gap: '8px',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                      Add custom sub module:
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Custom sub module name"
+                      value={customInputs[group.key] || ''}
+                      onChange={(e) =>
+                        setCustomInputs((prev) => ({
+                          ...prev,
+                          [group.key]: e.target.value,
+                        }))
+                      }
+                      style={{ minWidth: '220px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const name = (customInputs[group.key] || '').trim();
+                        if (!name) return;
+                        const id = `${group.key}:custom:${Date.now()}:${name}`;
+                        setSelections((prev) => ({
+                          ...prev,
+                          [id]: {
+                            id,
+                            groupKey: group.key,
+                            groupLabel: group.label,
+                            name,
+                            include: true,
+                            decision: 'yes',
+                            remarks: '',
+                            custom: '',
+                          },
+                        }));
+                        setCustomInputs((prev) => ({ ...prev, [group.key]: '' }));
+                      }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="product-config-table-wrapper">
+                    <table className="product-config-table">
+                      <thead>
+                        <tr>
+                          <th>Include</th>
+                          <th>Sub Module</th>
+                          <th>Decision (Yes / No)</th>
+                          <th>Remarks</th>
+                          <th>Additional Custom</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((module) => (
+                          <tr key={module.id}>
+                            <td>
+                              <input
+                                type="checkbox"
+                                checked={module.include}
+                                onChange={() => handleToggleInclude(module.id)}
+                              />
+                            </td>
+                            <td>{module.name}</td>
+                            <td>
+                              <select
+                                value={module.decision}
+                                onChange={(e) =>
+                                  handleDecisionChange(
+                                    module.id,
+                                    e.target.value
+                                  )
+                                }
+                              >
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                              </select>
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                placeholder="Remarks (e.g., Phase 2, optional, etc.)"
+                                value={module.remarks}
+                                onChange={(e) =>
+                                  handleFieldChange(
+                                    module.id,
+                                    'remarks',
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                placeholder="Additional custom notes"
+                                value={module.custom}
+                                onChange={(e) =>
+                                  handleFieldChange(
+                                    module.id,
+                                    'custom',
+                                    e.target.value
+                                  )
+                                }
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
           </section>
 
           <section className="static-section">
