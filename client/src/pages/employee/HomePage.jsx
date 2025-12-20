@@ -1,5 +1,6 @@
 import React, {
   useEffect,
+  useRef,
   useState,
   useCallback,
   useMemo,
@@ -12,6 +13,8 @@ import ProfileCard from "./ProfileCard";
 import Swal from "sweetalert2";
 import techLogo from "../../assets/tech.png";
 import jobzenterLogo from "../../assets/tech.png";
+import CameraView from "../../components/attendance/CameraView";
+import { compressImage } from "../../components/attendance/utils";
 import "./AttendancePage.css";
 import "./AttendanceModern.css";
 import "../../styles/m365Theme.css";
@@ -28,6 +31,21 @@ function HomePage() {
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showHolidayModal, setShowHolidayModal] = useState(false);
+  
+  // Attendance check-in/check-out states
+  const [type, setType] = useState(null);
+  const [image, setImage] = useState(null);
+  const [compressedBlob, setCompressedBlob] = useState(null);
+  const [capturedTime, setCapturedTime] = useState(null);
+  const [location, setLocation] = useState("");
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [workMode, setWorkMode] = useState("office");
+  const [skipCamera, setSkipCamera] = useState(true);
+  const [useLocation, setUseLocation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -108,7 +126,27 @@ function HomePage() {
           : API_ENDPOINTS.getAttendanceByUser(userId),
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setAttendanceHistory(res.data || []);
+      const data = res.data || [];
+      setAttendanceHistory(data);
+
+      // Determine check-in/check-out type for self
+      if (isSelf) {
+        const today = new Date().toDateString();
+        const todayEntries = data.filter(
+          (entry) => new Date(entry.timestamp).toDateString() === today
+        );
+
+        if (todayEntries.length === 0) {
+          setType("check-in");
+        } else if (
+          todayEntries.length === 1 &&
+          todayEntries[0].type === "check-in"
+        ) {
+          setType("check-out");
+        } else {
+          setType(null);
+        }
+      }
     } catch (err) {
       console.error("Unable to load attendance data", err);
     }
@@ -119,6 +157,129 @@ function HomePage() {
     fetchAttendance();
     fetchHolidays();
   }, [fetchUser, fetchAttendance, fetchHolidays]);
+
+  // Attendance helper functions
+  const getLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setLocation(`${pos.coords.latitude},${pos.coords.longitude}`),
+      () =>
+        Swal.fire({
+          icon: "error",
+          title: "Location Error",
+          text: "We couldn't access your location. You can continue without sharing it.",
+        })
+    );
+  };
+
+  const startCamera = async () => {
+    try {
+      setIsCapturing(true);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Camera Access Denied",
+        text: "Please enable your camera and refresh the page.",
+      });
+      setIsCapturing(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    setIsCapturing(false);
+  };
+
+  const captureImage = async () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas
+      .getContext("2d")
+      .drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(
+      async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], "attendance.jpg", { type: "image/jpeg" });
+        const compressed = await compressImage(file);
+        if (compressed) {
+          setImage(URL.createObjectURL(compressed));
+          setCompressedBlob(compressed);
+          setCapturedTime(new Date());
+          if (useLocation) {
+            getLocation();
+          }
+        } else {
+          Swal.fire({ icon: "error", title: "Compression Failed" });
+        }
+      },
+      "image/jpeg",
+      0.9
+    );
+  };
+
+  const submitAttendance = async () => {
+    if (isSubmitting) return;
+
+    if (useLocation && !location) {
+      Swal.fire(
+        "Location Unavailable",
+        "We couldn't get your location. You can try again or turn off location sharing.",
+        "warning"
+      );
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("type", type);
+    if (useLocation && location) {
+      formData.append("location", location);
+    }
+    formData.append("workMode", workMode);
+    formData.append("isInOffice", workMode === "office" || workMode === "hybrid");
+    
+    if (compressedBlob) {
+      formData.append("image", compressedBlob);
+    }
+
+    try {
+      setIsSubmitting(true);
+      await axios.post(API_ENDPOINTS.postAttendance, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      Swal.fire(
+        "Success",
+        `${type === "check-in" ? "Checked In" : "Checked Out"} successfully as ${workMode.charAt(0).toUpperCase() + workMode.slice(1)}`,
+        "success"
+      );
+      setImage(null);
+      setCompressedBlob(null);
+      setLocation("");
+      setSkipCamera(false);
+      setWorkMode("office");
+      stopCamera();
+      setIsCapturing(false);
+      setUseLocation(false);
+      fetchAttendance();
+    } catch (err) {
+      Swal.fire("Failed", "Could not submit attendance", "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleProfileSave = async (updatedProfile, avatarFile) => {
     if (!updatedProfile?.id) {
@@ -719,6 +880,371 @@ function HomePage() {
           </main>
         </div>
       </div>
+
+      {/* Check-in/Check-out Button */}
+      {isSelf && type && !isCapturing && (
+        <div className="fixed bottom-4 sm:bottom-6 md:bottom-8 left-1/2 transform -translate-x-1/2 z-30 w-full px-4 sm:px-6 flex justify-center">
+          <button
+            onClick={() => {
+              setIsCapturing(true);
+              setSkipCamera(true);
+              setUseLocation(false);
+              setLocation("");
+              setWorkMode("office");
+            }}
+            className="group relative overflow-hidden bg-gradient-to-r from-emerald-400 via-cyan-400 to-sky-400 hover:from-emerald-500 hover:via-cyan-500 hover:to-sky-500 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 ripple elevation-4 text-sm sm:text-base min-w-[180px] sm:min-w-[220px]"
+          >
+            <span className="relative z-10 flex items-center gap-2">
+              {type === "check-in" ? (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Check In
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414L7 8.586 5.707 7.293a1 1 0 00-1.414 1.414L6.586 11l-2.293 2.293a1 1 0 101.414 1.414L8 12.414l2.293 2.293a1 1 0 001.414-1.414L9.414 11l2.293-2.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Check Out
+                </>
+              )}
+            </span>
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+          </button>
+        </div>
+      )}
+
+      {/* Attendance Modal */}
+      {isCapturing && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+          <div className="glass w-full max-w-md rounded-2xl sm:rounded-3xl shadow-2xl space-y-4 sm:space-y-6 text-center elevation-4 border border-white/20 max-h-[95vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              {/* Work Mode Selection */}
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-sm sm:text-base font-semibold text-gray-700 mb-2 text-left">
+                  Work Mode:
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setWorkMode("office")}
+                    className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      workMode === "office"
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    Office
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWorkMode("hybrid")}
+                    className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      workMode === "hybrid"
+                        ? "bg-purple-600 text-white shadow-lg"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    Hybrid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWorkMode("remote")}
+                    className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-all ${
+                      workMode === "remote"
+                        ? "bg-green-600 text-white shadow-lg"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    Remote
+                  </button>
+                </div>
+              </div>
+
+              {/* Optional Location Sharing */}
+              <div className="mb-4 sm:mb-6">
+                <label className="flex items-center justify-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={useLocation}
+                    onChange={(e) => {
+                      const enabled = e.target.checked;
+                      setUseLocation(enabled);
+                      if (enabled) {
+                        getLocation();
+                      } else {
+                        setLocation("");
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-xs sm:text-sm text-gray-700">
+                    Share location (optional)
+                  </span>
+                </label>
+              </div>
+
+              {/* Skip Camera Option */}
+              <div className="mb-4 sm:mb-6">
+                <label className="flex items-center justify-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={skipCamera}
+                    onChange={(e) => {
+                      setSkipCamera(e.target.checked);
+                      if (e.target.checked) {
+                        stopCamera();
+                      } else {
+                        startCamera();
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                  />
+                  <span className="text-xs sm:text-sm text-gray-700">Skip camera (optional)</span>
+                </label>
+              </div>
+
+              {skipCamera ? (
+                // Skip Camera - Direct Submit
+                <>
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold gradient-text mb-2">
+                      {type === "check-in" ? "Check In" : "Check Out"} - {workMode.charAt(0).toUpperCase() + workMode.slice(1)}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600">
+                      Camera skipped. Ready to submit.
+                    </p>
+                  </div>
+                  <div className="glass rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 text-xs sm:text-sm text-slate-600 space-y-1">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <svg
+                        className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="font-semibold text-slate-700">Attendance Details</span>
+                    </div>
+                    <p>
+                      <span className="font-medium">Mode:</span> {workMode.charAt(0).toUpperCase() + workMode.slice(1)}
+                    </p>
+                    <p>
+                      <span className="font-medium">Type:</span> {type === "check-in" ? "Check In" : "Check Out"}
+                    </p>
+                    {location && (
+                      <p>
+                        <span className="font-medium">Location:</span> {location}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 sm:gap-3">
+                    <button
+                      onClick={() => {
+                        setIsCapturing(false);
+                        setSkipCamera(false);
+                        setUseLocation(false);
+                        setLocation("");
+                        setWorkMode("office");
+                      }}
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={submitAttendance}
+                      className={`flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg text-sm sm:text-base ${
+                        isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <svg
+                            className="w-3 h-3 sm:w-4 sm:h-4 animate-spin"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                          Submitting...
+                        </span>
+                      ) : (
+                        `✨ Submit ${
+                          type === "check-in" ? "Check In" : "Check Out"
+                        }`
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : !image ? (
+                // Camera View
+                <>
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold gradient-text mb-2">
+                      Take Attendance Photo
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600">
+                      Position your face in the center
+                    </p>
+                  </div>
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-inner mb-4 sm:mb-6">
+                    <CameraView ref={videoRef} />
+                    <div className="absolute inset-0 border-2 sm:border-4 border-white/30 rounded-xl sm:rounded-2xl pointer-events-none"></div>
+                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 sm:w-32 sm:h-32 border-2 border-blue-500 rounded-full pointer-events-none animate-pulse"></div>
+                  </div>
+                  <div className="flex gap-2 sm:gap-3">
+                    <button
+                      onClick={() => {
+                        stopCamera();
+                        setIsCapturing(false);
+                        setSkipCamera(false);
+                        setUseLocation(false);
+                        setLocation("");
+                        setWorkMode("office");
+                      }}
+                      className="flex-1 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={captureImage}
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg text-sm sm:text-base"
+                    >
+                      📸 Capture
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // Image Preview
+                <>
+                  <div className="mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-bold gradient-text mb-2">
+                      Confirm Photo
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600">
+                      Review your attendance photo
+                    </p>
+                  </div>
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-lg mb-4 sm:mb-6">
+                    <img
+                      src={image}
+                      alt="Captured"
+                      className="rounded-xl sm:rounded-2xl w-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                  </div>
+                  {capturedTime && (
+                    <div className="glass rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 text-xs sm:text-sm text-slate-600 space-y-1">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <svg
+                          className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span className="font-semibold text-slate-700">
+                          Capture Details
+                        </span>
+                      </div>
+                      <p>
+                        <span className="font-medium">Time:</span>{" "}
+                        {capturedTime.toLocaleTimeString()}
+                      </p>
+                      <p>
+                        <span className="font-medium">Date:</span>{" "}
+                        {capturedTime.toLocaleDateString()}
+                      </p>
+                      {location && (
+                        <p>
+                          <span className="font-medium">Location:</span>{" "}
+                          {location}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex gap-2 sm:gap-3">
+                    <button
+                      onClick={() => {
+                        URL.revokeObjectURL(image);
+                        setImage(null);
+                        setCompressedBlob(null);
+                        startCamera();
+                      }}
+                      className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple text-sm sm:text-base"
+                    >
+                      🔄 Retake
+                    </button>
+                    <button
+                      onClick={submitAttendance}
+                      className={`flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ripple shadow-lg text-sm sm:text-base ${
+                        isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <span className="flex items-center gap-2">
+                          <svg
+                            className="w-3 h-3 sm:w-4 sm:h-4 animate-spin"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            />
+                          </svg>
+                          Submitting...
+                        </span>
+                      ) : (
+                        `✨ Submit ${
+                          type === "check-in" ? "Check In" : "Check Out"
+                        }`
+                      )}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Holiday Modal */}
       <HolidayModal

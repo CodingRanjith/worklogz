@@ -141,10 +141,41 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         let items = res.data?.items || [];
+
         if (!items.length) {
           // Fallback to existing static definition if backend has no data yet
           items = getEmployeeMenuItems();
+        } else {
+          // Ensure core navigation items (Home, Attendance, Dashboard) are always present at the top
+          const coreItems = [
+            { label: 'Home', icon: 'FiHome', path: '/home' },
+            { label: 'Attendance', icon: 'FiClock', path: '/attendance' },
+            { label: 'Dashboard', icon: 'FiBarChart2', path: '/dashboard' },
+          ];
+
+          const existingPaths = new Set(items.map(item => item.path));
+          const missingCoreItems = coreItems.filter(core => !existingPaths.has(core.path));
+
+          if (missingCoreItems.length) {
+            items = [...missingCoreItems, ...items];
+          }
+
+          // Normalize items: remove empty subItems arrays and ensure core items have no subItems
+          items = items.map(item => {
+            // Core navigation items should never have subItems
+            if (item.path === '/home' || item.path === '/attendance' || item.path === '/dashboard') {
+              const { subItems, ...rest } = item;
+              return rest;
+            }
+            // Remove empty subItems arrays so they're treated as simple links
+            if (item.subItems && (!Array.isArray(item.subItems) || item.subItems.length === 0)) {
+              const { subItems, ...rest } = item;
+              return rest;
+            }
+            return item;
+          });
         }
+
         setMenuItems(withResolvedIcons(items));
       } catch (err) {
         console.error('Failed to load employee sidebar menu, using static fallback', err);
@@ -158,16 +189,24 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
   // Initialize all items with subItems as collapsed by default
   const [expandedItems, setExpandedItems] = React.useState({});
   
-  // Update expandedItems when menuItems changes
+  // Update expandedItems when menuItems or route changes
   useEffect(() => {
     const initialExpanded = {};
     menuItems.forEach(item => {
-      if (item.subItems && item.subItems.length) {
-        initialExpanded[item.label] = false;
+      // Only initialize expanded state for items with actual subItems
+      if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
+        // Auto-expand the group if any of its subItems matches the current route
+        const hasActiveSubItem = item.subItems.some(subItem =>
+          !subItem.isSection &&
+          subItem.path &&
+          (location.pathname === subItem.path ||
+            (subItem.path !== '#' && location.pathname.startsWith(subItem.path)))
+        );
+        initialExpanded[item.label] = hasActiveSubItem;
       }
     });
     setExpandedItems(initialExpanded);
-  }, [menuItems]);
+  }, [menuItems, location.pathname]);
 
   const toggleItem = (label) => {
     setExpandedItems(prev => ({
@@ -186,7 +225,8 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     
     // Filter menu items, handling both regular items and items with subItems
     const filtered = menuItems.map(item => {
-      if (item.subItems) {
+      // Only treat as dropdown if item has subItems array with actual items
+      if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
         // For items with subItems, filter the subItems based on allowed paths
         const filteredSubItems = item.subItems.filter(subItem => 
           subItem.isSection || allowedSet.has(subItem.path) || subItem.path === '/task-manager'
@@ -199,7 +239,13 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
         return null;
       } else {
         // For regular items, check if path is allowed
-        if (!item.path || allowedSet.has(item.path) || item.path === '/home' || item.path === '/attendance') {
+        if (
+          !item.path ||
+          allowedSet.has(item.path) ||
+          item.path === '/home' ||
+          item.path === '/attendance' ||
+          item.path === '/dashboard'
+        ) {
           return item;
         }
         return null;
@@ -225,7 +271,8 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
       // Restore all items to expanded state when sidebar is expanded
       const allExpanded = {};
       menuItems.forEach(item => {
-        if (item.subItems) {
+        // Only restore expanded state for items with actual subItems
+        if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
           allExpanded[item.label] = true;
         }
       });
@@ -296,7 +343,8 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
 
         <nav className="mt-4 px-2 flex flex-col gap-1 overflow-y-auto overflow-x-visible h-[calc(100vh-80px)]">
           {visibleMenuItems.map((item, index) => {
-            if (item.subItems) {
+            // Only render as dropdown if item has subItems array with actual items
+            if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
               return (
                 <div key={index} className="mb-1 relative group">
                   <button

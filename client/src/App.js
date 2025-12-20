@@ -263,6 +263,7 @@ function App() {
         <Route element={<EmployeeLayout />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/attendance" element={<AttendancePage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/attendance/:userId" element={<AttendancePage />} />
           <Route path="/notifications" element={<NotificationPage />} />
           <Route path="/profile-settings" element={<ProfileSettings />} />
