@@ -287,6 +287,41 @@ function App() {
           <Route path="/employee/fee-payment" element={<FeePayment />} />
           <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Employee Sidebar */}
           <Route path="/invoices" element={<Invoices />} />
+          <Route path="/admin" element={<Company />} />
+          <Route path="/employees" element={<Employees />} />
+          <Route path="/salaryhistory" element={<PayslipList />} />
+          <Route path="/attendances" element={<Attendance />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/pending-users" element={<PendingUsers />} />
+          <Route path="/all-users" element={<AllUsers />} />
+          <Route path="/holidays" element={<Holidays />} />
+          <Route path="/payslip" element={<PayslipGenerator />} />
+          <Route path="/leave-requests" element={<LeaveRequestsAdmin />} />
+          <Route path="/user-timesheet/:userId" element={<UserTimesheet />} />
+          <Route path="/company-worklogz" element={<CompanyWorklogz />} />
+          <Route path="/company-departments" element={<CompanyDepartments />} />
+          <Route path="/company-departments/create" element={<CreateWorkCard />} />
+          <Route path="/company-departments/:department" element={<DepartmentWorkCards />} />
+          <Route path="/projects" element={<ProjectsWorkspace />} />
+          <Route path="/crm/course" element={<CourseCRM />} />
+          <Route path="/crm/internship" element={<InternshipCRM />} />
+          <Route path="/crm/it-projects" element={<ITProjectsCRM />} />
+          <Route path="/daily-salary-credit" element={<DailySalaryCredit />} />
+          <Route path="/late-reports" element={<LateReports />} />
+          <Route path="/experience-letters" element={<ExperienceLetters />} />
+          <Route path="/offer-letters" element={<OfferLetters />} />
+          <Route path="/relieving-letters" element={<RelievingLetters />} />
+          <Route path="/upload-documents" element={<UploadDocuments />} />
+          <Route path="/theme-branding" element={<ThemeBranding />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/administration/access-control" element={<AdministrationAccess />} />
+          <Route path="/master-control" element={<MasterControl />} />
+          <Route path="/analytics" element={<AnalyticsDashboard />} />
+          <Route path="/helpdesk" element={<Helpdesk />} />
+          <Route path="/plans" element={<Plans />} />
+          <Route path="/admin/team-management" element={<TeamManagement />} />
+          <Route path="/task-manager" element={<TaskManager />} /> {/* Task Manager with Admin Sidebar */}
+          <Route path="/assessments" element={<Assessments />} />
         </Route>
         
         {/* Documentation Routes */}

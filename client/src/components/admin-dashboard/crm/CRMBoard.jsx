@@ -374,9 +374,9 @@ const CRMBoard = ({ pipelineType = 'course' }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
-        <header className="rounded-2xl border border-gray-200 bg-white px-6 py-5 shadow-sm">
+    <div className="h-screen bg-gray-50 overflow-hidden w-full">
+      <div className="h-full mx-auto w-full max-w-7xl px-2 sm:px-3 md:px-4 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 overflow-hidden">
+        <header className="flex-shrink-0 rounded-2xl border border-gray-200 bg-white px-3 sm:px-4 md:px-6 py-4 sm:py-5 shadow-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="flex items-center gap-3">
@@ -422,8 +422,8 @@ const CRMBoard = ({ pipelineType = 'course' }) => {
           </div>
         </header>
 
-        <section className="rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-sm">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <section className="flex-shrink-0 rounded-2xl border border-gray-200 bg-white px-3 sm:px-4 md:px-6 py-3 sm:py-4 shadow-sm">
+          <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2">
               <FiSearch className="h-4 w-4 text-gray-400" />
               <input
@@ -476,15 +476,15 @@ const CRMBoard = ({ pipelineType = 'course' }) => {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <section className="flex-1 min-h-0 rounded-2xl border border-gray-200 bg-white p-2 sm:p-3 md:p-4 shadow-sm overflow-hidden">
           {loading || stagesLoading ? (
-            <div className="flex h-64 items-center justify-center">
+            <div className="flex h-full items-center justify-center">
               <div className="h-10 w-10 animate-spin rounded-full border-b-2 border-indigo-600"></div>
             </div>
           ) : (
-            <div className="overflow-x-auto pb-4">
+            <div className="h-full overflow-x-auto overflow-y-hidden pb-4 -mx-1 sm:-mx-2 md:-mx-3 px-1 sm:px-2 md:px-3">
               <DragDropContext onDragEnd={handleDragEnd}>
-                <div className="flex min-w-full gap-4">
+                <div className="flex min-w-full gap-3 sm:gap-4 h-full">
                   {stages.map(stage => (
                     <StageColumn
                       key={stage._id}
