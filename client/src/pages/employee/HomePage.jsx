@@ -702,7 +702,7 @@ function HomePage() {
     "https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png";
 
   return (
-    <div className="attendance-modern" style={{ padding: '24px', background: 'transparent', minHeight: 'auto' }}>
+    <div className="attendance-modern" style={{ padding: 0, background: 'transparent', minHeight: 'auto' }}>
       <div className="attendance-shell" style={{ maxWidth: '100%', margin: 0, padding: 0 }}>
         <div className="modern-layout" style={{ display: 'block', gridTemplateColumns: 'none', gap: 0 }}>
           <main className="modern-main" style={{ marginLeft: 0, width: '100%', padding: 0 }}>

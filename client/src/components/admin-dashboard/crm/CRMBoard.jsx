@@ -374,49 +374,51 @@ const CRMBoard = ({ pipelineType = 'course' }) => {
   };
 
   return (
-    <div className="h-screen bg-gray-50 overflow-hidden w-full">
-      <div className="h-full mx-auto w-full max-w-7xl px-2 sm:px-3 md:px-4 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 overflow-hidden">
-        <header className="flex-shrink-0 rounded-2xl border border-gray-200 bg-white px-3 sm:px-4 md:px-6 py-4 sm:py-5 shadow-sm">
+    <div className="h-screen bg-gray-50 overflow-hidden w-full max-w-full">
+      <div className="h-full w-full max-w-full pl-4 sm:pl-6 md:pl-8 pr-2 sm:pr-3 md:pr-4 py-4 sm:py-6 flex flex-col gap-4 sm:gap-6 overflow-hidden">
+        <header className="flex-shrink-0 rounded-2xl border border-gray-200 bg-white px-3 sm:px-4 md:px-6 py-4 sm:py-5 shadow-sm overflow-visible">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                <div className="flex-shrink-0 flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
                   <FiLayers className="h-5 w-5" />
                 </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
                     {pipelineType === 'course'
                       ? 'Course CRM Pipeline'
                       : pipelineType === 'internship'
                         ? 'Internship CRM Pipeline'
                         : 'IT Projects CRM Pipeline'}
                   </h1>
-                  <p className="text-sm text-gray-500">Track leads across every stage and never miss a follow-up.</p>
+                  <p className="text-xs sm:text-sm text-gray-500 break-words mt-1">Track leads across every stage and never miss a follow-up.</p>
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-shrink-0">
               <button
                 onClick={() => setStageManagerOpen(true)}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap"
               >
                 <FiSettings className="h-4 w-4" />
-                Manage Stages
+                <span className="hidden sm:inline">Manage Stages</span>
+                <span className="sm:hidden">Stages</span>
               </button>
               <button
                 onClick={() => openAddLeadModal(stages[0])}
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-indigo-700 whitespace-nowrap"
                 disabled={!stages.length}
               >
                 <FiPlus className="h-4 w-4" />
-                Add Lead
+                <span className="hidden sm:inline">Add Lead</span>
+                <span className="sm:hidden">Add</span>
               </button>
               <button
                 onClick={handleRefresh}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50 whitespace-nowrap"
               >
                 <FiRefreshCw className={loading || stagesLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </button>
             </div>
           </div>

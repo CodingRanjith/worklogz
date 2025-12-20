@@ -69,6 +69,7 @@ import CourseCRM from './pages/admin/CourseCRM';
 import WorkflowRules from './pages/admin/WorkflowRules';
 import InternshipCRM from './pages/admin/InternshipCRM';
 import ITProjectsCRM from './pages/admin/ITProjectsCRM';
+import CRMDashboard from './pages/admin/CRMDashboard';
 import ProjectsWorkspace from './pages/admin/ProjectsWorkspace';
 import Helpdesk from './pages/admin/Helpdesk';
 import Plans from './pages/admin/Plans';
@@ -303,6 +304,7 @@ function App() {
           <Route path="/company-departments/create" element={<CreateWorkCard />} />
           <Route path="/company-departments/:department" element={<DepartmentWorkCards />} />
           <Route path="/projects" element={<ProjectsWorkspace />} />
+          <Route path="/crm/dashboard" element={<CRMDashboard />} />
           <Route path="/crm/course" element={<CourseCRM />} />
           <Route path="/crm/internship" element={<InternshipCRM />} />
           <Route path="/crm/it-projects" element={<ITProjectsCRM />} />
@@ -368,6 +370,7 @@ function App() {
           <Route path="/company-departments/create" element={<CreateWorkCard />} />
           <Route path="/company-departments/:department" element={<DepartmentWorkCards />} />
           <Route path="/projects" element={<ProjectsWorkspace />} />
+          <Route path="/crm/dashboard" element={<CRMDashboard />} />
           <Route path="/crm/course" element={<CourseCRM />} />
           <Route path="/crm/internship" element={<InternshipCRM />} />
           <Route path="/crm/it-projects" element={<ITProjectsCRM />} />
