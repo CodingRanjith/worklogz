@@ -31,6 +31,8 @@ export const API_ENDPOINTS = {
   getUserById: (userId) => `${BASE_URL}/users/${userId}`,
   updateUser: (userId) => `${BASE_URL}/users/${userId}`,
   deleteUser: (userId) => `${BASE_URL}/users/${userId}`,
+  getArchivedUsers: `${BASE_URL}/users/archived/list`,
+  restoreUser: (userId) => `${BASE_URL}/users/${userId}/restore`,
   updateSalary: (userId) => `${BASE_URL}/users/${userId}/salary`,
   // -----------------
   // Company Settings
@@ -60,7 +62,23 @@ export const API_ENDPOINTS = {
   updateSidebarAccess: (userId) => `${BASE_URL}/users/${userId}/sidebar-access`,
   getBulkSidebarAccess: (userIds, scope = 'admin') => `${BASE_URL}/users/sidebar-access/bulk?userIds=${Array.isArray(userIds) ? userIds.join(',') : userIds}&scope=${scope}`,
   updateBulkSidebarAccess: `${BASE_URL}/users/sidebar-access/bulk`,
+  
+  // Route Permissions (backend routes)
+  getAvailableRoutes: `${BASE_URL}/api/route-permissions/available-routes`,
+  getUserRoutePermissions: (userId) => `${BASE_URL}/api/route-permissions/user/${userId}`,
+  getBulkRoutePermissions: (userIds) => `${BASE_URL}/api/route-permissions/bulk?userIds=${Array.isArray(userIds) ? userIds.join(',') : userIds}`,
+  setUserRoutePermissions: (userId) => `${BASE_URL}/api/route-permissions/user/${userId}`,
+  setBulkRoutePermissions: `${BASE_URL}/api/route-permissions/bulk`,
+  deleteUserRoutePermissions: (userId) => `${BASE_URL}/api/route-permissions/user/${userId}`,
+  
+  // Page Permissions (frontend page access with CRUD)
+  getPagePermissions: (userId) => `${BASE_URL}/api/page-permissions/user/${userId}`,
+  getBulkPagePermissions: (userIds) => `${BASE_URL}/api/page-permissions/bulk?userIds=${Array.isArray(userIds) ? userIds.join(',') : userIds}`,
+  setPagePermissions: (userId) => `${BASE_URL}/api/page-permissions/user/${userId}`,
+  setBulkPagePermissions: `${BASE_URL}/api/page-permissions/bulk`,
+  getAvailablePages: `${BASE_URL}/api/page-permissions/available-pages`,
   getSchedules: `${BASE_URL}/schedules`,
+  createUserSchedule: `${BASE_URL}/schedules`,
   putUserSchedule: (userId) => `${BASE_URL}/schedules/${userId}`,
   getAllUsers: `${BASE_URL}/employeesAttendance`,
   getApplications: `${BASE_URL}/api/applications`,
