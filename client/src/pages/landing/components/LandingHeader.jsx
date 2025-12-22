@@ -45,7 +45,6 @@ import worklogzLogo from '../../../assets/worklogz-logo.png';
 import DemoRequestForm from '../../../components/DemoRequestForm';
 import { API_ENDPOINTS } from '../../../utils/api';
 import { normalizeMenuOrder } from '../../../utils/sidebarMenu';
-import { getEmployeeMenuItems } from '../../../components/employee-dashboard/layout/EmployeeSidebar';
 
 // Icon map for resolving icon strings to components
 const ICON_MAP = {
@@ -281,40 +280,7 @@ const LandingHeader = () => {
   useEffect(() => {
     const loadSidebarModules = async () => {
       setIsLoadingModules(true);
-      
-      // Helper to extract icon name from JSX element
-      const extractIconNameFromJSX = (iconJSX) => {
-        if (!iconJSX) return '';
-        if (React.isValidElement(iconJSX)) {
-          const componentName = iconJSX.type?.displayName || iconJSX.type?.name || iconJSX.type;
-          if (typeof componentName === 'string' && componentName.startsWith('Fi')) {
-            return componentName;
-          }
-          // Try to get name from function
-          if (typeof componentName === 'function') {
-            return componentName.name || '';
-          }
-        }
-        return '';
-      };
 
-      // Helper to convert static menu items to API format
-      const convertStaticToAPIFormat = (items) => {
-        return items.map((item, idx) => ({
-          label: item.label,
-          icon: extractIconNameFromJSX(item.icon) || '',
-          path: item.path || '',
-          order: idx,
-          subItems: (item.subItems || []).map((sub, sIdx) => ({
-            label: sub.label,
-            path: sub.path || '',
-            isSection: !!sub.isSection,
-            order: sIdx,
-            icon: extractIconNameFromJSX(sub.icon) || '',
-          })),
-        }));
-      };
-      
       try {
         // Try to load employee sidebar from API (public access)
         let employeeItems = [];
@@ -324,14 +290,7 @@ const LandingHeader = () => {
           });
           employeeItems = employeeRes.data?.items || [];
         } catch (apiErr) {
-          // API might require auth or be unavailable - use fallback
-          console.log('Using fallback menu for employee sidebar (public access)');
-        }
-        
-        // Always use fallback if API returns empty or fails
-        if (!employeeItems.length) {
-          const fallbackItems = getEmployeeMenuItems();
-          employeeItems = convertStaticToAPIFormat(fallbackItems);
+          console.log('Failed to load employee sidebar menu (public access)', apiErr);
         }
         
         const normalizedEmployee = normalizeMenuOrder(employeeItems);
@@ -345,8 +304,7 @@ const LandingHeader = () => {
           });
           adminItems = adminRes.data?.items || [];
         } catch (apiErr) {
-          // API might require auth or be unavailable - use fallback
-          console.log('Using fallback menu for admin sidebar (public access)');
+          console.log('Failed to load admin sidebar menu (public access)', apiErr);
         }
         
         // Transform admin categories
@@ -354,66 +312,14 @@ const LandingHeader = () => {
         if (adminItems.length) {
           const normalizedAdmin = normalizeMenuOrder(adminItems);
           adminCategories = transformSidebarToCategories(normalizedAdmin);
-        } else {
-          // Fallback admin categories from static menu structure
-          const fallbackAdminItems = [
-            {
-              label: 'Dashboard',
-              icon: 'FiBarChart2',
-              path: '/admin',
-              order: 0,
-              subItems: [],
-            },
-            {
-              label: 'User Management',
-              icon: 'FiUsers',
-              path: '',
-              order: 1,
-              subItems: [
-                { label: 'User Profiles Creation', path: '/all-users', isSection: false, order: 0, icon: '' },
-                { label: 'Employees Schedules', path: '/employees', isSection: false, order: 1, icon: '' },
-                { label: 'Pending Approvals', path: '/pending-users', isSection: false, order: 2, icon: '' },
-              ],
-            },
-            {
-              label: 'Company Settings',
-              icon: 'FiSettings',
-              path: '',
-              order: 2,
-              subItems: [
-                { label: 'Global Settings', path: '/settings', isSection: false, order: 0, icon: '' },
-              ],
-            },
-          ];
-          const normalizedAdmin = normalizeMenuOrder(fallbackAdminItems);
-          adminCategories = transformSidebarToCategories(normalizedAdmin);
         }
         
         // Combine all categories into one unified list
         const allCategories = [...userCategories, ...adminCategories];
         setAllModuleCategories(allCategories);
       } catch (err) {
-        console.error('Failed to load sidebar modules, using full fallback', err);
-        // Full fallback - use static menus
-        const fallbackEmployee = convertStaticToAPIFormat(getEmployeeMenuItems());
-        const normalizedEmployee = normalizeMenuOrder(fallbackEmployee);
-        const userCategories = transformSidebarToCategories(normalizedEmployee);
-        
-        // Fallback admin
-        const adminCategories = [
-          {
-            id: 'dashboard',
-            name: 'Dashboard & Analytics',
-            icon: <FiBarChart2 />,
-            modules: [
-              { icon: <FiBarChart2 />, title: 'Admin Dashboard', description: 'Comprehensive dashboard with key metrics and insights', route: '/features/admin-dashboard' },
-            ],
-          },
-        ];
-        
-        // Combine all categories
-        const allCategories = [...userCategories, ...adminCategories];
-        setAllModuleCategories(allCategories);
+        console.error('Failed to load sidebar modules', err);
+        setAllModuleCategories([]);
       } finally {
         setIsLoadingModules(false);
       }

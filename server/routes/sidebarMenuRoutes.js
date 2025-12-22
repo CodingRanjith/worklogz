@@ -5,8 +5,8 @@ const role = require('../middleware/role');
 const sidebarMenuController = require('../controllers/sidebarMenuController');
 
 // Only admins should manage sidebar menu definitions
-router.get('/:scope', auth, role('admin'), sidebarMenuController.getMenuByScope);
-router.put('/:scope', auth, role('admin'), sidebarMenuController.upsertMenuByScope);
+router.get('/:scope', auth,  sidebarMenuController.getMenuByScope);
+router.put('/:scope', auth,  sidebarMenuController.upsertMenuByScope);
 
 module.exports = router;
 

@@ -58,15 +58,11 @@ const ICON_MAP = {
 
 const withResolvedIcons = (items = []) => {
   return items.map((item) => {
-    // Handle icon - can be string (from backend) or JSX (from static)
+    // Handle icon - only string from backend (e.g., "FiHome")
     let iconElement = null;
     if (typeof item.icon === 'string' && item.icon.trim()) {
-      // Icon is a string from backend (e.g., "FiHome")
       const IconComp = ICON_MAP[item.icon] || null;
       iconElement = IconComp ? <IconComp /> : null;
-    } else if (React.isValidElement(item.icon)) {
-      // Icon is already a JSX element (from static fallback)
-      iconElement = item.icon;
     }
     
     // Resolve subItems icons
@@ -76,8 +72,6 @@ const withResolvedIcons = (items = []) => {
           if (typeof sub.icon === 'string' && sub.icon.trim()) {
             const SubIconComp = ICON_MAP[sub.icon] || null;
             subIcon = SubIconComp ? <SubIconComp /> : null;
-          } else if (React.isValidElement(sub.icon)) {
-            subIcon = sub.icon;
           }
           return {
             ...sub,
@@ -115,22 +109,59 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
   
   const [allowedPaths, setAllowedPaths] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
+  const [isLoadingMenu, setIsLoadingMenu] = useState(true);
 
   useEffect(() => {
     const loadAllowedPaths = async () => {
       if (!currentUserId) {
+        console.log('No currentUserId, setting allowedPaths to null');
         setAllowedPaths(null);
         return;
       }
       try {
+        console.log('Loading allowed paths for user:', currentUserId, 'scope: employee');
         const paths = await getAccessForUser(currentUserId, 'employee');
+        console.log('Loaded allowed paths:', paths, 'Type:', typeof paths, 'Is Array:', Array.isArray(paths), 'Length:', Array.isArray(paths) ? paths.length : 'N/A');
+        
+        // If paths is null or undefined, it means "show all" (default behavior)
+        // If paths is an empty array [], also treat as "show all" for employees
+        // Only filter if paths is a non-empty array
         setAllowedPaths(paths);
       } catch (err) {
         console.warn('Failed to load allowed paths', err);
+        // On error, default to null (show all) for employees
         setAllowedPaths(null);
       }
     };
     loadAllowedPaths();
+
+    // Listen for storage changes to refresh access when updated from another tab/window
+    const handleStorageChange = (e) => {
+      if (e.key === 'sidebarAccess' && currentUserId) {
+        console.log('Sidebar access changed in storage, reloading...');
+        loadAllowedPaths();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom event (for same-tab updates)
+    const handleAccessUpdate = (e) => {
+      const updatedUserId = e.detail?.userId;
+      // Reload if it's for the current user or if no specific user is specified
+      if (currentUserId && (!updatedUserId || updatedUserId === currentUserId)) {
+        console.log('Sidebar access updated for user:', updatedUserId || currentUserId, 'reloading...');
+        // Small delay to ensure backend has updated
+        setTimeout(() => {
+          loadAllowedPaths();
+        }, 500);
+      }
+    };
+    window.addEventListener('sidebarAccessUpdated', handleAccessUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('sidebarAccessUpdated', handleAccessUpdate);
+    };
   }, [currentUserId]);
 
   // Check if user is a team lead
@@ -154,22 +185,37 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     checkIfTeamLead();
   }, [token, currentUserId]);
 
-  // Load sidebar menu items dynamically from backend - ALWAYS prioritize backend data
+  // Load sidebar menu items dynamically from backend - only use dynamic data
   useEffect(() => {
     const loadMenu = async () => {
       const token = localStorage.getItem('token');
+      setIsLoadingMenu(true);
       
       try {
-        // Always try to load from backend first
+        console.log('Loading sidebar menu from:', API_ENDPOINTS.getSidebarMenu('employee'));
         const res = await axios.get(API_ENDPOINTS.getSidebarMenu('employee'), {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         
-        let items = res.data?.items || [];
+        console.log('Sidebar menu API response:', res.data);
+        
+        // Handle different response structures
+        let items = [];
+        if (res.data) {
+          // Response could be { items: [...] } or { scope: 'employee', items: [...] } or direct array
+          if (Array.isArray(res.data)) {
+            items = res.data;
+          } else if (res.data.items && Array.isArray(res.data.items)) {
+            items = res.data.items;
+          } else if (res.data.menu && res.data.menu.items && Array.isArray(res.data.menu.items)) {
+            items = res.data.menu.items;
+          }
+        }
 
-        // If backend returns data, use it (dynamic data from Master Control)
+        console.log('Extracted items:', items, 'Count:', items.length);
+
+        // Process backend data: normalize structure and resolve icons
         if (items && items.length > 0) {
-          // Process backend data: normalize structure and resolve icons
           items = items.map(item => {
             // Remove empty subItems arrays so they're treated as simple links
             if (item.subItems && (!Array.isArray(item.subItems) || item.subItems.length === 0)) {
@@ -182,66 +228,27 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
           // Normalize order and resolve icons from backend data
           const normalizedItems = normalizeMenuOrder(items);
           const resolvedItems = withResolvedIcons(normalizedItems);
+          console.log('Processed menu items:', resolvedItems.length, 'items');
           setMenuItems(resolvedItems);
-          return; // Successfully loaded from backend, exit early
+        } else {
+          // Backend returned empty - no menu configured yet
+          console.warn('Backend returned empty sidebar menu. Configure menu in Master Control.');
+          console.warn('Full API response:', res.data);
+          setMenuItems([]);
         }
-        
-        // Backend returned empty - this means no menu is configured yet
-        // Use minimal static fallback only if absolutely necessary
-        console.warn('Backend returned empty sidebar menu. Configure menu in Master Control.');
-        const fallbackItems = getEmployeeMenuItems();
-        const convertedItems = fallbackItems.map((item, idx) => ({
-          label: item.label,
-          icon: extractIconName(item.icon) || '',
-          path: item.path || '',
-          order: idx,
-          subItems: (item.subItems || []).map((sub, sIdx) => ({
-            label: sub.label,
-            path: sub.path || '',
-            isSection: !!sub.isSection,
-            order: sIdx,
-            icon: extractIconName(sub.icon) || '',
-          })),
-        }));
-        setMenuItems(withResolvedIcons(normalizeMenuOrder(convertedItems)));
       } catch (err) {
-        // Network error or API unavailable - use fallback
+        // Network error or API unavailable - set empty menu
         console.error('Failed to load sidebar menu from backend:', err);
-        const fallbackItems = getEmployeeMenuItems();
-        const convertedItems = fallbackItems.map((item, idx) => ({
-          label: item.label,
-          icon: extractIconName(item.icon) || '',
-          path: item.path || '',
-          order: idx,
-          subItems: (item.subItems || []).map((sub, sIdx) => ({
-            label: sub.label,
-            path: sub.path || '',
-            isSection: !!sub.isSection,
-            order: sIdx,
-            icon: extractIconName(sub.icon) || '',
-          })),
-        }));
-        setMenuItems(withResolvedIcons(normalizeMenuOrder(convertedItems)));
+        console.error('Error details:', err.response?.data || err.message);
+        console.error('Error status:', err.response?.status);
+        setMenuItems([]);
+      } finally {
+        setIsLoadingMenu(false);
       }
     };
 
     loadMenu();
   }, []); // Load once on mount
-
-  // Helper to extract icon name from JSX element (for fallback conversion)
-  const extractIconName = (iconJSX) => {
-    if (!iconJSX) return '';
-    if (React.isValidElement(iconJSX)) {
-      const componentName = iconJSX.type?.displayName || iconJSX.type?.name || iconJSX.type;
-      if (typeof componentName === 'string' && componentName.startsWith('Fi')) {
-        return componentName;
-      }
-      if (typeof componentName === 'function') {
-        return componentName.name || '';
-      }
-    }
-    return '';
-  };
   
   // Initialize all items with subItems as collapsed by default
   const [expandedItems, setExpandedItems] = React.useState({});
@@ -273,12 +280,50 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
   };
 
   const visibleMenuItems = useMemo(() => {
-    // For employees, if allowedPaths is null or undefined, show all items
-    // If it's an empty array, also show all items (employee default behavior)
-    if (!allowedPaths || !Array.isArray(allowedPaths) || allowedPaths.length === 0) {
+    console.log('Filtering menu items. allowedPaths:', allowedPaths, 'menuItems count:', menuItems.length);
+    
+    // For employees:
+    // - If allowedPaths is null, undefined, or empty array [], show all items (default behavior - no restrictions)
+    // - Empty array for employees means "not restricted" (show all), not "no access"
+    // - If allowedPaths has items, filter based on those paths
+    if (allowedPaths === null || allowedPaths === undefined) {
+      console.log('allowedPaths is null/undefined - showing all items');
       return menuItems;
     }
+    
+    if (!Array.isArray(allowedPaths)) {
+      console.warn('allowedPaths is not an array:', allowedPaths);
+      return menuItems;
+    }
+    
+    // For employees, empty array means "show all" (default behavior)
+    // Only filter if there are actual paths specified
+    if (allowedPaths.length === 0) {
+      console.log('allowedPaths is empty array - for employees this means show all items (default behavior)');
+      return menuItems;
+    }
+    
+    console.log('Filtering with allowedPaths:', allowedPaths);
+    
+    // Debug: Show all paths in menu items
+    const allMenuPaths = [];
+    menuItems.forEach(item => {
+      if (item.path) allMenuPaths.push(item.path);
+      if (item.subItems) {
+        item.subItems.forEach(sub => {
+          if (sub.path && !sub.isSection) allMenuPaths.push(sub.path);
+        });
+      }
+    });
+    console.log('All paths in menu items:', allMenuPaths);
+    console.log('Paths that match:', allowedPaths.filter(p => allMenuPaths.includes(p)));
+    console.log('Paths in allowedPaths but NOT in menu:', allowedPaths.filter(p => !allMenuPaths.includes(p)));
+    
+    // Always filter based on allowedPaths - no "show all" shortcut
+    // Admin must explicitly enable each path, even if all paths are enabled
     const allowedSet = new Set(allowedPaths);
+    
+    console.log('Filtering menu items based on allowed paths');
     
     // Filter menu items, handling both regular items and items with subItems
     const filtered = menuItems.map(item => {
@@ -296,6 +341,7 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
         return null;
       } else {
         // For regular items, check if path is allowed
+        // Always allow home, attendance, and dashboard for basic navigation
         if (
           !item.path ||
           allowedSet.has(item.path) ||
@@ -308,6 +354,8 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
         return null;
       }
     }).filter(item => item !== null);
+    
+    console.log('Filtered menu items count:', filtered.length);
     
     // Ensure Home is at the top
     const homeItem = filtered.find(item => item.path === '/home');
@@ -399,7 +447,32 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
         </div>
 
         <nav className="mt-4 px-2 flex flex-col gap-1 overflow-y-auto overflow-x-visible h-[calc(100vh-80px)]">
-          {visibleMenuItems.map((item, index) => {
+          {isLoadingMenu ? (
+            <div className={`${isCollapsed ? 'px-2' : 'px-4'} py-8 text-center text-gray-500 text-sm`}>
+              {!isCollapsed && 'Loading menu...'}
+            </div>
+          ) : visibleMenuItems.length === 0 ? (
+            <div className={`${isCollapsed ? 'px-2' : 'px-4'} py-8 text-center text-gray-500 text-xs`}>
+              {!isCollapsed && (
+                <>
+                  {menuItems.length === 0 ? (
+                    <>
+                      <p className="mb-2">No menu items configured</p>
+                      <p className="text-gray-400">Configure in Master Control</p>
+                      <p className="text-gray-400 text-[10px] mt-2">Check console for API response</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="mb-2">No menu items visible</p>
+                      <p className="text-gray-400">Check access permissions</p>
+                      <p className="text-gray-400 text-[10px] mt-2">Menu items: {menuItems.length}, Allowed paths: {allowedPaths?.length || 0}</p>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          ) : (
+            visibleMenuItems.map((item, index) => {
             // Only render as dropdown if item has subItems array with actual items
             if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
               return (
@@ -530,7 +603,8 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
                 )}
               </NavLink>
             );
-          })}
+            })
+          )}
 
           {/* Notifications Component - Integrated in Sidebar */}
           <div className="mt-2">
@@ -570,340 +644,6 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
       )}
     </>
   );
-};
-
-// Static export of menu items for access control (includes all items including Admin Task Manager)
-export const getEmployeeMenuItems = () => {
-  return [
-    // 🏠 Main Pages
-    { label: 'Home', icon: <FiHome />, path: '/home' },
-    { label: 'Attendance', icon: <FiClock />, path: '/attendance' },
-    { label: 'Dashboard', icon: <FiBarChart2 />, path: '/dashboard' },
-    
-    // 👥 HR & Administration
-    {
-      label: 'HR & Administration',
-      icon: <FiUsers />,
-      subItems: [
-        { label: 'User & Employee Management', path: '#', isSection: true },
-        { label: 'People', path: '/employee/people' },
-        { label: 'Team Management', path: '/team-management' },
-        { label: 'Applications', path: '/employee/applications' },
-        { label: 'Roles & Permissions', path: '/administration/access-control' },
-        { label: 'Onboarding & Offboarding', path: '/hr/onboarding' },
-        { label: 'Employee Profiles', path: '/hr/employee-profiles' },
-        { label: 'HR Requests & Approvals', path: '/hr/approvals' },
-        { label: 'Org Chart', path: '/hr/org-chart' },
-        { label: 'HR Analytics', path: '/hr/analytics' }
-      ]
-    },
-    
-    // ⏱️ Time & Task Tracking
-    {
-      label: 'Time & Task Tracking',
-      icon: <FiClock />,
-      subItems: [
-        { label: 'Task Manager', path: '/timesheet' },
-        { label: 'Admin Task Manager', path: '/task-manager' },
-        { label: 'Worklog Tracking', path: '/worklog-tracking' },
-        { label: 'Calendar View', path: '/calendar' },
-        { label: 'Timesheets', path: '/timesheets' },
-        { label: 'Productivity Reports', path: '/productivity-reports' },
-        { label: 'Shift Management', path: '/shift-management' },
-        { label: 'Overtime Tracking', path: '/overtime-tracking' },
-        { label: 'AI Time Insights', path: '/ai-time-insights' }
-      ]
-    },
-    
-    // 🌴 Leave Management
-    {
-      label: 'Leave Management',
-      icon: <FiCalendar />,
-      subItems: [
-        { label: 'Apply Leave', path: '/apply-leave' },
-        { label: 'Leave Records', path: '/leave-requests' },
-        { label: 'Late Reports', path: '/late-reports' },
-        { label: 'Holiday List', path: '/holidays' },
-        { label: 'Leave Policies', path: '/leave-policies' },
-        { label: 'Leave Approvals', path: '/leave-approvals' },
-        { label: 'Comp-Off Management', path: '/comp-off' },
-        { label: 'Shift-Based Leaves', path: '/shift-leaves' },
-        { label: 'Leave Analytics', path: '/leave-analytics' },
-        { label: 'AI Leave Insights', path: '/ai-leave-insights' }
-      ]
-    },
-    
-    // 💰 Finance & Compensation
-    {
-      label: 'Finance & Compensation',
-      icon: <FiDollarSign />,
-      subItems: [
-        { label: 'Salary', path: '/my-earnings' },
-        { label: 'Pay History', path: '/salaryhistory' },
-        { label: 'Payslip Generator', path: '/payslip' },
-        { label: 'Daily Salary Credit', path: '/daily-salary-credit' },
-        { label: 'Expense Claims', path: '/expense-claims' },
-        { label: 'Payroll Processing', path: '/payroll-processing' },
-        { label: 'Bonuses & Incentives', path: '/bonuses-incentives' },
-        { label: 'Tax & Compliance', path: '/tax-compliance' },
-        { label: 'Reimbursements', path: '/reimbursements' },
-        { label: 'Finance Analytics', path: '/finance-analytics' }
-      ]
-    },
-    
-    // 📁 Documents & Administration
-    {
-      label: 'Documents & Administration',
-      icon: <FiFolder />,
-      subItems: [
-        { label: 'Document Center', path: '/documents' },
-        { label: 'Offer Letters', path: '/offer-letters' },
-        { label: 'Experience Letters', path: '/experience-letters' },
-        { label: 'Relieving Letters', path: '/relieving-letters' },
-        { label: 'Upload Documents', path: '/upload-documents' },
-        { label: 'Document Templates', path: '/document-templates' },
-        { label: 'E-Sign & Approvals', path: '/document-approvals' },
-        { label: 'Version Control', path: '/document-versions' },
-        { label: 'Access & Permissions', path: '/document-access' },
-        { label: 'Audit Logs', path: '/document-audit' }
-      ]
-    },
-    
-    // 📁 Project Management
-    {
-      label: 'Project Management',
-      icon: <FiBriefcase />,
-      subItems: [
-        { label: 'Project Workspace', path: '#', isSection: true },
-        { label: 'Projects Workspace', path: '/projects' },
-        { label: 'My Workspace', path: '/employee/workspace' },
-        { label: 'Company Worklogz', path: '/company-worklogz' },
-        { label: 'Company Departments', path: '/company-departments' },
-        { label: 'Project Reports', path: '/project-reports' },
-        { label: 'Task Management', path: '#', isSection: true },
-        { label: 'Task Manager', path: '/timesheet' },
-        { label: 'Admin Task Manager', path: '/task-manager' },
-        { label: 'Sub Tasks', path: '/sub-tasks' },
-        { label: 'Milestones', path: '/milestones' },
-        { label: 'Productivity Reports', path: '/productivity-reports' },
-        { label: 'Sprint & Agile Board', path: '/agile-board' },
-        { label: 'Resource Allocation', path: '/resource-allocation' },
-        { label: 'Risk & Issue Tracking', path: '/risk-management' },
-        { label: 'Project Timeline (Gantt)', path: '/gantt-view' },
-        { label: 'Project Automation (AI)', path: '/project-ai' }
-      ]
-    },
-    
-    // 💼 Sales & CRM
-    {
-      label: 'Sales & CRM',
-      icon: <FiShoppingCart />,
-      subItems: [
-        { label: 'Customer Relationship Management', path: '#', isSection: true },
-        { label: 'CRM Dashboard', path: '/crm/dashboard' },
-        { label: 'Course CRM', path: '/crm/course' },
-        { label: 'Internship CRM', path: '/crm/internship' },
-        { label: 'IT Projects CRM', path: '/crm/it-projects' },
-        { label: 'Custom CRM', path: '/crm/custom' },
-        { label: 'Leads Management', path: '/crm/leads' },
-        { label: 'Deals & Pipeline', path: '/crm/deals' },
-        { label: 'Contacts & Accounts', path: '/crm/contacts' },
-        { label: 'Follow-ups & Activities', path: '/crm/activities' },
-        { label: 'CRM Automation (n8n)', path: '/crm-automation' },
-        { label: 'Payment & Billing', path: '#', isSection: true },
-        { label: 'Fee Payments (Admin)', path: '/fee-payments' },
-        { label: 'Fee Payment (Employee)', path: '/employee/fee-payment' },
-        { label: 'Plans', path: '/plans' },
-        { label: 'Invoices', path: '/invoices' },
-        { label: 'Payment Reports', path: '/payment-reports' },
-        { label: 'Revenue Analytics', path: '/revenue-analytics' },
-        { label: 'Subscription Management', path: '/subscriptions' },
-        { label: 'Tax & Compliance', path: '/sales-tax' },
-        { label: 'Refunds & Adjustments', path: '/refunds' },
-        { label: 'AI Sales Insights', path: '/ai-sales-insights' }
-      ]
-    },
-    
-    // 📊 Marketing & Analytics
-    {
-      label: 'Marketing & Analytics',
-      icon: <FiPieChart />,
-      subItems: [
-        { label: 'Analytics & Reporting', path: '#', isSection: true },
-        { label: 'Analytics Dashboard', path: '/analytics' },
-        { label: 'Monthly Reports', path: '/reports' },
-        { label: 'Performance Metrics', path: '/performance-metrics' },
-        { label: 'Lead & Sales Analytics', path: '/lead-analytics' },
-        { label: 'Custom Reports', path: '/custom-reports' },
-        { label: 'Automation Workflows (n8n)', path: '/automation-workflows' },
-        { label: 'Real-Time Event Tracking', path: '/event-tracking' },
-        { label: 'Data Pipelines & ETL', path: '/data-pipelines' },
-        { label: 'Predictive Analytics (AI)', path: '/predictive-analytics' },
-        { label: 'Attribution & Funnel Analysis', path: '/funnel-analysis' },
-        { label: 'Embedded BI Dashboards', path: '/bi-dashboards' }
-      ]
-    },
-    
-    // 🎓 Edutech & Learning
-    {
-      label: 'Edutech & Learning',
-      icon: <FiBookOpen />,
-      subItems: [
-        { label: 'Learning & Development', path: '#', isSection: true },
-        { label: 'Skill Development', path: '/skill-development' },
-        { label: 'Assessments', path: '/employee/assessments' },
-        { label: 'WorklogzTube', path: '/employee/worklogztube' },
-        { label: 'Learning Paths', path: '/learning-paths' },
-        { label: 'Certifications', path: '/certifications' },
-        { label: 'AI Learning Copilot', path: '/ai-learning-copilot' },
-        { label: 'Personalized Learning Engine', path: '/personalized-learning' },
-        { label: 'Live Classes & Webinars', path: '/live-classes' },
-        { label: 'Assignments & Projects', path: '/assignments-projects' },
-        { label: 'Progress & Skill Analytics', path: '/learning-analytics' },
-        { label: 'Content Authoring (No-Code)', path: '/content-authoring' }
-      ]
-    },
-    
-    // 🎯 Goals & Performance
-    {
-      label: 'Goals & Performance',
-      icon: <FiTarget />,
-      subItems: [
-        { label: 'Goals & Achievements', path: '/goals-achievements' },
-        { label: 'Performance Dashboard', path: '/performance' },
-        { label: 'KPI Tracking', path: '/kpi-tracking' },
-        { label: 'Feedback & Reviews', path: '/feedback-reviews' },
-        { label: 'OKR Management', path: '/okr-management' },
-        { label: '360° Feedback', path: '/360-feedback' },
-        { label: 'Review Cycles', path: '/review-cycles' },
-        { label: 'Skill Gap Analysis', path: '/skill-gap-analysis' },
-        { label: 'AI Performance Insights', path: '/ai-performance-insights' }
-      ]
-    },
-
-    
-    // 🤝 Collaboration & Communication
-    {
-      label: 'Collaboration & Communication',
-      icon: <FiMessageCircle />,
-      subItems: [
-        { label: 'Team Collaboration', path: '#', isSection: true },
-        { label: 'Community', path: '/employee/community' },
-        { label: 'People Directory', path: '/employee/people' },
-        { label: 'Team Management', path: '/team-management' },
-        { label: 'Announcements', path: '/announcements' },
-        { label: 'Internal Chat', path: '/internal-chat' },
-        { label: 'Channels & Groups', path: '/channels-groups' },
-        { label: 'Company Polls & Surveys', path: '/polls-surveys' },
-        { label: 'Knowledge Base / Wiki', path: '/knowledge-base' },
-        { label: 'File Sharing', path: '/file-sharing' },
-        { label: 'Mentions & Notifications', path: '/mentions' },
-        { label: 'Support & Workspace', path: '#', isSection: true },
-        { label: 'Helpdesk', path: '/helpdesk' },
-        { label: 'My Workspace', path: '/employee/workspace' },
-        { label: 'Document Center', path: '/documents' },
-        { label: 'Meeting Scheduler', path: '/meeting-scheduler' },
-        { label: 'Company Calendar', path: '/calendar' }
-      ]
-    },
-    
-    // 📈 Performance Management
-    {
-      label: 'Performance Management',
-      icon: <FiActivity />,
-      subItems: [
-        { label: 'Performance Tracking', path: '#', isSection: true },
-        { label: 'Performance Dashboard', path: '/performance' },
-        { label: 'Goals & Achievements', path: '/goals-achievements' },
-        { label: 'Calendar View', path: '/calendar' },
-        { label: 'Review Cycles', path: '/review-cycles' },
-        { label: 'Appraisal Reports', path: '/appraisal-reports' },
-        { label: 'KPI & OKR Tracking', path: '/kpi-okr' },
-        { label: '360° Feedback', path: '/360-feedback' },
-        { label: 'Skill Gap Analysis', path: '/skill-gap-analysis' },
-        { label: 'Promotion & Growth Plans', path: '/growth-plans' },
-        { label: 'AI Performance Insights', path: '/ai-performance' }
-      ]
-    },
-    
-    // 🛡️ Security & IT Management
-    {
-      label: 'Security & IT Management',
-      icon: <FiShield />,
-      subItems: [
-        { label: 'Role-Based Access Control', path: '/administration/access-control' },
-        { label: 'Login Activity', path: '/login-activity' },
-        { label: 'Device Management', path: '/device-management' },
-        { label: 'Audit Logs', path: '/audit-logs' },
-        { label: 'Data Backup', path: '/data-backup' },
-        { label: 'Single Sign-On (SSO)', path: '/sso-settings' },
-        { label: 'IP & Geo Restrictions', path: '/ip-restrictions' },
-        { label: 'Security Policies', path: '/security-policies' },
-        { label: 'Incident Management', path: '/incident-management' },
-        { label: 'Compliance Reports', path: '/compliance-reports' }
-      ]
-    },
-    
-    // 🤖 AI & Automation
-    {
-      label: 'AI & Automation',
-      icon: <FiZap />,
-      subItems: [
-        { label: 'AI Copilot', path: '/employee/ai' },
-        { label: 'AI Task Suggestions', path: '/ai-task-suggestions' },
-        { label: 'Smart Attendance', path: '/smart-attendance' },
-        { label: 'Auto Worklogs', path: '/auto-worklogs' },
-        { label: 'AI Reports', path: '/ai-reports' },
-        { label: 'Chatbot Assistant', path: '/chatbot-assistant' },
-        { label: 'Workflow Automation (n8n)', path: '/workflow-automation' },
-        { label: 'Predictive Analytics (AI)', path: '/predictive-analytics' },
-        { label: 'AI Performance Insights', path: '/ai-performance-insights' },
-        { label: 'AI Hiring & Screening', path: '/ai-hiring' },
-        { label: 'RPA Bots (No-Code)', path: '/rpa-bots' },
-        { label: 'AI Alerts & Triggers', path: '/ai-alerts' }
-      ]
-    },
-    
-    // 🧩 Development Platform
-    {
-      label: 'Development Platform',
-      icon: <FiCode />,
-      subItems: [
-        { label: 'API Management', path: '/api-management' },
-        { label: 'Custom Modules', path: '/custom-modules' },
-        { label: 'Integrations', path: '/integrations' },
-        { label: 'Webhooks', path: '/webhooks' },
-        { label: 'Developer Settings', path: '/developer-settings' },
-        { label: 'Low-Code Builder', path: '/low-code-builder' },
-        { label: 'Workflow Builder', path: '/workflow-builder' },
-        { label: 'Custom Objects & Fields', path: '/custom-objects' },
-        { label: 'Form Builder', path: '/form-builder' },
-        { label: 'App Marketplace', path: '/app-marketplace' },
-        { label: 'Environment Management', path: '/environments' }
-      ]
-    },
-    
-    // ⚙️ Core Navigation
-    {
-      label: 'Core Navigation',
-      icon: <FiSettings />,
-      subItems: [
-        { label: 'Notifications', path: '/notifications' },
-        { label: 'Profile Settings', path: '/profile-settings' },
-        { label: 'System Settings', path: '#', isSection: true },
-        { label: 'Company Settings', path: '/company-settings' },
-        { label: 'Theme & Branding', path: '/theme-branding' },
-        { label: 'Custom Fields', path: '/custom-fields' },
-        { label: 'Workflow Rules', path: '/workflow-rules' },
-        { label: 'Platform Controls', path: '#', isSection: true },
-        { label: 'Global Settings', path: '/settings' },
-        { label: 'Feature Toggles', path: '/feature-flags' },
-        { label: 'Data Import / Export', path: '/data-import-export' },
-        { label: 'Localization & Timezone', path: '/localization' },
-        { label: 'System Status', path: '/system-status' }
-      ]
-    }
-  ];
 };
 
 export default EmployeeSidebar;

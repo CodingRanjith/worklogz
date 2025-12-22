@@ -213,6 +213,9 @@ export const API_ENDPOINTS = {
   // -----------------
   assistantChat: `${BASE_URL}/api/assistant/chat`,
   skillDevelopmentChat: `${BASE_URL}/api/assistant/skill-chat`,
+  worklogzChat: `${BASE_URL}/api/assistant/worklogz-chat`,
+  getWorklogzChatHistory: `${BASE_URL}/api/assistant/worklogz-chat/history`,
+  clearWorklogzChatHistory: `${BASE_URL}/api/assistant/worklogz-chat/history`,
  
   // -----------------
   // Misc

@@ -164,6 +164,17 @@ const userController = {
 
   getSingleUser: async (req, res) => {
     try {
+      const requestingUserId = req.user._id.toString();
+      const requestedUserId = req.params.id;
+      const isAdmin = req.user.role === 'admin';
+
+      // Allow access if: user is accessing their own data OR user is an admin
+      if (requestingUserId !== requestedUserId && !isAdmin) {
+        return res.status(403).json({ 
+          error: 'Forbidden - You can only access your own profile' 
+        });
+      }
+
       const user = await User.findById(req.params.id).select('-password');
 
       if (!user) {
@@ -268,6 +279,17 @@ const userController = {
 
   updateUser: async (req, res) => {
     try {
+      const requestingUserId = req.user._id.toString();
+      const requestedUserId = req.params.id;
+      const isAdmin = req.user.role === 'admin';
+
+      // Allow access if: user is updating their own data OR user is an admin
+      if (requestingUserId !== requestedUserId && !isAdmin) {
+        return res.status(403).json({ 
+          error: 'Forbidden - You can only update your own profile' 
+        });
+      }
+
       const {
         name,
         email,
@@ -295,29 +317,46 @@ const userController = {
       if (name) updateData.name = name;
       if (email) updateData.email = email;
 
-      // Allow updating role from custom fields (store normalized value)
-      if (role) {
-        const normalizedRole = role.toString().toLowerCase().trim();
-        updateData.role = normalizedRole;
+      // Only admins can update role, salary, employeeId, and other sensitive fields
+      if (isAdmin) {
+        // Allow updating role from custom fields (store normalized value)
+        if (role) {
+          const normalizedRole = role.toString().toLowerCase().trim();
+          updateData.role = normalizedRole;
+        }
+      } else {
+        // Non-admins cannot update role
+        if (role) {
+          return res.status(403).json({ error: 'Forbidden - You cannot update your role' });
+        }
       }
 
       if (phone) updateData.phone = phone;
       if (position) updateData.position = position;
-      if (company) updateData.company = company;
-      if (employeeId !== undefined) updateData.employeeId = employeeId;
       if (location) updateData.location = location;
       if (gender) updateData.gender = gender;
       if (maritalStatus) updateData.maritalStatus = maritalStatus;
-      if (salary !== undefined) updateData.salary = salary;
-      if (department) updateData.department = department;
       if (qualification) updateData.qualification = qualification;
       if (profilePic) updateData.profilePic = profilePic;
       if (Array.isArray(skills)) updateData.skills = skills;
       if (Array.isArray(rolesAndResponsibility)) updateData.rolesAndResponsibility = rolesAndResponsibility;
       if (bankDetails && typeof bankDetails === 'object') updateData.bankDetails = bankDetails;
-      if (dateOfJoining) updateData.dateOfJoining = new Date(dateOfJoining);
       if (dateOfBirth) updateData.dateOfBirth = new Date(dateOfBirth);
       if (password) updateData.password = await bcrypt.hash(password, 10);
+
+      // Only admins can update sensitive fields
+      if (isAdmin) {
+        if (company) updateData.company = company;
+        if (employeeId !== undefined) updateData.employeeId = employeeId;
+        if (salary !== undefined) updateData.salary = salary;
+        if (department) updateData.department = department;
+        if (dateOfJoining) updateData.dateOfJoining = new Date(dateOfJoining);
+      } else {
+        // Non-admins cannot update these fields
+        if (company !== undefined || employeeId !== undefined || salary !== undefined || department !== undefined || dateOfJoining !== undefined) {
+          return res.status(403).json({ error: 'Forbidden - You cannot update company, employeeId, salary, department, or dateOfJoining' });
+        }
+      }
 
       const updatedUser = await User.findByIdAndUpdate(
         req.params.id,
@@ -557,6 +596,16 @@ const userController = {
     try {
       const { id } = req.params;
       const { scope = 'admin' } = req.query;
+      const requestingUserId = req.user._id.toString();
+      const requestedUserId = id;
+      const isAdmin = req.user.role === 'admin';
+      
+      // Allow access if: user is accessing their own data OR user is an admin
+      if (requestingUserId !== requestedUserId && !isAdmin) {
+        return res.status(403).json({ 
+          error: 'Forbidden - You can only access your own sidebar access' 
+        });
+      }
       
       const user = await User.findById(id).select('sidebarAccess');
       if (!user) {
@@ -576,6 +625,16 @@ const userController = {
     try {
       const { id } = req.params;
       const { paths, scope = 'admin' } = req.body;
+      const requestingUserId = req.user._id.toString();
+      const requestedUserId = id;
+      const isAdmin = req.user.role === 'admin';
+
+      // Allow access if: user is updating their own data OR user is an admin
+      if (requestingUserId !== requestedUserId && !isAdmin) {
+        return res.status(403).json({ 
+          error: 'Forbidden - You can only update your own sidebar access' 
+        });
+      }
 
       if (!Array.isArray(paths)) {
         return res.status(400).json({ error: 'Paths must be an array' });
@@ -616,12 +675,23 @@ const userController = {
     try {
       const { userIds } = req.query;
       const { scope = 'admin' } = req.query;
+      const requestingUserId = req.user._id.toString();
+      const isAdmin = req.user.role === 'admin';
 
       if (!userIds) {
         return res.status(400).json({ error: 'userIds query parameter is required' });
       }
 
       const ids = Array.isArray(userIds) ? userIds : userIds.split(',');
+      
+      // If not admin, only allow access to their own user ID
+      if (!isAdmin) {
+        if (ids.length !== 1 || ids[0] !== requestingUserId) {
+          return res.status(403).json({ 
+            error: 'Forbidden - You can only access your own sidebar access' 
+          });
+        }
+      }
       
       const users = await User.find(
         { _id: { $in: ids } },
@@ -644,9 +714,20 @@ const userController = {
   updateBulkSidebarAccess: async (req, res) => {
     try {
       const { userIds, paths, scope = 'admin' } = req.body;
+      const requestingUserId = req.user._id.toString();
+      const isAdmin = req.user.role === 'admin';
 
       if (!Array.isArray(userIds) || userIds.length === 0) {
         return res.status(400).json({ error: 'userIds must be a non-empty array' });
+      }
+
+      // If not admin, only allow updating their own user ID
+      if (!isAdmin) {
+        if (userIds.length !== 1 || userIds[0] !== requestingUserId) {
+          return res.status(403).json({ 
+            error: 'Forbidden - You can only update your own sidebar access' 
+          });
+        }
       }
 
       if (!Array.isArray(paths)) {

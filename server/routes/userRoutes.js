@@ -30,11 +30,11 @@ router.get('/archived/list', auth, role('admin'), (req, res, next) => {
   next();
 }, userController.getArchivedUsers);
 
-// ✅ GET user by ID
-router.get('/:id', auth, role('admin'), userController.getSingleUser);
+// ✅ GET user by ID (users can access their own, admins can access any)
+router.get('/:id', auth, userController.getSingleUser);
 
-// ✅ UPDATE user
-router.put('/:id', auth, role('admin'), userController.updateUser);
+// ✅ UPDATE user (users can update their own, admins can update any)
+router.put('/:id', auth, userController.updateUser);
 
 // ✅ UPDATE salary
 router.put('/:id/salary', auth, role('admin'), userController.updateSalary);
@@ -46,9 +46,10 @@ router.delete('/:id', auth, role('admin'), userController.deleteUser);
 router.post('/:id/restore', auth, role('admin'), userController.restoreUser);
 
 // ✅ Sidebar Access Management
-router.get('/sidebar-access/bulk', auth, role('admin'), userController.getBulkSidebarAccess);
-router.put('/sidebar-access/bulk', auth, role('admin'), userController.updateBulkSidebarAccess);
-router.get('/:id/sidebar-access', auth, role('admin'), userController.getSidebarAccess);
-router.put('/:id/sidebar-access', auth, role('admin'), userController.updateSidebarAccess);
+router.get('/sidebar-access/bulk', auth, userController.getBulkSidebarAccess);
+router.put('/sidebar-access/bulk', auth, userController.updateBulkSidebarAccess);
+// Allow users to access their own sidebar access, or admins to access any user's access
+router.get('/:id/sidebar-access', auth, userController.getSidebarAccess);
+router.put('/:id/sidebar-access', auth, userController.updateSidebarAccess);
 
 module.exports = router;

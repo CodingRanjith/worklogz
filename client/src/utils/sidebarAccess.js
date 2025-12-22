@@ -97,6 +97,10 @@ export const setAccessForUser = async (userId, paths, scope = 'admin') => {
   scoped[userId] = paths;
   map[scope] = scoped;
   writeMap(map);
+  
+  // Dispatch custom event to notify sidebar to refresh
+  window.dispatchEvent(new CustomEvent('sidebarAccessUpdated', { detail: { userId, scope, paths } }));
+  
   return map;
 };
 
@@ -126,6 +130,12 @@ export const setAccessForUsers = async (userIds, paths, scope = 'admin') => {
   });
   map[scope] = scoped;
   writeMap(map);
+  
+  // Dispatch custom event to notify sidebar to refresh for all updated users
+  userIds.forEach(userId => {
+    window.dispatchEvent(new CustomEvent('sidebarAccessUpdated', { detail: { userId, scope, paths } }));
+  });
+  
   return map;
 };
 
@@ -150,7 +160,13 @@ export const getAccessForUser = async (userId, scope = 'admin') => {
       }
     }
   } catch (err) {
-    console.warn('Failed to fetch sidebar access from backend, using localStorage', err);
+    // Handle 403 Forbidden gracefully - user doesn't have permission to access this endpoint
+    // This is normal for employees trying to access their own sidebar access
+    if (err.response?.status === 403) {
+      console.log('Access denied (403) - user may not have admin role. Using localStorage fallback.');
+    } else {
+      console.warn('Failed to fetch sidebar access from backend, using localStorage', err);
+    }
   }
   
   // Fallback to localStorage
@@ -158,7 +174,10 @@ export const getAccessForUser = async (userId, scope = 'admin') => {
   const userAccess = map[scope]?.[userId];
   
   // If explicitly set, return it
-  if (userAccess !== undefined) return userAccess;
+  if (userAccess !== undefined) {
+    console.log('Using sidebar access from localStorage for user:', userId);
+    return userAccess;
+  }
   
   // Default behavior:
   // - Admin menu: empty array (all disabled) until admin enables items
@@ -166,6 +185,7 @@ export const getAccessForUser = async (userId, scope = 'admin') => {
   if (scope === 'admin') {
     return []; // Admin menu starts with all disabled
   }
+  console.log('No sidebar access found, using default (show all) for employee menu');
   return null; // Employee menu always shows all by default
 };
 

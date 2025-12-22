@@ -25,7 +25,6 @@ import {
 } from 'react-icons/fi';
 import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { API_ENDPOINTS } from '../../utils/api';
-import { getEmployeeMenuItems } from '../../components/employee-dashboard/layout/EmployeeSidebar';
 import { getAllMenuPaths, setAccessForUsers } from '../../utils/sidebarAccess';
 import { normalizeMenuOrder } from '../../utils/sidebarMenu';
 
@@ -78,10 +77,9 @@ const MasterControl = () => {
 
   // Sidebar menu structure (same as employee sidebar) - editable
   const [menuItems, setMenuItems] = useState([]);
-  const employeeMenuItemsFallback = useMemo(() => getEmployeeMenuItems(), []);
   const allPaths = useMemo(
-    () => getAllMenuPaths(menuItems.length ? menuItems : employeeMenuItemsFallback),
-    [menuItems, employeeMenuItemsFallback]
+    () => getAllMenuPaths(menuItems),
+    [menuItems]
   );
 
   const reindexMenu = (items = []) =>
@@ -141,48 +139,15 @@ const MasterControl = () => {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         let items = res.data?.items || [];
-        if (!items.length) {
-          // Fallback: convert static JSX menu into plain JSON-safe objects
-          items = employeeMenuItemsFallback.map((item, idx) => ({
-            id: `fallback-${idx}`,
-            label: item.label,
-            icon: '', // optional: map icon name if you want
-            path: item.path || '',
-            order: idx,
-            subItems: (item.subItems || []).map((sub, sIdx) => ({
-              id: `fallback-${idx}-${sIdx}`,
-              label: sub.label,
-              path: sub.path || '',
-              isSection: !!sub.isSection,
-              order: sIdx,
-              icon: '',
-            })),
-          }));
-        }
         setMenuItems(normalizeMenuOrder(items));
       } catch (err) {
         console.error('Failed to load sidebar menu for Master Control', err);
-        const items = employeeMenuItemsFallback.map((item, idx) => ({
-          id: `fallback-${idx}`,
-          label: item.label,
-          icon: '',
-          path: item.path || '',
-          order: idx,
-          subItems: (item.subItems || []).map((sub, sIdx) => ({
-            id: `fallback-${idx}-${sIdx}`,
-            label: sub.label,
-            path: sub.path || '',
-            isSection: !!sub.isSection,
-            order: sIdx,
-            icon: '',
-          })),
-        }));
-        setMenuItems(normalizeMenuOrder(items));
+        setMenuItems([]);
       }
     };
 
     loadMenu();
-  }, [token, employeeMenuItemsFallback]);
+  }, [token]);
 
   // Users affected by current master filter
   const filteredUsers = useMemo(() => {

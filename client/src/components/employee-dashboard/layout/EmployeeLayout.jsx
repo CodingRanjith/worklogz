@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import EmployeeSidebar from './EmployeeSidebar';
 import EmployeeTopNavbar from './EmployeeTopNavbar';
+import WorklogzChatbot from '../WorklogzChatbot';
 import { Outlet } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../../utils/api';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +73,9 @@ const EmployeeLayout = () => {
           <Outlet />
         </main>
       </div>
+      
+      {/* Worklogz AI Chatbot */}
+      <WorklogzChatbot currentUser={currentUser} sidebarCollapsed={sidebarCollapsed} />
     </div>
   );
 };
