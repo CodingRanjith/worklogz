@@ -68,10 +68,8 @@ const EmployeeLayout = () => {
         <EmployeeTopNavbar setSidebarOpen={setSidebarOpen} sidebarCollapsed={sidebarCollapsed} />
         
         {/* Main content - padding-top to account for fixed navbar height */}
-        <main className="flex-1 pt-16 overflow-y-auto bg-gray-50 w-full">
-          <div className="w-full h-full">
-            <Outlet />
-          </div>
+        <main className="flex-1 pt-16 overflow-y-auto bg-gray-50">
+          <Outlet />
         </main>
       </div>
     </div>

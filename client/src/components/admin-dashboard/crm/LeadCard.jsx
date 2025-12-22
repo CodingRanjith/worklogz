@@ -5,37 +5,12 @@ import { format } from 'date-fns';
 
 const DEFAULT_AVATAR = 'https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png';
 
-// Light color palette for lead cards
-const CARD_COLORS = [
-  { bg: 'bg-blue-50', border: 'border-blue-200', accent: 'text-blue-700' },
-  { bg: 'bg-purple-50', border: 'border-purple-200', accent: 'text-purple-700' },
-  { bg: 'bg-pink-50', border: 'border-pink-200', accent: 'text-pink-700' },
-  { bg: 'bg-indigo-50', border: 'border-indigo-200', accent: 'text-indigo-700' },
-  { bg: 'bg-cyan-50', border: 'border-cyan-200', accent: 'text-cyan-700' },
-  { bg: 'bg-teal-50', border: 'border-teal-200', accent: 'text-teal-700' },
-  { bg: 'bg-emerald-50', border: 'border-emerald-200', accent: 'text-emerald-700' },
-  { bg: 'bg-amber-50', border: 'border-amber-200', accent: 'text-amber-700' },
-  { bg: 'bg-orange-50', border: 'border-orange-200', accent: 'text-orange-700' },
-  { bg: 'bg-rose-50', border: 'border-rose-200', accent: 'text-rose-700' },
-  { bg: 'bg-violet-50', border: 'border-violet-200', accent: 'text-violet-700' },
-  { bg: 'bg-sky-50', border: 'border-sky-200', accent: 'text-sky-700' },
-];
-
-const getCardColor = (leadId, index) => {
-  // Use lead ID if available, otherwise use index
-  const hash = leadId ? leadId.toString().split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : index;
-  return CARD_COLORS[hash % CARD_COLORS.length];
-};
-
 const LeadCard = ({ lead, index, onEdit }) => {
   const followUpLabel = lead.followUpDate ? format(new Date(lead.followUpDate), 'MMM dd, yyyy') : 'No follow-up';
   const assignedUsersRaw = Array.isArray(lead.assignedUsers) ? lead.assignedUsers : [];
   const isCoursePipeline = lead.pipelineType === 'course';
   const isITProjectPipeline = lead.pipelineType === 'it-project';
   const isInternshipPipeline = lead.pipelineType === 'internship';
-  
-  // Get distinct color for this card
-  const cardColor = getCardColor(lead._id || lead.id, index);
 
   const fallbackUsers = [];
   if (lead.leadOwner) fallbackUsers.push(lead.leadOwner);
@@ -98,7 +73,7 @@ const LeadCard = ({ lead, index, onEdit }) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onEdit(lead)}
-          className={`group cursor-pointer rounded-xl border-2 ${cardColor.border} ${cardColor.bg} shadow-sm hover:shadow-lg transition-all transform ${snapshot.isDragging ? 'ring-2 ring-indigo-400 scale-[1.02] z-50' : 'hover:-translate-y-1 hover:scale-[1.01]'}`}
+          className={`group cursor-pointer rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition transform ${snapshot.isDragging ? 'ring-2 ring-indigo-400 scale-[1.01]' : 'hover:-translate-y-0.5'}`}
         >
           <div className="max-h-80 overflow-y-auto px-3 py-2.5 space-y-3">
             <div className="flex items-start justify-between gap-2">
@@ -108,12 +83,12 @@ const LeadCard = ({ lead, index, onEdit }) => {
                     {lead.fullName}
                   </h4>
                   {lead.leadCode && (
-                    <span className={`rounded-full ${cardColor.bg} ${cardColor.accent} border ${cardColor.border} px-2 py-0.5 text-[10px] font-semibold`}>
+                    <span className="rounded-full bg-indigo-100/80 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
                       {lead.leadCode}
                     </span>
                   )}
                 </div>
-                <p className={`text-[11px] font-medium ${cardColor.accent} uppercase tracking-wide truncate`}>
+                <p className="text-[11px] font-medium text-indigo-500 uppercase tracking-wide truncate">
                   {lead.status || 'Pending'}
                 </p>
               </div>

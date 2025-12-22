@@ -11,10 +11,10 @@ const StageColumn = ({
   onEditStage,
 }) => {
   return (
-    <div className="flex-shrink-0 w-72 sm:w-80 h-full">
-      <div className="flex flex-col h-full">
+    <div className="flex-shrink-0 w-80">
+      <div className="flex max-h-[calc(100vh-260px)] flex-col">
         <div
-          className="mb-2 flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur"
+          className="sticky top-0 z-10 mb-2 flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur"
           style={{ borderTopColor: stage.color || '#6366f1', borderTopWidth: 4 }}
         >
           <div>
@@ -44,7 +44,7 @@ const StageColumn = ({
             <div
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className={`flex-1 min-h-[120px] space-y-2 rounded-xl border border-dashed ${snapshot.isDraggingOver ? 'border-indigo-400 bg-indigo-50/50' : 'border-gray-200 bg-gray-50'} p-2 pt-3 transition overflow-y-auto`}
+              className={`min-h-[120px] flex-1 space-y-2 overflow-y-auto rounded-xl border border-dashed ${snapshot.isDraggingOver ? 'border-indigo-400 bg-indigo-50/50' : 'border-gray-200 bg-gray-50'} p-2 pt-3 transition`}
             >
               {leads.map((lead, index) => (
                 <LeadCard
