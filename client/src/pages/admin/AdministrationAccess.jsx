@@ -1,5 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
+import {
+  FiHome,
+  FiClock,
+  FiUsers,
+  FiBriefcase,
+  FiDollarSign,
+  FiCalendar,
+  FiFolder,
+  FiShoppingCart,
+  FiPieChart,
+  FiBookOpen,
+  FiTarget,
+  FiMessageCircle,
+  FiActivity,
+  FiShield,
+  FiZap,
+  FiCode,
+  FiSettings,
+  FiBarChart2,
+  FiFileText,
+} from 'react-icons/fi';
 import { API_ENDPOINTS } from '../../utils/api';
 import { getEmployeeMenuItems } from '../../components/employee-dashboard/layout/EmployeeSidebar';
 import {
@@ -7,6 +28,43 @@ import {
   getAllMenuPaths,
   setAccessForUsers
 } from '../../utils/sidebarAccess';
+import { normalizeMenuOrder } from '../../utils/sidebarMenu';
+
+// Icon map for resolving icon strings to components
+const ICON_MAP = {
+  FiHome,
+  FiClock,
+  FiUsers,
+  FiBriefcase,
+  FiDollarSign,
+  FiCalendar,
+  FiFolder,
+  FiShoppingCart,
+  FiPieChart,
+  FiBookOpen,
+  FiTarget,
+  FiMessageCircle,
+  FiActivity,
+  FiShield,
+  FiZap,
+  FiCode,
+  FiSettings,
+  FiBarChart2,
+  FiFileText,
+};
+
+// Helper to get icon component from string or component
+const getIconComponent = (icon) => {
+  if (!icon) return null;
+  // If it's already a React component/element, return it
+  if (React.isValidElement(icon)) return icon;
+  // If it's a string, find the matching icon component
+  if (typeof icon === 'string') {
+    const IconComp = ICON_MAP[icon];
+    return IconComp || null;
+  }
+  return null;
+};
 
 const AdministrationAccess = () => {
   const token = localStorage.getItem('token');
@@ -21,12 +79,16 @@ const AdministrationAccess = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const scope = 'employee'; // Only employee menu now
-  const employeeMenuItems = useMemo(() => getEmployeeMenuItems(), []);
-  const allPaths = useMemo(
-    () => getAllMenuPaths(employeeMenuItems),
-    [employeeMenuItems]
+  const [menuItems, setMenuItems] = useState([]);
+  const employeeMenuItemsFallback = useMemo(
+    () => normalizeMenuOrder(getEmployeeMenuItems()),
+    []
   );
-  const currentMenuItems = employeeMenuItems;
+  const allPaths = useMemo(
+    () => getAllMenuPaths(menuItems.length ? menuItems : employeeMenuItemsFallback),
+    [menuItems, employeeMenuItemsFallback]
+  );
+  const currentMenuItems = menuItems.length ? menuItems : employeeMenuItemsFallback;
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -45,6 +107,28 @@ const AdministrationAccess = () => {
 
     fetchUsers();
   }, [token]);
+
+  // Load sidebar menu so ordering matches Master Control
+  useEffect(() => {
+    const loadMenu = async () => {
+      try {
+        const res = await axios.get(API_ENDPOINTS.getSidebarMenu(scope), {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const items = res.data?.items || [];
+        if (items.length) {
+          setMenuItems(normalizeMenuOrder(items));
+        } else {
+          setMenuItems([]);
+        }
+      } catch (err) {
+        console.error('Failed to load sidebar menu for access control', err);
+        setMenuItems([]);
+      }
+    };
+
+    loadMenu();
+  }, [scope, token]);
 
   // Load access map on mount
   useEffect(() => {
@@ -382,7 +466,14 @@ const AdministrationAccess = () => {
                 <div key={item.label} className="border rounded-lg p-5 bg-gray-50">
                   <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
                     <div className="flex items-center gap-3">
-                      <span className="text-xl">{item.icon}</span>
+                      {(() => {
+                        const IconComponent = getIconComponent(item.icon);
+                        return IconComponent ? (
+                          <span className="text-xl text-gray-700">
+                            <IconComponent />
+                          </span>
+                        ) : null;
+                      })()}
                       <div>
                         <h4 className="font-semibold text-gray-800 text-lg">{item.label}</h4>
                         <p className="text-xs text-gray-500 mt-0.5">
@@ -471,16 +562,23 @@ const AdministrationAccess = () => {
                       if (el) el.indeterminate = pathState.indeterminate;
                     }}
                     onChange={() => togglePath(item.path)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <div className="flex items-center gap-3 flex-1">
-                    <span className="text-xl">{item.icon}</span>
-                    <span className={`text-sm font-medium ${
-                      pathState.checked ? 'text-gray-900' : 'text-gray-700'
-                    }`}>
-                      {item.label}
-                    </span>
-                  </div>
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <div className="flex items-center gap-3 flex-1">
+                  {(() => {
+                    const IconComponent = getIconComponent(item.icon);
+                    return IconComponent ? (
+                      <span className="text-xl text-gray-700">
+                        <IconComponent />
+                      </span>
+                    ) : null;
+                  })()}
+                  <span className={`text-sm font-medium ${
+                    pathState.checked ? 'text-gray-900' : 'text-gray-700'
+                  }`}>
+                    {item.label}
+                  </span>
+                </div>
                 </label>
               </div>
             );

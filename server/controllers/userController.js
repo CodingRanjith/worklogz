@@ -13,9 +13,7 @@ const CRMLead = require('../models/CRMLead');
 const DailyEarningTransaction = require('../models/DailyEarningTransaction');
 const SalaryHistory = require('../models/SalaryHistory');
 const Payslip = require('../models/Payslip');
-
-
-const EMPLOYEE_ID_PREFIX = 'THC';
+const CompanySettings = require('../models/CompanySettings');
 
 const parseEmployeeNumber = (value = '') => {
   if (!value) return 0;
@@ -23,9 +21,20 @@ const parseEmployeeNumber = (value = '') => {
   return digits ? parseInt(digits, 10) : 0;
 };
 
-const formatEmployeeIdFromNumber = (value) => {
+const getEmployeeIdPrefix = async () => {
+  try {
+    const settings = await CompanySettings.findOne();
+    return settings?.employeeIdPrefix || 'THC';
+  } catch (error) {
+    console.error('Error fetching employee ID prefix from company settings:', error);
+    return 'THC'; // Fallback to default
+  }
+};
+
+const formatEmployeeIdFromNumber = async (value) => {
   const safeNumber = Number.isFinite(value) && value > 0 ? value : 1;
-  return `${EMPLOYEE_ID_PREFIX}${safeNumber.toString().padStart(3, '0')}`;
+  const prefix = await getEmployeeIdPrefix();
+  return `${prefix}${safeNumber.toString().padStart(3, '0')}`;
 };
 
 const getNextEmployeeIdValue = async () => {
@@ -39,7 +48,7 @@ const getNextEmployeeIdValue = async () => {
     return numeric > max ? numeric : max;
   }, 0);
 
-  return formatEmployeeIdFromNumber(maxNumeric + 1);
+  return await formatEmployeeIdFromNumber(maxNumeric + 1);
 };
 
 const sanitizeArrayField = (value) => {
@@ -73,7 +82,8 @@ const sanitizeBankDetails = (details) => {
 const userController = {
   getAllUsers: async (req, res) => {
     try {
-      const users = await User.find( { name: { $ne: "Admin" } },{
+      // Exclude archived users by default
+      const users = await User.find( { name: { $ne: "Admin" }, isDeleted: { $ne: true } },{
          
         name: 1,
         email: 1,
@@ -352,23 +362,140 @@ const userController = {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      await Promise.all([
-        Task.deleteMany({ user: id }),
-        WorkCard.deleteMany({ createdBy: id }),
-        Schedule.deleteOne({ user: id }),
-        Attendance.deleteMany({ user: id }),
-        LeaveRequest.deleteMany({ user: id }),
-        CRMLead.deleteMany({ createdBy: id }),
-        CRMLead.updateMany({ leadOwner: id }, { $set: { leadOwner: null } }),
-        CRMLead.updateMany({ assignedUsers: id }, { $pull: { assignedUsers: id } }),
-      ]);
+      if (user.isDeleted) {
+        return res.status(400).json({ error: 'User is already archived' });
+      }
 
-      await User.findByIdAndDelete(id);
+      // Archive user instead of hard delete
+      console.log(`Archiving user: ${user.name} (${user._id})`);
+      console.log(`Before archive - isDeleted: ${user.isDeleted}, isActive: ${user.isActive}`);
+      
+      user.isDeleted = true;
+      user.deletedAt = new Date();
+      user.isActive = false; // Also deactivate the user
+      
+      const savedUser = await user.save();
+      
+      console.log(`After save - isDeleted: ${savedUser.isDeleted}, deletedAt: ${savedUser.deletedAt}, isActive: ${savedUser.isActive}`);
+      
+      // Verify the save worked by querying the database
+      const verifyUser = await User.findById(user._id);
+      console.log(`Verification - Found user in DB: ${verifyUser ? 'Yes' : 'No'}, isDeleted: ${verifyUser?.isDeleted}, deletedAt: ${verifyUser?.deletedAt}`);
 
-      res.json({ message: 'User and related data deleted successfully' });
+      res.json({ 
+        message: 'User has been archived successfully',
+        user: {
+          id: savedUser._id,
+          name: savedUser.name,
+          isDeleted: savedUser.isDeleted,
+          deletedAt: savedUser.deletedAt,
+          isActive: savedUser.isActive
+        }
+      });
     } catch (error) {
-      console.error('Error deleting user:', error);
-      res.status(500).json({ error: 'Failed to delete user' });
+      console.error('Error archiving user:', error);
+      res.status(500).json({ error: 'Failed to archive user' });
+    }
+  },
+
+  // Get archived users
+  getArchivedUsers: async (req, res) => {
+    try {
+      console.log('=== Fetching archived users ===');
+      
+      // Try multiple query approaches to find archived users
+      // First, try explicit isDeleted: true
+      let users = await User.find({ 
+        name: { $ne: "Admin" },
+        isDeleted: true 
+      }).select({
+        name: 1,
+        email: 1,
+        role: 1,
+        phone: 1,
+        position: 1,
+        company: 1,
+        employeeId: 1,
+        salary: 1,
+        department: 1,
+        qualification: 1,
+        dateOfJoining: 1,
+        isActive: 1,
+        profilePic: 1,
+        skills: 1,
+        rolesAndResponsibility: 1,
+        bankDetails: 1,
+        deletedAt: 1,
+        isDeleted: 1,
+        createdAt: 1,
+        updatedAt: 1
+      }).sort({ deletedAt: -1, updatedAt: -1 });
+
+      console.log(`Found ${users.length} archived users with isDeleted: true`);
+
+      // Debug: Check all users and their isDeleted status
+      const allUsers = await User.find({ name: { $ne: "Admin" } }).select('name email isDeleted deletedAt isActive');
+      console.log(`Total users in database (excluding Admin): ${allUsers.length}`);
+      
+      const deletedUsers = allUsers.filter(u => u.isDeleted === true);
+      const inactiveUsers = allUsers.filter(u => u.isActive === false && u.isDeleted !== true);
+      
+      console.log(`Users with isDeleted: true: ${deletedUsers.length}`);
+      console.log(`Inactive users (not deleted): ${inactiveUsers.length}`);
+      
+      if (deletedUsers.length > 0) {
+        console.log('Deleted users found:', deletedUsers.map(u => ({
+          name: u.name,
+          email: u.email,
+          isDeleted: u.isDeleted,
+          deletedAt: u.deletedAt,
+          isActive: u.isActive
+        })));
+      }
+
+      // If we found users, return them
+      if (users && users.length > 0) {
+        console.log('Returning archived users:', users.length);
+        return res.json(users);
+      }
+
+      // If no users found, return empty array (not an error)
+      console.log('No archived users found, returning empty array');
+      return res.json([]);
+      
+    } catch (error) {
+      console.error('Error fetching archived users:', error);
+      console.error('Error stack:', error.stack);
+      return res.status(500).json({ 
+        error: 'Failed to fetch archived users',
+        details: error.message 
+      });
+    }
+  },
+
+  // Restore archived user
+  restoreUser: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await User.findById(id);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      if (!user.isDeleted) {
+        return res.status(400).json({ error: 'User is not archived' });
+      }
+
+      // Restore user
+      user.isDeleted = false;
+      user.deletedAt = null;
+      user.isActive = true; // Reactivate the user
+      await user.save();
+
+      res.json({ message: 'User has been restored successfully', user });
+    } catch (error) {
+      console.error('Error restoring user:', error);
+      res.status(500).json({ error: 'Failed to restore user' });
     }
   },
 

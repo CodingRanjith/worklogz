@@ -18,9 +18,22 @@ const BankDetailsSchema = new mongoose.Schema({
 
 const formatEmployeeId = (value) => {
   if (!value) return value;
-  const digitsOnly = value.toString().replace(/\D/g, '');
+  const strValue = value.toString().trim();
+  
+  // If it already has a prefix pattern (e.g., "ABC123"), preserve it
+  const prefixMatch = strValue.match(/^([A-Z]+)(\d+)$/i);
+  if (prefixMatch) {
+    const prefix = prefixMatch[1].toUpperCase();
+    const digits = prefixMatch[2];
+    const normalized = digits.replace(/^0+/, '') || '0';
+    const padded = normalized.padStart(3, '0');
+    return `${prefix}${padded}`;
+  }
+  
+  // If it's just digits, use default prefix (for backward compatibility)
+  const digitsOnly = strValue.replace(/\D/g, '');
   if (!digitsOnly) {
-    return value.toString().trim();
+    return strValue;
   }
   const normalized = digitsOnly.replace(/^0+/, '') || '0';
   const padded = normalized.padStart(3, '0');
@@ -117,6 +130,15 @@ const UserSchema = new mongoose.Schema({
       admin: [],
       employee: []
     }
+  },
+  
+  // Soft delete fields
+  isDeleted: {
+    type: Boolean,
+    default: false
+  },
+  deletedAt: {
+    type: Date
   }
 
 }, {

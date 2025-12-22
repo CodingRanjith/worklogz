@@ -4,17 +4,22 @@ import { API_ENDPOINTS } from '../../utils/api';
 import EditUser from '../../components/admin-dashboard/allusers/EditUser';
 import CreateUser from '../../components/admin-dashboard/allusers/CreateUser';
 import ViewUserDetails from '../../components/admin-dashboard/allusers/ViewUserDetails';
-import { FiSearch, FiFilter, FiUsers, FiX, FiPlus, FiEdit2, FiTrash2, FiHome, FiBriefcase, FiEye, FiDownload } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiUsers, FiX, FiPlus, FiEdit2, FiHome, FiBriefcase, FiEye, FiDownload, FiArchive, FiRotateCw } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import { useCustomFields } from '../../hooks/useCustomFields';
+import jsPDF from 'jspdf';
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
+  const [archivedUsers, setArchivedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [archivedLoading, setArchivedLoading] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
   const [deletingUserId, setDeletingUserId] = useState(null);
+  const [restoringUserId, setRestoringUserId] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [viewingUserId, setViewingUserId] = useState(null);
+  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'archived'
   
   // Filter and search states
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,15 +69,60 @@ const AllUsers = () => {
     }
   };
 
-  const handleDeleteUser = async (userId, name) => {
+  const fetchArchivedUsers = async () => {
+    try {
+      setArchivedLoading(true);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+      
+      console.log('Fetching archived users from:', API_ENDPOINTS.getArchivedUsers);
+      const res = await axios.get(API_ENDPOINTS.getArchivedUsers, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      console.log('Archived users response:', res.data);
+      setArchivedUsers(res.data || []);
+      
+      if (!res.data || res.data.length === 0) {
+        console.log('No archived users found');
+      }
+    } catch (error) {
+      console.error('Failed to fetch archived users:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: API_ENDPOINTS.getArchivedUsers
+      });
+      
+      // Don't show error if it's just an empty list
+      if (error.response?.status !== 404) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.error || error.message || 'Failed to fetch archived users. Please try again.',
+          footer: `Status: ${error.response?.status || 'Unknown'}`
+        });
+      } else {
+        // 404 means no archived users, which is fine
+        setArchivedUsers([]);
+      }
+    } finally {
+      setArchivedLoading(false);
+    }
+  };
+
+  const handleArchiveUser = async (userId, name) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: `Do you want to permanently delete ${name || 'this user'}? This action cannot be undone.`,
-      icon: 'warning',
+      title: 'Archive Employee?',
+      text: `Do you want to archive ${name || 'this employee'}? They will be moved to the archived list and can be restored later.`,
+      icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: 'Yes, archive it!',
       cancelButtonText: 'Cancel'
     });
 
@@ -81,22 +131,65 @@ const AllUsers = () => {
     try {
       setDeletingUserId(userId);
       const token = localStorage.getItem('token');
-      await axios.delete(API_ENDPOINTS.deleteUser(userId), {
+      const response = await axios.delete(API_ENDPOINTS.deleteUser(userId), {
         headers: { Authorization: `Bearer ${token}` },
       });
+      
+      console.log('Archive response:', response.data);
+      
+      // Refresh both lists
       await fetchUsers();
-      Swal.fire('Deleted!', 'User has been deleted successfully.', 'success');
+      await fetchArchivedUsers();
+      
+      Swal.fire('Archived!', 'Employee has been archived successfully.', 'success');
     } catch (error) {
-      console.error('Failed to delete user:', error);
-      Swal.fire('Error', 'Failed to delete user. Please try again.', 'error');
+      console.error('Failed to archive user:', error);
+      Swal.fire('Error', 'Failed to archive employee. Please try again.', 'error');
     } finally {
       setDeletingUserId(null);
     }
   };
 
+  const handleRestoreUser = async (userId, name) => {
+    const result = await Swal.fire({
+      title: 'Restore Employee?',
+      text: `Do you want to restore ${name || 'this employee'}? They will be moved back to the active employee list.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, restore it!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setRestoringUserId(userId);
+      const token = localStorage.getItem('token');
+      await axios.post(API_ENDPOINTS.restoreUser(userId), {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await fetchArchivedUsers();
+      if (activeTab === 'active') {
+        await fetchUsers();
+      }
+      Swal.fire('Restored!', 'Employee has been restored successfully.', 'success');
+    } catch (error) {
+      console.error('Failed to restore user:', error);
+      Swal.fire('Error', 'Failed to restore employee. Please try again.', 'error');
+    } finally {
+      setRestoringUserId(null);
+    }
+  };
+
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (activeTab === 'active') {
+      fetchUsers();
+    } else if (activeTab === 'archived') {
+      fetchArchivedUsers();
+    }
+  }, [activeTab]);
 
   // Get unique departments and roles - use custom fields if available, otherwise from users
   const departments = useMemo(() => {
@@ -130,7 +223,8 @@ const AllUsers = () => {
 
   // Filter users based on search, role, and department
   const filteredUsers = useMemo(() => {
-    return users.filter(user => {
+    const userList = activeTab === 'active' ? users : archivedUsers;
+    return userList.filter(user => {
       const matchesSearch = 
         !searchQuery ||
         user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -144,39 +238,41 @@ const AllUsers = () => {
 
       return matchesSearch && matchesRole && matchesDepartment;
     });
-  }, [users, searchQuery, selectedRole, selectedDepartment]);
+  }, [users, archivedUsers, activeTab, searchQuery, selectedRole, selectedDepartment]);
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const total = users.length;
-    const byRole = users.reduce((acc, user) => {
+    const userList = activeTab === 'active' ? users : archivedUsers;
+    const total = userList.length;
+    const byRole = userList.reduce((acc, user) => {
       const role = user.role || 'employee';
       acc[role] = (acc[role] || 0) + 1;
       return acc;
     }, {});
-    const byDepartment = users.reduce((acc, user) => {
+    const byDepartment = userList.reduce((acc, user) => {
       const dept = user.department || 'Unassigned';
       acc[dept] = (acc[dept] || 0) + 1;
       return acc;
     }, {});
-    const byCompany = users.reduce((acc, user) => {
+    const byCompany = userList.reduce((acc, user) => {
       const company = user.company || 'Unassigned';
       acc[company] = (acc[company] || 0) + 1;
       return acc;
     }, {});
 
     return { total, byRole, byDepartment, byCompany };
-  }, [users]);
+  }, [users, archivedUsers, activeTab]);
 
   // Get unique companies
   const companies = useMemo(() => {
-    const comps = users
+    const userList = activeTab === 'active' ? users : archivedUsers;
+    const comps = userList
       .map(user => user.company)
       .filter(Boolean)
       .filter((comp, index, self) => self.indexOf(comp) === index)
       .sort();
     return comps;
-  }, [users]);
+  }, [users, archivedUsers, activeTab]);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -194,52 +290,157 @@ const AllUsers = () => {
 
   const handleDownloadUser = async (user) => {
     try {
-      const content = `
-EMPLOYEE DETAILS
-================
+      // Create new PDF document
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      let yPosition = 20;
+      const margin = 20;
+      const lineHeight = 7;
+      const sectionSpacing = 5;
 
-Personal Information:
-- Name: ${user.name || 'N/A'}
-- Email: ${user.email || 'N/A'}
-- Phone: ${user.phone || 'N/A'}
-- Employee ID: ${user.employeeId || 'N/A'}
+      // Set font styles
+      doc.setFontSize(18);
+      doc.setFont(undefined, 'bold');
+      doc.text('EMPLOYEE DETAILS', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 10;
 
-Work Information:
-- Position: ${user.position || 'N/A'}
-- Department: ${user.department || 'N/A'}
-- Company: ${user.company || 'N/A'}
-- Role: ${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'N/A'}
-- Date of Joining: ${formatDate(user.dateOfJoining)}
-- Qualification: ${user.qualification || 'N/A'}
-- Salary: ${user.salary ? `₹${user.salary.toLocaleString()}` : 'N/A'}
+      // Draw a line
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += sectionSpacing + 5;
 
-Skills:
-${user.skills && user.skills.length > 0 ? user.skills.map(skill => `- ${skill}`).join('\n') : 'N/A'}
+      // Personal Information Section
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Personal Information', margin, yPosition);
+      yPosition += lineHeight;
 
-Roles & Responsibilities:
-${user.rolesAndResponsibility && user.rolesAndResponsibility.length > 0 ? user.rolesAndResponsibility.map(role => `- ${role}`).join('\n') : 'N/A'}
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Name: ${user.name || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Email: ${user.email || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Phone: ${user.phone || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Employee ID: ${user.employeeId || 'N/A'}`, margin, yPosition);
+      yPosition += sectionSpacing + 5;
 
-Banking Details:
-- Bank Name: ${user.bankDetails?.bankingName || 'N/A'}
-- Account Number: ${user.bankDetails?.bankAccountNumber || 'N/A'}
-- IFSC Code: ${user.bankDetails?.ifscCode || 'N/A'}
-- UPI ID: ${user.bankDetails?.upiId || 'N/A'}
+      // Work Information Section
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Work Information', margin, yPosition);
+      yPosition += lineHeight;
 
-Status: ${user.isActive ? 'Active' : 'Inactive'}
-Generated on: ${new Date().toLocaleString()}
-      `.trim();
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Position: ${user.position || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Department: ${user.department || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Company: ${user.company || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Role: ${user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Date of Joining: ${formatDate(user.dateOfJoining)}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Qualification: ${user.qualification || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Salary: ${user.salary ? `₹${user.salary.toLocaleString()}` : 'N/A'}`, margin, yPosition);
+      yPosition += sectionSpacing + 5;
 
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${user.name || 'Employee'}_Details_${user.employeeId || Date.now()}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // Skills Section
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Skills', margin, yPosition);
+      yPosition += lineHeight;
 
-      Swal.fire('Success', 'Employee details downloaded successfully', 'success');
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      if (user.skills && user.skills.length > 0) {
+        user.skills.forEach(skill => {
+          if (yPosition > pageHeight - 30) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(`• ${skill}`, margin + 5, yPosition);
+          yPosition += lineHeight;
+        });
+      } else {
+        doc.text('N/A', margin + 5, yPosition);
+        yPosition += lineHeight;
+      }
+      yPosition += sectionSpacing;
+
+      // Roles & Responsibilities Section
+      if (yPosition > pageHeight - 40) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Roles & Responsibilities', margin, yPosition);
+      yPosition += lineHeight;
+
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      if (user.rolesAndResponsibility && user.rolesAndResponsibility.length > 0) {
+        user.rolesAndResponsibility.forEach(role => {
+          if (yPosition > pageHeight - 30) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          doc.text(`• ${role}`, margin + 5, yPosition);
+          yPosition += lineHeight;
+        });
+      } else {
+        doc.text('N/A', margin + 5, yPosition);
+        yPosition += lineHeight;
+      }
+      yPosition += sectionSpacing + 5;
+
+      // Banking Details Section
+      if (yPosition > pageHeight - 50) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.text('Banking Details', margin, yPosition);
+      yPosition += lineHeight;
+
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      doc.text(`Bank Name: ${user.bankDetails?.bankingName || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Account Number: ${user.bankDetails?.bankAccountNumber || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`IFSC Code: ${user.bankDetails?.ifscCode || 'N/A'}`, margin, yPosition);
+      yPosition += lineHeight;
+      doc.text(`UPI ID: ${user.bankDetails?.upiId || 'N/A'}`, margin, yPosition);
+      yPosition += sectionSpacing + 10;
+
+      // Status and Footer
+      if (yPosition > pageHeight - 30) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Status: ${user.isActive ? 'Active' : 'Inactive'}`, margin, yPosition);
+      yPosition += lineHeight + 5;
+      
+      doc.setFontSize(9);
+      doc.setFont(undefined, 'italic');
+      doc.setTextColor(128, 128, 128);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, margin, yPosition);
+
+      // Save the PDF
+      const fileName = `${user.name || 'Employee'}_Details_${user.employeeId || Date.now()}.pdf`;
+      doc.save(fileName);
+
+      Swal.fire('Success', 'Employee details downloaded as PDF successfully', 'success');
     } catch (error) {
       console.error('Failed to download employee details:', error);
       Swal.fire('Error', 'Failed to download employee details', 'error');
@@ -254,7 +455,9 @@ Generated on: ${new Date().toLocaleString()}
 
   const hasActiveFilters = searchQuery || selectedRole !== 'all' || selectedDepartment !== 'all';
 
-  if (loading && !deletingUserId) {
+  const isLoading = activeTab === 'active' ? loading : archivedLoading;
+
+  if (isLoading && !deletingUserId && !restoringUserId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -274,6 +477,31 @@ Generated on: ${new Date().toLocaleString()}
         <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
               <p className="text-gray-600">Manage employees, update profiles, or onboard new teammates</p>
+        </div>
+        
+        {/* Tabs */}
+        <div className="flex gap-2 mb-4 border-b border-gray-200">
+          <button
+            onClick={() => setActiveTab('active')}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'active'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Active Employees ({users.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('archived')}
+            className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+              activeTab === 'archived'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <FiArchive className="inline mr-1" size={14} />
+            Archived ({archivedUsers.length})
+          </button>
         </div>
         <button
           type="button"
@@ -431,7 +659,7 @@ Generated on: ${new Date().toLocaleString()}
 
         {/* Results Count */}
         <div className="mt-4 text-sm text-gray-600">
-          Showing <span className="font-semibold text-gray-900">{filteredUsers.length}</span> of <span className="font-semibold text-gray-900">{users.length}</span> employees
+          Showing <span className="font-semibold text-gray-900">{filteredUsers.length}</span> of <span className="font-semibold text-gray-900">{activeTab === 'active' ? users.length : archivedUsers.length}</span> {activeTab === 'active' ? 'employees' : 'archived employees'}
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
@@ -447,14 +675,18 @@ Generated on: ${new Date().toLocaleString()}
       <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {filteredUsers.length === 0 ? (
           <div className="p-12 text-center">
-            <FiUsers className="mx-auto text-gray-400 mb-4" size={48} />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No employees found</h3>
+            <FiArchive className="mx-auto text-gray-400 mb-4" size={48} />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {activeTab === 'archived' ? 'No archived employees found' : 'No employees found'}
+            </h3>
             <p className="text-gray-600 mb-4">
-              {hasActiveFilters 
-                ? 'Try adjusting your filters or search query.' 
-                : 'Get started by creating your first employee.'}
+              {activeTab === 'archived' 
+                ? 'There are no archived employees. Employees will appear here after they are archived.'
+                : hasActiveFilters 
+                  ? 'Try adjusting your filters or search query.' 
+                  : 'Get started by creating your first employee.'}
             </p>
-            {!hasActiveFilters && (
+            {!hasActiveFilters && activeTab === 'active' && (
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -503,6 +735,11 @@ Generated on: ${new Date().toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 font-mono">{user.employeeId || 'N/A'}</div>
+                      {activeTab === 'archived' && user.deletedAt && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Archived: {formatDate(user.deletedAt)}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{user.position || 'N/A'}</div>
@@ -549,18 +786,33 @@ Generated on: ${new Date().toLocaleString()}
                         >
                           <FiEdit2 size={18} />
                         </button>
-                        <button
-                          onClick={() => handleDeleteUser(user._id, user.name)}
-                          disabled={deletingUserId === user._id}
-                          className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          title="Delete User"
-                        >
-                          {deletingUserId === user._id ? (
-                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-red-600"></div>
-                          ) : (
-                            <FiTrash2 size={18} />
-                          )}
-                        </button>
+                        {activeTab === 'active' ? (
+                          <button
+                            onClick={() => handleArchiveUser(user._id, user.name)}
+                            disabled={deletingUserId === user._id}
+                            className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Archive Employee"
+                          >
+                            {deletingUserId === user._id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-red-600"></div>
+                            ) : (
+                              <FiArchive size={18} />
+                            )}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleRestoreUser(user._id, user.name)}
+                            disabled={restoringUserId === user._id}
+                            className="text-green-600 hover:text-green-900 p-2 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Restore Employee"
+                          >
+                            {restoringUserId === user._id ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-green-600"></div>
+                            ) : (
+                              <FiRotateCw size={18} />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

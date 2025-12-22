@@ -21,10 +21,13 @@ import {
   FiSettings,
   FiBarChart2,
   FiFileText,
+  FiMove,
 } from 'react-icons/fi';
+import { DragDropContext, Draggable, Droppable } from '@hello-pangea/dnd';
 import { API_ENDPOINTS } from '../../utils/api';
 import { getEmployeeMenuItems } from '../../components/employee-dashboard/layout/EmployeeSidebar';
 import { getAllMenuPaths, setAccessForUsers } from '../../utils/sidebarAccess';
+import { normalizeMenuOrder } from '../../utils/sidebarMenu';
 
 const ICON_OPTIONS = [
   { value: '', label: 'No icon', Icon: null },
@@ -49,6 +52,19 @@ const ICON_OPTIONS = [
   { value: 'FiFileText', label: 'Reports / Docs', Icon: FiFileText },
 ];
 
+// Helper to get icon component from string or component
+const getIconComponent = (icon) => {
+  if (!icon) return null;
+  // If it's already a React component/element, return it
+  if (React.isValidElement(icon)) return icon;
+  // If it's a string, find the matching icon component
+  if (typeof icon === 'string') {
+    const iconOption = ICON_OPTIONS.find((opt) => opt.value === icon);
+    return iconOption?.Icon || null;
+  }
+  return null;
+};
+
 const MasterControl = () => {
   const token = localStorage.getItem('token');
 
@@ -67,6 +83,18 @@ const MasterControl = () => {
     () => getAllMenuPaths(menuItems.length ? menuItems : employeeMenuItemsFallback),
     [menuItems, employeeMenuItemsFallback]
   );
+
+  const reindexMenu = (items = []) =>
+    normalizeMenuOrder(
+      items.map((item, idx) => ({
+        ...item,
+        order: idx,
+        subItems: (item.subItems || []).map((sub, sIdx) => ({
+          ...sub,
+          order: typeof sub.order === 'number' ? sub.order : sIdx,
+        })),
+      }))
+    );
 
   // Master template paths for current filter (what should be visible)
   const [segmentPaths, setSegmentPaths] = useState(allPaths);
@@ -131,7 +159,7 @@ const MasterControl = () => {
             })),
           }));
         }
-        setMenuItems(items);
+        setMenuItems(normalizeMenuOrder(items));
       } catch (err) {
         console.error('Failed to load sidebar menu for Master Control', err);
         const items = employeeMenuItemsFallback.map((item, idx) => ({
@@ -149,7 +177,7 @@ const MasterControl = () => {
             icon: '',
           })),
         }));
-        setMenuItems(items);
+        setMenuItems(normalizeMenuOrder(items));
       }
     };
 
@@ -232,21 +260,23 @@ const MasterControl = () => {
 
   // -------- Sidebar menu CRUD helpers --------
   const handleAddCategory = () => {
-    setMenuItems((prev) => [
-      ...prev,
-      {
-        id: `new-${Date.now()}-${prev.length}`,
-        label: 'New Category',
-        icon: '',
-        path: '',
-        order: prev.length,
-        subItems: [],
-      },
-    ]);
+    setMenuItems((prev) =>
+      reindexMenu([
+        ...prev,
+        {
+          id: `new-${Date.now()}-${prev.length}`,
+          label: 'New Category',
+          icon: '',
+          path: '',
+          order: prev.length,
+          subItems: [],
+        },
+      ])
+    );
   };
 
   const handleDeleteCategory = (index) => {
-    setMenuItems((prev) => prev.filter((_, i) => i !== index));
+    setMenuItems((prev) => reindexMenu(prev.filter((_, i) => i !== index)));
   };
 
   const handleCategoryChange = (index, field, value) => {
@@ -257,52 +287,102 @@ const MasterControl = () => {
 
   const handleAddSubItem = (categoryIndex) => {
     setMenuItems((prev) =>
-      prev.map((item, i) =>
-        i === categoryIndex
-          ? {
-              ...item,
-              subItems: [
-                ...(item.subItems || []),
-                {
-                  label: 'New Item',
-                  path: '/new-path',
-                  isSection: false,
-                  order: (item.subItems || []).length,
-                  icon: '',
-                },
-              ],
-            }
-          : item
+      reindexMenu(
+        prev.map((item, i) =>
+          i === categoryIndex
+            ? {
+                ...item,
+                subItems: [
+                  ...(item.subItems || []),
+                  {
+                    label: 'New Item',
+                    path: '/new-path',
+                    isSection: false,
+                    order: (item.subItems || []).length,
+                    icon: '',
+                  },
+                ],
+              }
+            : item
+        )
       )
     );
   };
 
   const handleSubItemChange = (categoryIndex, subIndex, field, value) => {
     setMenuItems((prev) =>
-      prev.map((item, i) => {
-        if (i !== categoryIndex) return item;
-        const updatedSubItems = (item.subItems || []).map((sub, si) =>
-          si === subIndex ? { ...sub, [field]: value } : sub
-        );
-        return { ...item, subItems: updatedSubItems };
-      })
+      reindexMenu(
+        prev.map((item, i) => {
+          if (i !== categoryIndex) return item;
+          const updatedSubItems = (item.subItems || []).map((sub, si) =>
+            si === subIndex
+              ? {
+                  ...sub,
+                  [field]: field === 'isSection' ? !!value : value,
+                  path: field === 'isSection' && value ? '#' : sub.path,
+                }
+              : sub
+          );
+          return { ...item, subItems: updatedSubItems };
+        })
+      )
     );
   };
 
   const handleDeleteSubItem = (categoryIndex, subIndex) => {
     setMenuItems((prev) =>
-      prev.map((item, i) => {
-        if (i !== categoryIndex) return item;
-        const updatedSubItems = (item.subItems || []).filter((_, si) => si !== subIndex);
-        return { ...item, subItems: updatedSubItems };
-      })
+      reindexMenu(
+        prev.map((item, i) => {
+          if (i !== categoryIndex) return item;
+          const updatedSubItems = (item.subItems || []).filter((_, si) => si !== subIndex);
+          return { ...item, subItems: updatedSubItems };
+        })
+      )
     );
+  };
+
+  // Drag & drop ordering
+  const handleDragEnd = (result) => {
+    const { source, destination, type } = result;
+    if (!destination) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    if (type === 'CATEGORY') {
+      const updated = Array.from(menuItems);
+      const [moved] = updated.splice(source.index, 1);
+      updated.splice(destination.index, 0, moved);
+      const reindexed = updated.map((item, idx) => ({ ...item, order: idx }));
+      setMenuItems(normalizeMenuOrder(reindexed));
+      return;
+    }
+
+    if (type === 'SUBITEM') {
+      const sourceCat = parseInt(source.droppableId.replace('sub-', ''), 10);
+      const destCat = parseInt(destination.droppableId.replace('sub-', ''), 10);
+      if (Number.isNaN(sourceCat) || Number.isNaN(destCat) || sourceCat !== destCat) return;
+
+      const updated = Array.from(menuItems);
+      const targetCategory = updated[sourceCat];
+      if (!targetCategory) return;
+
+      const subItems = Array.from(targetCategory.subItems || []);
+      const [movedSub] = subItems.splice(source.index, 1);
+      subItems.splice(destination.index, 0, movedSub);
+
+      updated[sourceCat] = {
+        ...targetCategory,
+        subItems: subItems.map((sub, idx) => ({ ...sub, order: idx })),
+      };
+
+      setMenuItems(normalizeMenuOrder(updated));
+    }
   };
 
   const handleSaveSidebarStructure = async () => {
     try {
+      const orderedMenu = normalizeMenuOrder(menuItems);
       // Strip any non‑JSON data (just to be safe)
-      const payloadItems = menuItems.map((item, idx) => ({
+      const payloadItems = orderedMenu.map((item, idx) => ({
         label: item.label,
         icon: item.icon || '',
         path: item.path || '',
@@ -408,220 +488,305 @@ const MasterControl = () => {
           </div>
         </div>
 
-        <div className="space-y-6 mt-4">
-          {menuItems.map((item, categoryIndex) => {
-            if (item.subItems) {
-              const categoryPaths = item.subItems
-                .filter((sub) => !sub.isSection && sub.path !== '#')
-                .map((sub) => sub.path);
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="categories" type="CATEGORY">
+            {(provided) => (
+              <div
+                className="space-y-6 mt-4"
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+              >
+                {menuItems.map((item, categoryIndex) => {
+                  if (item.subItems) {
+                    const normalizedSubItems = normalizeMenuOrder(item.subItems || []);
+                    const categoryPaths = normalizedSubItems
+                      .filter((sub) => !sub.isSection && sub.path && sub.path !== '#')
+                      .map((sub) => sub.path);
 
-              const allCategoryEnabled =
-                categoryPaths.length > 0 &&
-                categoryPaths.every((path) => segmentPaths.includes(path));
+                    const allCategoryEnabled =
+                      categoryPaths.length > 0 &&
+                      categoryPaths.every((path) => segmentPaths.includes(path));
 
-              const sections = [];
-              let currentSection = null;
-
-              item.subItems.forEach((sub) => {
-                if (sub.isSection) {
-                  currentSection = { label: sub.label, items: [] };
-                  sections.push(currentSection);
-                } else if (sub.path !== '#') {
-                  if (!currentSection) {
-                    currentSection = { label: null, items: [] };
-                    sections.push(currentSection);
-                  }
-                  currentSection.items.push(sub);
-                }
-              });
-
-              return (
-                <div key={item._id || `cat-${categoryIndex}`} className="border rounded-lg p-5 bg-gray-50">
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                    <div className="flex flex-col gap-2 flex-1 mr-4">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="text"
-                          value={item.label}
-                          onChange={(e) =>
-                            handleCategoryChange(categoryIndex, 'label', e.target.value)
-                          }
-                          className="border rounded-md px-2 py-1 text-sm flex-1"
-                          placeholder="Category label"
-                        />
-                        <div className="flex items-center gap-2">
-                          <select
-                            value={item.icon || ''}
-                            onChange={(e) =>
-                              handleCategoryChange(categoryIndex, 'icon', e.target.value)
-                            }
-                            className="border rounded-md px-2 py-1 text-xs"
+                    return (
+                      <Draggable
+                        key={item._id || item.id || item.path || `cat-${categoryIndex}`}
+                        draggableId={item._id || item.id || item.path || `cat-${categoryIndex}`}
+                        index={categoryIndex}
+                      >
+                        {(catProvided) => (
+                          <div
+                            ref={catProvided.innerRef}
+                            {...catProvided.draggableProps}
+                            className="border rounded-lg p-5 bg-gray-50"
                           >
-                            {ICON_OPTIONS.map((opt) => (
-                              <option key={opt.value || 'none'} value={opt.value}>
-                                {opt.label}
-                              </option>
-                            ))}
-                          </select>
-                          {(() => {
-                            const IconDef =
-                              ICON_OPTIONS.find((o) => o.value === item.icon)?.Icon || null;
-                            return IconDef ? (
-                              <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 text-gray-700">
-                                <IconDef size={14} />
-                              </span>
-                            ) : null;
-                          })()}
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {categoryPaths.length}{' '}
-                        {categoryPaths.length === 1 ? 'option' : 'options'}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <button
-                        onClick={() => toggleCategoryPaths(categoryPaths, true)}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
-                          allCategoryEnabled
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                            : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                        }`}
-                      >
-                        {allCategoryEnabled ? 'All Enabled' : 'Enable All'}
-                      </button>
-                      <button
-                        onClick={() => toggleCategoryPaths(categoryPaths, false)}
-                        className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
-                      >
-                        Disable All
-                      </button>
-                      <button
-                        onClick={() => handleAddSubItem(categoryIndex)}
-                        className="px-3 py-1.5 text-xs bg-indigo-100 text-indigo-700 rounded-md font-medium hover:bg-indigo-200 transition-colors"
-                      >
-                        Add Item
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(categoryIndex)}
-                        className="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-md font-medium hover:bg-red-200 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
+                            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                              <div className="flex items-center gap-3 flex-1 mr-4">
+                                <span
+                                  {...catProvided.dragHandleProps}
+                                  className="text-gray-400 hover:text-gray-600 cursor-grab"
+                                  title="Drag to reorder category"
+                                >
+                                  <FiMove />
+                                </span>
+                                {(() => {
+                                  const IconComponent = getIconComponent(item.icon);
+                                  return IconComponent ? (
+                                    <span className="text-xl text-gray-700 flex-shrink-0">
+                                      <IconComponent />
+                                    </span>
+                                  ) : null;
+                                })()}
+                                <div className="flex flex-col gap-2 flex-1">
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="text"
+                                      value={item.label}
+                                      onChange={(e) =>
+                                        handleCategoryChange(categoryIndex, 'label', e.target.value)
+                                      }
+                                      className="border rounded-md px-2 py-1 text-sm flex-1"
+                                      placeholder="Category label"
+                                    />
+                                    <div className="flex items-center gap-2">
+                                      <select
+                                        value={item.icon || ''}
+                                        onChange={(e) =>
+                                          handleCategoryChange(categoryIndex, 'icon', e.target.value)
+                                        }
+                                        className="border rounded-md px-2 py-1 text-xs"
+                                      >
+                                        {ICON_OPTIONS.map((opt) => (
+                                          <option key={opt.value || 'none'} value={opt.value}>
+                                            {opt.label}
+                                          </option>
+                                        ))}
+                                      </select>
+                                      {(() => {
+                                        const IconDef =
+                                          ICON_OPTIONS.find((o) => o.value === item.icon)?.Icon ||
+                                          null;
+                                        return IconDef ? (
+                                          <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-gray-100 text-gray-700">
+                                            <IconDef size={14} />
+                                          </span>
+                                        ) : null;
+                                      })()}
+                                    </div>
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    {categoryPaths.length}{' '}
+                                    {categoryPaths.length === 1 ? 'option' : 'options'}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => toggleCategoryPaths(categoryPaths, true)}
+                                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                                    allCategoryEnabled
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                  }`}
+                                >
+                                  {allCategoryEnabled ? 'All Enabled' : 'Enable All'}
+                                </button>
+                                <button
+                                  onClick={() => toggleCategoryPaths(categoryPaths, false)}
+                                  className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
+                                >
+                                  Disable All
+                                </button>
+                                <button
+                                  onClick={() => handleAddSubItem(categoryIndex)}
+                                  className="px-3 py-1.5 text-xs bg-indigo-100 text-indigo-700 rounded-md font-medium hover:bg-indigo-200 transition-colors"
+                                >
+                                  Add Item
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCategory(categoryIndex)}
+                                  className="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-md font-medium hover:bg-red-200 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
 
-                  <div className="space-y-4">
-                    {sections.map((section, idx) => (
-                      <div key={idx} className="space-y-2">
-                        {section.label && (
-                          <div className="px-2 py-1.5 bg-gray-200 rounded-md">
-                            <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                              {section.label}
-                            </h5>
+                            <Droppable
+                              droppableId={`sub-${categoryIndex}`}
+                              type="SUBITEM"
+                              direction="vertical"
+                            >
+                              {(subProvided) => (
+                                <div
+                                  ref={subProvided.innerRef}
+                                  {...subProvided.droppableProps}
+                                  className="space-y-2"
+                                >
+                                  {normalizedSubItems.map((sub, subIndex) => {
+                                    const checked = isPathEnabled(sub.path);
+                                    const draggableId =
+                                      sub._id ||
+                                      sub.id ||
+                                      `${categoryIndex}-${sub.path || 'section'}-${subIndex}`;
+                                    return (
+                                      <Draggable
+                                        key={draggableId}
+                                        draggableId={draggableId}
+                                        index={subIndex}
+                                      >
+                                        {(subProvidedInner) => (
+                                          <div
+                                            ref={subProvidedInner.innerRef}
+                                            {...subProvidedInner.draggableProps}
+                                            className={`flex items-start gap-3 p-3 rounded-md border transition-colors ${
+                                              checked && !sub.isSection
+                                                ? 'bg-blue-50 border-blue-200'
+                                                : 'bg-white border-gray-200'
+                                            }`}
+                                          >
+                                            <span
+                                              {...subProvidedInner.dragHandleProps}
+                                              className="text-gray-400 hover:text-gray-600 cursor-grab mt-1"
+                                              title="Drag to reorder item"
+                                            >
+                                              <FiMove size={14} />
+                                            </span>
+                                            <div className="flex-1 flex flex-col gap-2">
+                                              <div className="flex items-center gap-2">
+                                                {!sub.isSection && (
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={checked}
+                                                    onChange={() => togglePath(sub.path)}
+                                                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                                  />
+                                                )}
+                                                <input
+                                                  type="text"
+                                                  value={sub.label}
+                                                  onChange={(e) =>
+                                                    handleSubItemChange(
+                                                      categoryIndex,
+                                                      subIndex,
+                                                      'label',
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  className="border rounded-md px-2 py-1 text-xs flex-1"
+                                                  placeholder="Item label"
+                                                />
+                                                <label className="flex items-center gap-1 text-xs text-gray-600">
+                                                  <input
+                                                    type="checkbox"
+                                                    checked={!!sub.isSection}
+                                                    onChange={(e) =>
+                                                      handleSubItemChange(
+                                                        categoryIndex,
+                                                        subIndex,
+                                                        'isSection',
+                                                        e.target.checked
+                                                      )
+                                                    }
+                                                  />
+                                                  Section
+                                                </label>
+                                              </div>
+                                              {!sub.isSection && (
+                                                <input
+                                                  type="text"
+                                                  value={sub.path}
+                                                  onChange={(e) =>
+                                                    handleSubItemChange(
+                                                      categoryIndex,
+                                                      subIndex,
+                                                      'path',
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  className="border rounded-md px-2 py-1 text-xs"
+                                                  placeholder="/route-path"
+                                                />
+                                              )}
+                                            </div>
+                                            <button
+                                              type="button"
+                                              onClick={() => handleDeleteSubItem(categoryIndex, subIndex)}
+                                              className="text-xs text-red-600 hover:text-red-800 mt-1"
+                                            >
+                                              Remove
+                                            </button>
+                                          </div>
+                                        )}
+                                      </Draggable>
+                                    );
+                                  })}
+                                  {subProvided.placeholder}
+                                </div>
+                              )}
+                            </Droppable>
                           </div>
                         )}
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 pl-2">
-                          {section.items.map((sub, subIndex) => {
-                            const checked = isPathEnabled(sub.path);
-                            const absoluteSubIndex = (item.subItems || []).findIndex(
-                              (s) => s === sub
-                            );
-                            return (
-                              <label
-                                key={sub.path || `${section.label}-${subIndex}`}
-                                className={`flex items-center gap-2 p-2.5 rounded-md border transition-colors cursor-pointer ${
-                                  checked
-                                    ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-                                    : 'bg-white border-gray-200 hover:bg-gray-50'
+                      </Draggable>
+                    );
+                  }
+
+                  const checked = isPathEnabled(item.path);
+
+                  const dragId = item._id || item.id || item.path || `item-${categoryIndex}`;
+                  return (
+                    <Draggable
+                      key={dragId}
+                      draggableId={dragId}
+                      index={categoryIndex}
+                    >
+                      {(catProvided) => (
+                        <div
+                          ref={catProvided.innerRef}
+                          {...catProvided.draggableProps}
+                          className="border rounded-lg p-4 bg-gray-50"
+                        >
+                          <label className="flex items-center gap-3 cursor-pointer">
+                            <span
+                              {...catProvided.dragHandleProps}
+                              className="text-gray-400 hover:text-gray-600 cursor-grab"
+                              title="Drag to reorder item"
+                            >
+                              <FiMove />
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => togglePath(item.path)}
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                            />
+                            <div className="flex items-center gap-3 flex-1">
+                              {(() => {
+                                const IconComponent = getIconComponent(item.icon);
+                                return IconComponent ? (
+                                  <span className="text-xl text-gray-700">
+                                    <IconComponent />
+                                  </span>
+                                ) : null;
+                              })()}
+                              <span
+                                className={`text-sm font-medium ${
+                                  checked ? 'text-gray-900' : 'text-gray-700'
                                 }`}
                               >
-                                <div className="flex flex-col flex-1 gap-1">
-                                  <div className="flex items-center gap-2">
-                                    <input
-                                      type="checkbox"
-                                      checked={checked}
-                                      onChange={() => togglePath(sub.path)}
-                                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                                    />
-                                    <input
-                                      type="text"
-                                      value={sub.label}
-                                      onChange={(e) =>
-                                        handleSubItemChange(
-                                          categoryIndex,
-                                          absoluteSubIndex,
-                                          'label',
-                                          e.target.value
-                                        )
-                                      }
-                                      className="border rounded-md px-2 py-1 text-xs flex-1"
-                                      placeholder="Item label"
-                                    />
-                                  </div>
-                                  {!sub.isSection && (
-                                    <input
-                                      type="text"
-                                      value={sub.path}
-                                      onChange={(e) =>
-                                        handleSubItemChange(
-                                          categoryIndex,
-                                          absoluteSubIndex,
-                                          'path',
-                                          e.target.value
-                                        )
-                                      }
-                                      className="border rounded-md px-2 py-1 text-xs"
-                                      placeholder="/route-path"
-                                    />
-                                  )}
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleDeleteSubItem(categoryIndex, absoluteSubIndex)
-                                  }
-                                  className="text-xs text-red-600 hover:text-red-800"
-                                >
-                                  Remove
-                                </button>
-                              </label>
-                            );
-                          })}
+                                {item.label}
+                              </span>
+                            </div>
+                          </label>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            }
-
-            const checked = isPathEnabled(item.path);
-
-            return (
-              <div key={item.path} className="border rounded-lg p-4 bg-gray-50">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => togglePath(item.path)}
-                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <div className="flex items-center gap-3 flex-1">
-                    <span className="text-xl">{item.icon}</span>
-                    <span
-                      className={`text-sm font-medium ${
-                        checked ? 'text-gray-900' : 'text-gray-700'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                  </div>
-                </label>
+                      )}
+                    </Draggable>
+                  );
+                })}
+                {provided.placeholder}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </Droppable>
+        </DragDropContext>
 
         <p className="text-xs text-gray-500 mt-3">
           This template will be applied to all users matching the selected filters when you click

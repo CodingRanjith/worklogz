@@ -14,13 +14,21 @@ const PendingUsers = () => {
   const fetchPendingUsers = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        Swal.fire('Error', 'Please login to access this page.', 'error');
+        setLoading(false);
+        return;
+      }
       const res = await axios.get(API_ENDPOINTS.pendingUsers, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setPendingUsers(res.data);
+      setPendingUsers(res.data || []);
     } catch (err) {
       console.error('Error fetching pending users:', err);
-      Swal.fire('Error', 'Failed to load pending users.', 'error');
+      const errorMessage = err.response?.status === 403 
+        ? 'You do not have permission to access pending users. Admin or HR role required.'
+        : err.response?.data?.error || 'Failed to load pending users.';
+      Swal.fire('Error', errorMessage, 'error');
     } finally {
       setLoading(false);
     }

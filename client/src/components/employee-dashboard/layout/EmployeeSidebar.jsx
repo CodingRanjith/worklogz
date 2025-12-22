@@ -31,6 +31,7 @@ import { getAccessForUser } from '../../../utils/sidebarAccess';
 import { API_ENDPOINTS } from '../../../utils/api';
 import SidebarNotifications from '../SidebarNotifications';
 import { useTheme } from '../../../hooks/useTheme';
+import { normalizeMenuOrder } from '../../../utils/sidebarMenu';
 
 // Map icon names from backend to actual React icon components
 const ICON_MAP = {
@@ -57,16 +58,37 @@ const ICON_MAP = {
 
 const withResolvedIcons = (items = []) => {
   return items.map((item) => {
-    const IconComp = item.icon && ICON_MAP[item.icon] ? ICON_MAP[item.icon] : null;
+    // Handle icon - can be string (from backend) or JSX (from static)
+    let iconElement = null;
+    if (typeof item.icon === 'string' && item.icon.trim()) {
+      // Icon is a string from backend (e.g., "FiHome")
+      const IconComp = ICON_MAP[item.icon] || null;
+      iconElement = IconComp ? <IconComp /> : null;
+    } else if (React.isValidElement(item.icon)) {
+      // Icon is already a JSX element (from static fallback)
+      iconElement = item.icon;
+    }
+    
+    // Resolve subItems icons
     const mappedSubItems = Array.isArray(item.subItems)
-      ? item.subItems.map((sub) => ({
-          ...sub,
-        }))
+      ? item.subItems.map((sub) => {
+          let subIcon = null;
+          if (typeof sub.icon === 'string' && sub.icon.trim()) {
+            const SubIconComp = ICON_MAP[sub.icon] || null;
+            subIcon = SubIconComp ? <SubIconComp /> : null;
+          } else if (React.isValidElement(sub.icon)) {
+            subIcon = sub.icon;
+          }
+          return {
+            ...sub,
+            icon: subIcon,
+          };
+        })
       : [];
 
     return {
       ...item,
-      icon: IconComp ? <IconComp /> : item.icon, // keep existing if already JSX
+      icon: iconElement,
       subItems: mappedSubItems,
     };
   });
@@ -132,41 +154,23 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
     checkIfTeamLead();
   }, [token, currentUserId]);
 
-  // Load sidebar menu items dynamically from backend (with fallback)
+  // Load sidebar menu items dynamically from backend - ALWAYS prioritize backend data
   useEffect(() => {
     const loadMenu = async () => {
+      const token = localStorage.getItem('token');
+      
       try {
-        const token = localStorage.getItem('token');
+        // Always try to load from backend first
         const res = await axios.get(API_ENDPOINTS.getSidebarMenu('employee'), {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
+        
         let items = res.data?.items || [];
 
-        if (!items.length) {
-          // Fallback to existing static definition if backend has no data yet
-          items = getEmployeeMenuItems();
-        } else {
-          // Ensure core navigation items (Home, Attendance, Dashboard) are always present at the top
-          const coreItems = [
-            { label: 'Home', icon: 'FiHome', path: '/home' },
-            { label: 'Attendance', icon: 'FiClock', path: '/attendance' },
-            { label: 'Dashboard', icon: 'FiBarChart2', path: '/dashboard' },
-          ];
-
-          const existingPaths = new Set(items.map(item => item.path));
-          const missingCoreItems = coreItems.filter(core => !existingPaths.has(core.path));
-
-          if (missingCoreItems.length) {
-            items = [...missingCoreItems, ...items];
-          }
-
-          // Normalize items: remove empty subItems arrays and ensure core items have no subItems
+        // If backend returns data, use it (dynamic data from Master Control)
+        if (items && items.length > 0) {
+          // Process backend data: normalize structure and resolve icons
           items = items.map(item => {
-            // Core navigation items should never have subItems
-            if (item.path === '/home' || item.path === '/attendance' || item.path === '/dashboard') {
-              const { subItems, ...rest } = item;
-              return rest;
-            }
             // Remove empty subItems arrays so they're treated as simple links
             if (item.subItems && (!Array.isArray(item.subItems) || item.subItems.length === 0)) {
               const { subItems, ...rest } = item;
@@ -174,17 +178,70 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
             }
             return item;
           });
-        }
 
-        setMenuItems(withResolvedIcons(items));
+          // Normalize order and resolve icons from backend data
+          const normalizedItems = normalizeMenuOrder(items);
+          const resolvedItems = withResolvedIcons(normalizedItems);
+          setMenuItems(resolvedItems);
+          return; // Successfully loaded from backend, exit early
+        }
+        
+        // Backend returned empty - this means no menu is configured yet
+        // Use minimal static fallback only if absolutely necessary
+        console.warn('Backend returned empty sidebar menu. Configure menu in Master Control.');
+        const fallbackItems = getEmployeeMenuItems();
+        const convertedItems = fallbackItems.map((item, idx) => ({
+          label: item.label,
+          icon: extractIconName(item.icon) || '',
+          path: item.path || '',
+          order: idx,
+          subItems: (item.subItems || []).map((sub, sIdx) => ({
+            label: sub.label,
+            path: sub.path || '',
+            isSection: !!sub.isSection,
+            order: sIdx,
+            icon: extractIconName(sub.icon) || '',
+          })),
+        }));
+        setMenuItems(withResolvedIcons(normalizeMenuOrder(convertedItems)));
       } catch (err) {
-        console.error('Failed to load employee sidebar menu, using static fallback', err);
-        setMenuItems(withResolvedIcons(getEmployeeMenuItems()));
+        // Network error or API unavailable - use fallback
+        console.error('Failed to load sidebar menu from backend:', err);
+        const fallbackItems = getEmployeeMenuItems();
+        const convertedItems = fallbackItems.map((item, idx) => ({
+          label: item.label,
+          icon: extractIconName(item.icon) || '',
+          path: item.path || '',
+          order: idx,
+          subItems: (item.subItems || []).map((sub, sIdx) => ({
+            label: sub.label,
+            path: sub.path || '',
+            isSection: !!sub.isSection,
+            order: sIdx,
+            icon: extractIconName(sub.icon) || '',
+          })),
+        }));
+        setMenuItems(withResolvedIcons(normalizeMenuOrder(convertedItems)));
       }
     };
 
     loadMenu();
-  }, []);
+  }, []); // Load once on mount
+
+  // Helper to extract icon name from JSX element (for fallback conversion)
+  const extractIconName = (iconJSX) => {
+    if (!iconJSX) return '';
+    if (React.isValidElement(iconJSX)) {
+      const componentName = iconJSX.type?.displayName || iconJSX.type?.name || iconJSX.type;
+      if (typeof componentName === 'string' && componentName.startsWith('Fi')) {
+        return componentName;
+      }
+      if (typeof componentName === 'function') {
+        return componentName.name || '';
+      }
+    }
+    return '';
+  };
   
   // Initialize all items with subItems as collapsed by default
   const [expandedItems, setExpandedItems] = React.useState({});

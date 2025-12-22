@@ -43,6 +43,7 @@ const companySettingsController = {
         settings = await CompanySettings.create({
           companyName: 'Worklogz',
           companyDescription: 'Employee management and HR system',
+          employeeIdPrefix: 'THC',
           createdBy: req.user?._id
         });
       }
@@ -99,6 +100,17 @@ const companySettingsController = {
             } catch (e) {
               // If parsing fails, keep existing or use empty object
               updateData.socialMedia = settings?.socialMedia || {};
+            }
+          }
+
+          // Validate and normalize employeeIdPrefix
+          if (req.body.employeeIdPrefix) {
+            const prefix = req.body.employeeIdPrefix.toString().trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (prefix.length > 0 && prefix.length <= 10) {
+              updateData.employeeIdPrefix = prefix;
+            } else if (prefix.length === 0) {
+              // If empty after cleaning, use default
+              updateData.employeeIdPrefix = 'THC';
             }
           }
 

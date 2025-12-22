@@ -107,6 +107,15 @@ const CompanySettingsSchema = new mongoose.Schema({
     default: '₹'
   },
   
+  // Employee ID Settings
+  employeeIdPrefix: {
+    type: String,
+    default: 'THC',
+    trim: true,
+    uppercase: true,
+    maxlength: 10
+  },
+  
   // Status
   isActive: {
     type: Boolean,
@@ -132,7 +141,8 @@ CompanySettingsSchema.statics.getCompanySettings = async function() {
   if (!settings) {
     settings = await this.create({
       companyName: 'Worklogz',
-      companyDescription: 'Employee management and HR system'
+      companyDescription: 'Employee management and HR system',
+      employeeIdPrefix: 'THC'
     });
   }
   return settings;

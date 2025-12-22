@@ -35,6 +35,32 @@ const scheduleController = {
       res.status(500).json({ error: 'Failed to update schedule' });
     }
   },
+
+  createUserSchedule: async (req, res) => {
+    try {
+      const { userId, weeklySchedule, salary } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+      }
+
+      // Create or update schedule
+      const schedule = await Schedule.findOneAndUpdate(
+        { user: userId },
+        {
+          user: userId,
+          weeklySchedule: weeklySchedule || {},
+          salary: salary || 0
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).populate('user', 'name email role company position employeeId');
+
+      res.json(schedule);
+    } catch (error) {
+      console.error('Error creating schedule:', error);
+      res.status(500).json({ error: 'Failed to create schedule' });
+    }
+  },
 };
 
 module.exports = scheduleController;
