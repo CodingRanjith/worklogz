@@ -244,7 +244,7 @@ exports.getProjectById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin';
     const isMember = project.teamMembers.some((member) => {
       const memberId = toIdString(member.user);
       return memberId === req.user._id.toString();

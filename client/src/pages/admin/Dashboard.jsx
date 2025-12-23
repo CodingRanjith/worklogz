@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [companyFilter, setCompanyFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
   const token = localStorage.getItem('token');
 
@@ -36,20 +37,71 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setRefreshing(true);
+      setError(null);
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [summaryRes, logsRes, usersRes] = await Promise.all([
+      // Use Promise.allSettled to handle partial failures
+      const [summaryRes, logsRes, usersRes] = await Promise.allSettled([
         axios.get(API_ENDPOINTS.getAdminSummary, { headers }),
         axios.get(API_ENDPOINTS.getRecentAttendanceLogs, { headers }),
         axios.get(API_ENDPOINTS.getAllUsers, { headers }),
       ]);
 
-      setSummary(summaryRes.data || {});
-      setLogs(logsRes.data || []);
-      setFilteredLogs(logsRes.data || []);
-      setAllUsers(usersRes.data || []);
+      // Handle summary response
+      if (summaryRes.status === 'fulfilled') {
+        const summaryData = summaryRes.value.data || {};
+        console.log('Summary data loaded:', summaryData);
+        setSummary(summaryData);
+      } else {
+        const errorMsg = summaryRes.reason?.response?.data?.error || summaryRes.reason?.message || 'Unknown error';
+        console.error('Error fetching summary:', errorMsg, summaryRes.reason);
+        setSummary({ totalEmployees: 0, presentToday: 0, absentToday: 0 });
+      }
+
+      // Handle logs response
+      if (logsRes.status === 'fulfilled') {
+        const logsData = Array.isArray(logsRes.value.data) ? logsRes.value.data : [];
+        console.log('Logs data loaded:', logsData.length, 'records');
+        setLogs(logsData);
+        setFilteredLogs(logsData);
+      } else {
+        const errorMsg = logsRes.reason?.response?.data?.error || logsRes.reason?.message || 'Unknown error';
+        console.error('Error fetching logs:', errorMsg, logsRes.reason);
+        setLogs([]);
+        setFilteredLogs([]);
+      }
+
+      // Handle users response
+      if (usersRes.status === 'fulfilled') {
+        const usersData = Array.isArray(usersRes.value.data) ? usersRes.value.data : [];
+        console.log('Users data loaded:', usersData.length, 'users');
+        setAllUsers(usersData);
+      } else {
+        const errorMsg = usersRes.reason?.response?.data?.error || usersRes.reason?.message || 'Unknown error';
+        console.error('Error fetching users:', errorMsg, usersRes.reason);
+        setAllUsers([]);
+      }
+
+      // Set error if all requests failed
+      if (summaryRes.status === 'rejected' && logsRes.status === 'rejected' && usersRes.status === 'rejected') {
+        const errorMessages = [
+          summaryRes.reason?.response?.data?.error || summaryRes.reason?.message,
+          logsRes.reason?.response?.data?.error || logsRes.reason?.message,
+          usersRes.reason?.response?.data?.error || usersRes.reason?.message
+        ].filter(Boolean).join('; ');
+        setError(`Failed to load dashboard data: ${errorMessages || 'Please check your connection and try again.'}`);
+      } else if (summaryRes.status === 'rejected' || logsRes.status === 'rejected' || usersRes.status === 'rejected') {
+        // Show warning if some requests failed but not all
+        const failedEndpoints = [];
+        if (summaryRes.status === 'rejected') failedEndpoints.push('Summary');
+        if (logsRes.status === 'rejected') failedEndpoints.push('Attendance Logs');
+        if (usersRes.status === 'rejected') failedEndpoints.push('Users');
+        console.warn(`Some data failed to load: ${failedEndpoints.join(', ')}`);
+      }
     } catch (err) {
       console.error('Dashboard loading error:', err);
+      const errorMessage = err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to load dashboard data';
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -128,6 +180,37 @@ const Dashboard = () => {
 
   return (
     <div className="admin-dashboard">
+      {/* Error Message */}
+      {error && (
+        <div style={{
+          padding: '16px',
+          margin: '16px',
+          backgroundColor: '#fee',
+          border: '1px solid #fcc',
+          borderRadius: '4px',
+          color: '#c33'
+        }}>
+          <strong>Error:</strong> {error}
+          <button
+            onClick={() => {
+              setError(null);
+              fetchDashboardData();
+            }}
+            style={{
+              marginLeft: '16px',
+              padding: '4px 12px',
+              backgroundColor: '#c33',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      
       {/* Header Section */}
       <div className="dashboard-header">
         <div className="header-content">

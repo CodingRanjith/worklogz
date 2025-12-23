@@ -98,7 +98,7 @@ const HelpdeskCenter = ({ variant = "full", onBack }) => {
     }
   }, [token]);
 
-  const isAdmin = currentUser?.role === "admin";
+  const isAdmin = currentUser?.role === "admin" || currentUser?.role === "master-admin";
 
   const selectedTicket = useMemo(
     () => tickets.find((ticket) => ticket._id === selectedTicketId) || null,

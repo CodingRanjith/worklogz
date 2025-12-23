@@ -68,8 +68,8 @@ const TaskManager = () => {
         const userRole = decoded.role;
         setCurrentUserRole(userRole);
 
-        // If user is admin, they can see all users
-        if (userRole === 'admin') {
+        // If user is admin or master-admin, they can see all users
+        if (userRole === 'admin' || userRole === 'master-admin') {
           setIsTeamLead(false);
           setTeamMemberIds([]);
           return;
@@ -180,7 +180,7 @@ const TaskManager = () => {
       
       // Only filter if user is a team lead AND not an admin
       // Admins should always see all users without any filtering
-      if (currentUserRole === 'admin') {
+      if (currentUserRole === 'admin' || currentUserRole === 'master-admin') {
         // Admin: show all users, no filtering
         setUsers(usersData);
       } else if (isTeamLead && teamMemberIds.length > 0) {
@@ -372,7 +372,7 @@ const TaskManager = () => {
       const selectedUsers = users.filter(u => taskForm.selectedUserIds.includes(u._id));
       
       // Additional validation for team leads: ensure all selected users are in their team
-      if (currentUserRole !== 'admin' && isTeamLead && teamMemberIds.length > 0) {
+      if (currentUserRole !== 'admin' && currentUserRole !== 'master-admin' && isTeamLead && teamMemberIds.length > 0) {
         const invalidUsers = selectedUsers.filter(user => {
           const userId = user._id || user.id;
           return !teamMemberIds.includes(userId.toString());
@@ -497,7 +497,7 @@ const TaskManager = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-3xl font-bold text-gray-900">Task Manager</h1>
-                {isTeamLead && currentUserRole !== 'admin' && (
+                {isTeamLead && currentUserRole !== 'admin' && currentUserRole !== 'master-admin' && (
                   <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-semibold rounded-full">
                     Team Lead View
                   </span>

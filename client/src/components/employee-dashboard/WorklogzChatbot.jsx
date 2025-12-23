@@ -112,7 +112,7 @@ const WorklogzChatbot = ({ currentUser, sidebarCollapsed }) => {
     }
     
     const userName = currentUser.name || 'User';
-    const greeting = `Hello ${userName}, I am Worklogz AI. My boss is Ranjith Kumar. Worklogz was developed by Ranjith Kumar and Gayathri B. How can I help you?`;
+    const greeting = `Hello ${userName}, I am Worklogz AI. My boss is Ranjith. How can I help you?`;
     
     // Add greeting message
     const greetingMessage = {

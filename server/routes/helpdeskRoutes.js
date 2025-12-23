@@ -13,7 +13,11 @@ const populateTicket = async (ticket) => {
 };
 
 const ensureAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
+  const userRole = req.user?.role?.toLowerCase();
+  const adminAccess = req.user?.adminAccess || false;
+  const isAdmin = ['admin', 'master-admin', 'administrator'].includes(userRole) || adminAccess;
+  
+  if (!isAdmin) {
     return res.status(403).json({ msg: 'Admin access required' });
   }
   next();
@@ -22,7 +26,7 @@ const ensureAdmin = (req, res, next) => {
 router.get('/tickets', auth, async (req, res) => {
   try {
     const filter =
-      req.user.role === 'admin'
+      req.user.role === 'admin' || req.user.role === 'master-admin'
         ? {}
         : {
             $or: [
@@ -57,7 +61,7 @@ router.get('/tickets/:id', auth, async (req, res) => {
       (watcherId) => watcherId.toString() === req.user._id
     );
 
-    if (req.user.role !== 'admin' && !isOwner && !isAssignee && !isWatcher) {
+    if (req.user.role !== 'admin' && req.user.role !== 'master-admin' && !isOwner && !isAssignee && !isWatcher) {
       return res.status(403).json({ msg: 'You do not have access to this ticket' });
     }
 
@@ -154,7 +158,7 @@ router.post('/tickets/:id/messages', auth, async (req, res) => {
       (watcherId) => watcherId.toString() === req.user._id
     );
 
-    if (req.user.role !== 'admin' && !isOwner && !isAssignee && !isWatcher) {
+    if (req.user.role !== 'admin' && req.user.role !== 'master-admin' && !isOwner && !isAssignee && !isWatcher) {
       return res.status(403).json({ msg: 'You do not have access to this ticket' });
     }
 
@@ -175,7 +179,7 @@ router.post('/tickets/:id/messages', auth, async (req, res) => {
 router.get('/summary', auth, async (req, res) => {
   try {
     const baseFilter =
-      req.user.role === 'admin'
+      req.user.role === 'admin' || req.user.role === 'master-admin'
         ? {}
         : {
             createdBy: req.user._id,

@@ -29,7 +29,7 @@ const taskController = {
       // If userId is provided, validate permissions
       if (userId) {
         // Admin can query tasks for any user
-        if (req.user.role === 'admin') {
+        if (req.user.role === 'admin' || req.user.role === 'master-admin') {
           filter.user = userId;
         } 
         // Team lead can query tasks for their team members
@@ -76,7 +76,7 @@ const taskController = {
         }
       } else {
         // No userId specified - show tasks based on role
-        if (req.user.role === 'admin') {
+        if (req.user.role === 'admin' || req.user.role === 'master-admin') {
           // Admin sees all tasks (no user filter)
           // filter.user is not set, so all tasks are returned
         } else if (req.user.role === 'employee') {
@@ -286,7 +286,7 @@ const taskController = {
         }
 
         // Admin can assign to any user
-        if (req.user.role === 'admin') {
+        if (req.user.role === 'admin' || req.user.role === 'master-admin') {
           taskUserId = userId;
         } 
         // Team lead can only assign to their team members
@@ -421,7 +421,7 @@ const taskController = {
 
       // Build filter - allow admin to update any task, users can only update their own
       const filter = { _id: id };
-      if (req.user.role !== 'admin') {
+      if (req.user.role !== 'admin' && req.user.role !== 'master-admin') {
         filter.user = req.user._id;
       }
 
@@ -456,7 +456,7 @@ const taskController = {
 
       // Build filter - allow admin to delete any task, users can only delete their own
       const filter = { _id: id, isDeleted: false };
-      if (req.user.role !== 'admin') {
+      if (req.user.role !== 'admin' && req.user.role !== 'master-admin') {
         filter.user = req.user._id;
       }
 
@@ -499,7 +499,7 @@ const taskController = {
 
       // Build filter - allow admin to restore any task, users can only restore their own
       const filter = { _id: id, isDeleted: true };
-      if (req.user.role !== 'admin') {
+      if (req.user.role !== 'admin' && req.user.role !== 'master-admin') {
         filter.user = req.user._id;
       }
 
@@ -537,7 +537,7 @@ const taskController = {
       const filter = { isDeleted: true };
       
       // Users can only see their own archived tasks, admins can see all
-      if (req.user.role !== 'admin') {
+      if (req.user.role !== 'admin' && req.user.role !== 'master-admin') {
         filter.user = req.user._id;
       }
 
@@ -575,7 +575,7 @@ const taskController = {
 
       // Build filter - allow admin to comment on any task, users can only comment on their own
       const filter = { _id: id };
-      if (req.user.role !== 'admin') {
+      if (req.user.role !== 'admin' && req.user.role !== 'master-admin') {
         filter.user = req.user._id;
       }
 

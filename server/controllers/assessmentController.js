@@ -37,7 +37,7 @@ const getAssessmentById = async (req, res) => {
     }
 
     // If user is not admin and not in allowedUsers, check if they can view
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin';
     const isCreator = assessment.createdBy._id.toString() === req.user._id.toString();
     const isAllowed = assessment.allowedUsers.some(
       u => u._id.toString() === req.user._id.toString()
@@ -137,7 +137,7 @@ const updateAssessment = async (req, res) => {
     }
 
     // Check if user is creator or admin
-    if (assessment.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    if (assessment.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'master-admin') {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -182,7 +182,7 @@ const deleteAssessment = async (req, res) => {
     }
 
     // Check if user is creator or admin
-    if (assessment.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+    if (assessment.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin' && req.user.role !== 'master-admin') {
       return res.status(403).json({ message: 'Access denied' });
     }
 
@@ -472,7 +472,7 @@ const getSubmission = async (req, res) => {
 
     // Check access
     const userId = req.user._id;
-    const isAdmin = req.user.role === 'admin';
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin';
     const isCreator = assessment.createdBy.toString() === req.user._id.toString();
     const isOwner = submission.user._id.toString() === userId.toString();
 

@@ -5,8 +5,40 @@ import { format } from 'date-fns';
 
 const DEFAULT_AVATAR = 'https://www.pikpng.com/pngl/m/154-1540525_male-user-filled-icon-my-profile-icon-png.png';
 
+// Array of light, pastel colors for cards
+const LIGHT_CARD_COLORS = [
+  { bg: 'bg-blue-50', border: 'border-blue-200' },
+  { bg: 'bg-purple-50', border: 'border-purple-200' },
+  { bg: 'bg-pink-50', border: 'border-pink-200' },
+  { bg: 'bg-indigo-50', border: 'border-indigo-200' },
+  { bg: 'bg-cyan-50', border: 'border-cyan-200' },
+  { bg: 'bg-teal-50', border: 'border-teal-200' },
+  { bg: 'bg-green-50', border: 'border-green-200' },
+  { bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  { bg: 'bg-yellow-50', border: 'border-yellow-200' },
+  { bg: 'bg-amber-50', border: 'border-amber-200' },
+  { bg: 'bg-orange-50', border: 'border-orange-200' },
+  { bg: 'bg-rose-50', border: 'border-rose-200' },
+  { bg: 'bg-violet-50', border: 'border-violet-200' },
+  { bg: 'bg-fuchsia-50', border: 'border-fuchsia-200' },
+  { bg: 'bg-sky-50', border: 'border-sky-200' },
+  { bg: 'bg-lime-50', border: 'border-lime-200' },
+];
+
+const getCardColor = (leadId) => {
+  // Hash the lead ID to get a consistent color for each card
+  if (!leadId) return LIGHT_CARD_COLORS[0];
+  let hash = 0;
+  for (let i = 0; i < leadId.length; i++) {
+    hash = leadId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colorIndex = Math.abs(hash) % LIGHT_CARD_COLORS.length;
+  return LIGHT_CARD_COLORS[colorIndex];
+};
+
 const LeadCard = ({ lead, index, onEdit }) => {
   const followUpLabel = lead.followUpDate ? format(new Date(lead.followUpDate), 'MMM dd, yyyy') : 'No follow-up';
+  const cardColor = getCardColor(lead._id);
   const assignedUsersRaw = Array.isArray(lead.assignedUsers) ? lead.assignedUsers : [];
   const isCoursePipeline = lead.pipelineType === 'course';
   const isITProjectPipeline = lead.pipelineType === 'it-project';
@@ -73,7 +105,7 @@ const LeadCard = ({ lead, index, onEdit }) => {
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={() => onEdit(lead)}
-          className={`group cursor-pointer rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition transform ${snapshot.isDragging ? 'ring-2 ring-indigo-400 scale-[1.01]' : 'hover:-translate-y-0.5'}`}
+          className={`group cursor-pointer rounded-xl border ${cardColor.border} ${cardColor.bg} shadow-sm hover:shadow-md transition transform ${snapshot.isDragging ? 'ring-2 ring-indigo-400 scale-[1.01]' : 'hover:-translate-y-0.5'}`}
         >
           <div className="max-h-80 overflow-y-auto px-3 py-2.5 space-y-3">
             <div className="flex items-start justify-between gap-2">

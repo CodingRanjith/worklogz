@@ -141,6 +141,7 @@ const userController = {
         company: req.body.company,
         employeeId,
         role: req.body.role || 'employee',
+        adminAccess: req.body.adminAccess === true || req.body.adminAccess === 'true',
         salary: Number.isNaN(Number(req.body.salary)) ? 0 : Number(req.body.salary),
         department: req.body.department,
         qualification: req.body.qualification,
@@ -166,7 +167,7 @@ const userController = {
     try {
       const requestingUserId = req.user._id.toString();
       const requestedUserId = req.params.id;
-      const isAdmin = req.user.role === 'admin';
+      const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin' || req.user.adminAccess === true;
 
       // Allow access if: user is accessing their own data OR user is an admin
       if (requestingUserId !== requestedUserId && !isAdmin) {
@@ -281,7 +282,7 @@ const userController = {
     try {
       const requestingUserId = req.user._id.toString();
       const requestedUserId = req.params.id;
-      const isAdmin = req.user.role === 'admin';
+      const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin' || req.user.adminAccess === true;
 
       // Allow access if: user is updating their own data OR user is an admin
       if (requestingUserId !== requestedUserId && !isAdmin) {
@@ -310,7 +311,8 @@ const userController = {
         skills,
         rolesAndResponsibility,
         profilePic,
-        bankDetails
+        bankDetails,
+        adminAccess
       } = req.body;
 
       const updateData = {};
@@ -351,10 +353,14 @@ const userController = {
         if (salary !== undefined) updateData.salary = salary;
         if (department) updateData.department = department;
         if (dateOfJoining) updateData.dateOfJoining = new Date(dateOfJoining);
+        // Only admins can grant/revoke admin access
+        if (adminAccess !== undefined) {
+          updateData.adminAccess = adminAccess === true || adminAccess === 'true';
+        }
       } else {
         // Non-admins cannot update these fields
-        if (company !== undefined || employeeId !== undefined || salary !== undefined || department !== undefined || dateOfJoining !== undefined) {
-          return res.status(403).json({ error: 'Forbidden - You cannot update company, employeeId, salary, department, or dateOfJoining' });
+        if (company !== undefined || employeeId !== undefined || salary !== undefined || department !== undefined || dateOfJoining !== undefined || adminAccess !== undefined) {
+          return res.status(403).json({ error: 'Forbidden - You cannot update company, employeeId, salary, department, dateOfJoining, or adminAccess' });
         }
       }
 
@@ -598,7 +604,7 @@ const userController = {
       const { scope = 'admin' } = req.query;
       const requestingUserId = req.user._id.toString();
       const requestedUserId = id;
-      const isAdmin = req.user.role === 'admin';
+      const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin';
       
       // Allow access if: user is accessing their own data OR user is an admin
       if (requestingUserId !== requestedUserId && !isAdmin) {
@@ -627,7 +633,7 @@ const userController = {
       const { paths, scope = 'admin' } = req.body;
       const requestingUserId = req.user._id.toString();
       const requestedUserId = id;
-      const isAdmin = req.user.role === 'admin';
+      const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin';
 
       // Allow access if: user is updating their own data OR user is an admin
       if (requestingUserId !== requestedUserId && !isAdmin) {
@@ -676,7 +682,7 @@ const userController = {
       const { userIds } = req.query;
       const { scope = 'admin' } = req.query;
       const requestingUserId = req.user._id.toString();
-      const isAdmin = req.user.role === 'admin';
+      const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin';
 
       if (!userIds) {
         return res.status(400).json({ error: 'userIds query parameter is required' });
@@ -715,7 +721,7 @@ const userController = {
     try {
       const { userIds, paths, scope = 'admin' } = req.body;
       const requestingUserId = req.user._id.toString();
-      const isAdmin = req.user.role === 'admin';
+      const isAdmin = req.user.role === 'admin' || req.user.role === 'master-admin';
 
       if (!Array.isArray(userIds) || userIds.length === 0) {
         return res.status(400).json({ error: 'userIds must be a non-empty array' });

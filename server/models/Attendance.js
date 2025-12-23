@@ -8,5 +8,6 @@ const AttendanceSchema = new mongoose.Schema({
   officeName: String,
   image: String,
   timestamp: Date,
+  adminBreakTimeMinutes: { type: Number, default: 0 }, // Admin-added break time in minutes
 });
 module.exports = mongoose.model('Attendance', AttendanceSchema);

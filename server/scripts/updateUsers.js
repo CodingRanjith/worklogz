@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
-const User = require('./models/User'); // adjust path as needed
+const User = require('../models/User');
+require('dotenv').config();
 
-// Replace with your DB connection string
-mongoose.connect('mongodb+srv://ucattendance96:fEBhJYZip3R1YTqI@ucattendance.zktaczo.mongodb.net/?retryWrites=true&w=majority&appName=UCattendance', {
+// Connect to database using environment variable
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });

@@ -31,8 +31,8 @@ const routePermission = {
       // Get user's role
       const user = await User.findById(userId).select('role');
       
-      // Admins have full access by default
-      if (user && user.role === 'admin') {
+      // Both master-admin and admin have full access by default
+      if (user && (user.role === 'admin' || user.role === 'master-admin')) {
         return next();
       }
 

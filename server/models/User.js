@@ -88,6 +88,10 @@ const UserSchema = new mongoose.Schema({
     type: String, 
     default: 'employee' 
   },
+  adminAccess: {
+    type: Boolean,
+    default: false
+  },
 
   // Additional fields
   profilePic: {

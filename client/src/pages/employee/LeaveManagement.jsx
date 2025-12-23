@@ -43,7 +43,7 @@ function LeaveManagement({ embedded = false, onBack }) {
       const decoded = jwtDecode(token);
       setUserRole(decoded.role);
       
-      if (decoded.role === 'admin') {
+      if (decoded.role === 'admin' || decoded.role === 'master-admin') {
         setActiveTab('requests');
         fetchAllLeaveRequests();
         fetchEmployees();
@@ -235,10 +235,10 @@ function LeaveManagement({ embedded = false, onBack }) {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-indigo-700 mb-2">
-                {userRole === 'admin' ? 'Leave Management' : 'My Leaves'}
+                {(userRole === 'admin' || userRole === 'master-admin') ? 'Leave Management' : 'My Leaves'}
               </h1>
               <p className="text-gray-600">
-                {userRole === 'admin' 
+                {(userRole === 'admin' || userRole === 'master-admin') 
                   ? 'Manage leave requests and assign leaves to employees' 
                   : 'Apply for leave and track your leave history'}
               </p>
@@ -255,7 +255,7 @@ function LeaveManagement({ embedded = false, onBack }) {
         {/* Tabs */}
         <div className="bg-white shadow-xl rounded-3xl p-6 mb-6 border border-blue-100">
           <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-4 mb-6">
-            {userRole === 'admin' ? (
+            {(userRole === 'admin' || userRole === 'master-admin') ? (
               <>
                 <button
                   onClick={() => setActiveTab('requests')}
@@ -497,7 +497,7 @@ function LeaveManagement({ embedded = false, onBack }) {
           )}
 
           {/* Admin: Leave Requests Tab */}
-          {userRole === 'admin' && activeTab === 'requests' && (
+          {(userRole === 'admin' || userRole === 'master-admin') && activeTab === 'requests' && (
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Pending Leave Requests</h3>
               {allLeaveRequests.filter(r => r.status === 'Pending').length === 0 ? (
@@ -556,7 +556,7 @@ function LeaveManagement({ embedded = false, onBack }) {
           )}
 
           {/* Admin: Assign Leaves Tab */}
-          {userRole === 'admin' && activeTab === 'assign' && (
+          {(userRole === 'admin' || userRole === 'master-admin') && activeTab === 'assign' && (
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">Assign Leaves to Employee</h3>
               <div className="bg-gray-50 rounded-xl p-6 border-2 border-dashed border-gray-300">
@@ -571,7 +571,7 @@ function LeaveManagement({ embedded = false, onBack }) {
           )}
 
           {/* Admin: All Leaves Tab */}
-          {userRole === 'admin' && activeTab === 'all' && (
+          {(userRole === 'admin' || userRole === 'master-admin') && activeTab === 'all' && (
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">All Leave Requests</h3>
               {allLeaveRequests.length === 0 ? (

@@ -33,15 +33,19 @@ function AttendanceCards({ attendanceData = [] }) {
   const checkIn = latestEntries.find((entry) => entry.type === "check-in");
   const checkOut = latestEntries.find((entry) => entry.type === "check-out");
 
-  let breakMinutes = null;
+  // Clocked time - calculated time from check-in to check-out
+  let clockedTimeMinutes = null;
   if (checkIn && checkOut) {
     const diffMs =
       new Date(checkOut.timestamp).getTime() -
       new Date(checkIn.timestamp).getTime();
     if (diffMs > 0) {
-      breakMinutes = Math.round(diffMs / (1000 * 60));
+      clockedTimeMinutes = Math.round(diffMs / (1000 * 60));
     }
   }
+  
+  // Admin-added break time - break time manually added by admin
+  const adminBreakMinutes = checkOut?.adminBreakTimeMinutes || 0;
 
   const cards = [
     {
@@ -57,10 +61,16 @@ function AttendanceCards({ attendanceData = [] }) {
       accent: "blue",
     },
     {
-      title: "Break time",
-      value: formatDuration(breakMinutes),
-      note: breakMinutes != null ? "From check in to check out" : "Pending",
+      title: "Clocked break time",
+      value: formatDuration(clockedTimeMinutes),
+      note: clockedTimeMinutes != null ? "From check in to check out" : "Pending",
       accent: "amber",
+    },
+    {
+      title: "Admin-added break time",
+      value: formatDuration(adminBreakMinutes),
+      note: adminBreakMinutes > 0 ? "Manually added by admin" : "No admin break time",
+      accent: "orange",
     },
     {
       title: "Days logged",
@@ -71,7 +81,7 @@ function AttendanceCards({ attendanceData = [] }) {
   ];
 
   return (
-    <div className="ms-stat-grid-4">
+    <div className="ms-stat-grid-5">
       {cards.map((card) => (
         <div key={card.title} className={`ms-stat-card ${card.accent}`}>
           <p className="label">{card.title}</p>

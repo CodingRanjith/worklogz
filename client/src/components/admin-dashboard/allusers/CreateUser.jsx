@@ -34,6 +34,8 @@ const CreateUser = ({ onClose, onCreated }) => {
   const [nextEmployeeId, setNextEmployeeId] = useState('THC001');
   const [fetchingId, setFetchingId] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [isAdminControl, setIsAdminControl] = useState(false); // Admin control checkbox (independent from role)
+  const [displayRole, setDisplayRole] = useState('employee'); // Role shown in dropdown (never changes when admin control is checked)
 
   // Fetch custom fields for dropdowns
   const { fields: roleFields } = useCustomFields('role');
@@ -70,7 +72,13 @@ const CreateUser = ({ onClose, onCreated }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    if (name === 'role') {
+      // Update both form.role and displayRole when role dropdown changes
+      setDisplayRole(value);
+      setForm((prev) => ({ ...prev, [name]: value }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleBankChange = (e) => {
@@ -147,7 +155,10 @@ const CreateUser = ({ onClose, onCreated }) => {
         password: form.password,
         position: form.position.trim(),
         company: form.company.trim(),
-        role: form.role || 'employee',
+        // Keep the selected role unchanged - admin control grants permissions without changing role
+        role: displayRole || 'employee',
+        // Send adminAccess flag if admin control is checked (for backend to grant admin permissions)
+        adminAccess: isAdminControl || undefined,
         employeeId: nextEmployeeId,
         salary: form.salary ? Number(form.salary) : 0,
         department: form.department?.trim() || undefined,
@@ -373,11 +384,11 @@ const CreateUser = ({ onClose, onCreated }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                   <select
                     name="role"
-                    value={form.role}
+                    value={displayRole || 'employee'}
                     onChange={handleInputChange}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                   >
-                    <option value="">Select Role</option>
+                    <option value="employee">Employee</option>
                     {roleFields.length > 0 ? (
                       roleFields.map((field) => {
                         // Map role values to database enum format
@@ -392,8 +403,6 @@ const CreateUser = ({ onClose, onCreated }) => {
                       })
                     ) : (
                       <>
-                        <option value="employee">Employee</option>
-                        <option value="admin">Admin</option>
                         <option value="manager">Manager</option>
                         <option value="hr">HR</option>
                         <option value="supervisor">Supervisor</option>
@@ -401,6 +410,29 @@ const CreateUser = ({ onClose, onCreated }) => {
                       </>
                     )}
                   </select>
+                  <p className="text-xs text-gray-500 mt-1">Company-based custom roles available</p>
+                </div>
+                <div className="md:col-span-2">
+                  <div className="flex items-start gap-3 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                    <input
+                      type="checkbox"
+                      id="isAdminControl"
+                      name="isAdminControl"
+                      checked={isAdminControl}
+                      onChange={(e) => {
+                        setIsAdminControl(e.target.checked);
+                      }}
+                      className="mt-1 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="isAdminControl" className="block text-sm font-medium text-gray-900 cursor-pointer">
+                        Admin Control System
+                      </label>
+                      <p className="text-xs text-gray-600 mt-1">
+                        All admin rights given to that role. Note: Admin rights provide full system control. This checkbox is independent from the role selection above - checking this grants admin permissions regardless of the selected role.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>

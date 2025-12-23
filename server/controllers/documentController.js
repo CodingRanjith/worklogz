@@ -161,7 +161,7 @@ exports.updateDocument = async (req, res) => {
     }
 
     // Check if user is the uploader or admin
-    if (document.uploadedBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (document.uploadedBy.toString() !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'master-admin') {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to update this document'
@@ -201,7 +201,7 @@ exports.deleteDocument = async (req, res) => {
     }
 
     // Check if user is the uploader or admin
-    if (document.uploadedBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (document.uploadedBy.toString() !== req.user.id && req.user.role !== 'admin' && req.user.role !== 'master-admin') {
       return res.status(403).json({
         success: false,
         error: 'Not authorized to delete this document'

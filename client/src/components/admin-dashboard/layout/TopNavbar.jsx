@@ -1,9 +1,11 @@
 import React from 'react';
 import { FiUser, FiLogOut, FiMenu, FiBell, FiSearch } from 'react-icons/fi';
 
-const TopNavbar = ({ setSidebarOpen }) => {
+const TopNavbar = ({ setSidebarOpen, sidebarCollapsed = false }) => {
   return (
-    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 fixed top-0 left-0 right-0 z-30 shadow-sm md:left-64 transition-all duration-300">
+    <header className={`h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 fixed top-0 left-0 right-0 z-30 shadow-sm transition-all duration-300 ${
+      sidebarCollapsed ? 'md:left-16' : 'md:left-64'
+    }`}>
       <div className="flex items-center gap-4">
         <button
           onClick={() => setSidebarOpen(prev => !prev)}

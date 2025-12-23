@@ -607,6 +607,31 @@
   }
 }
 
+/* Five-column stats grid for Daily Attendance cards */
+.ms-stat-grid-5 {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 1280px) {
+  .ms-stat-grid-5 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1024px) {
+  .ms-stat-grid-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .ms-stat-grid-5 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .ms-stat-card {
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
@@ -650,6 +675,10 @@
 
 .ms-stat-card.violet .value {
   color: #5a50b0;
+}
+
+.ms-stat-card.orange .value {
+  color: #f97316;
 }
 
 @media (max-width: 768px) {

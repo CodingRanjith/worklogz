@@ -46,7 +46,15 @@ exports.markAttendance = async (req, res) => {
 
 exports.getAllAttendance = async (req, res) => {
   try {
-    const records = await Attendance.find().populate('user', 'name email');
+    const records = await Attendance.find().populate('user', 'name email department role position company employeeId');
+    
+    // Set headers to prevent caching
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     res.json(records);
   } catch (err) {
     console.error('Fetch error:', err);
@@ -123,16 +131,58 @@ exports.getMyAttendance = async (req, res) => {
 
 exports.getAttendanceByDate = async (req, res) => {
   try {
-    const date = new Date(req.params.date);
+    console.log('getAttendanceByDate called with date:', req.params.date);
+    console.log('User:', req.user);
+    
+    const dateStr = req.params.date;
+    
+    // Validate date format
+    if (!dateStr) {
+      return res.status(400).json({ error: 'Date parameter is required' });
+    }
+    
+    // Parse date - handle YYYY-MM-DD format
+    const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!dateMatch) {
+      return res.status(400).json({ error: 'Invalid date format. Use YYYY-MM-DD' });
+    }
+    
+    const date = new Date(dateStr + 'T00:00:00.000Z');
+    if (isNaN(date.getTime())) {
+      return res.status(400).json({ error: 'Invalid date' });
+    }
+    
+    const startDate = new Date(date);
+    startDate.setUTCHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setUTCHours(23, 59, 59, 999);
+    
+    console.log('Querying attendance from', startDate, 'to', endDate);
+    
     const records = await Attendance.find({
       timestamp: {
-        $gte: new Date(date.setHours(0, 0, 0)),
-        $lt: new Date(date.setHours(23, 59, 59))
+        $gte: startDate,
+        $lte: endDate
       }
-    }).populate('user', 'name email');
-    res.json(records);
+    }).populate('user', 'name email department role position company employeeId phone');
+    
+    console.log(`Found ${records.length} attendance records`);
+    
+    // Set headers to prevent caching
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
+    res.json(records || []);
   } catch (error) {
     console.error('Error fetching attendance by date:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: 'Internal server error', 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };

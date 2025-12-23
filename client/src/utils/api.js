@@ -1,12 +1,13 @@
+/**
+ * API Endpoints
+ * All API endpoint definitions
+ * Note: Consider migrating to services/ folder for better organization
+ */
 
+import { API_CONFIG } from '../config/api';
 
-// src/utils/api.js
-export const BASE_URL = 'https://worklogz.onrender.com';
-
-// src/utils/api.js
-
-// // // // Base URL
-// export const BASE_URL = 'http://localhost:5000'; // Change to your live domain when needed'https://worklogz.onrender.com'
+// Base URL from config
+export const BASE_URL = API_CONFIG.BASE_URL;
 
 // -----------------
 // Auth & User APIss

@@ -42,10 +42,14 @@ function Login() {
       });
 
       setTimeout(() => {
-        if (decoded.role === 'admin') {
+        if (decoded.role === 'master-admin') {
+          // Master admin goes to admin layout
           navigate('/admin');
+        } else if (decoded.role === 'admin') {
+          // Normal admin goes to employee layout (but has admin access)
+          navigate('/home');
         } else if (decoded.role) {
-          // Any non-admin role goes to employee home
+          // Any other role goes to employee home
           navigate('/home');
         } else {
           // If no role is present on the token
