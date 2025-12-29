@@ -40,9 +40,9 @@ const authMiddleware = require('./middleware/auth');
 const app = express();
 
 // CORS configuration
-const allowedOrigins = [
-  'https://zovcur.worklogz.com',
-  'http://zovcur.worklogz.com',
+const corsOptions = {
+  origin: [
+    'https://worklogz.netlify.app',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
