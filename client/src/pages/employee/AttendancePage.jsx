@@ -269,17 +269,15 @@ function AttendancePage() {
 
   const formatEmployeeId = (value) => {
     if (!value) return "";
-    // Remove any existing THC prefix and whitespace
-    const clean = value.toString().replace(/^thc\s*:?\s*/i, "").trim();
-    // Extract digits only
-    const digits = clean.replace(/\D/g, '');
-    // If we have digits, format as THC001 format
-    if (digits) {
-      const padded = digits.padStart(3, '0');
-      return `THC${padded}`;
-    }
-    // If no digits but has value, return as is
-    return clean || "";
+  const clean = value.toString().trim();
+  const match = clean.match(/^([A-Za-z]+)?\s*:?(\d+)$/);
+  if (match) {
+    const prefix = (match[1] || "EMP").toUpperCase();
+    const digits = match[2].replace(/^0+/, '') || '0';
+    const padded = digits.padStart(3, '0');
+    return `${prefix}${padded}`;
+  }
+  return clean || "";
   };
 
   const getCompanyLogo = (company) => {

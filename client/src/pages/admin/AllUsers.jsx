@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '../../utils/api';
 import EditUser from '../../components/admin-dashboard/allusers/EditUser';
 import CreateUser from '../../components/admin-dashboard/allusers/CreateUser';
 import ViewUserDetails from '../../components/admin-dashboard/allusers/ViewUserDetails';
-import { FiSearch, FiFilter, FiUsers, FiX, FiPlus, FiEdit2, FiHome, FiBriefcase, FiEye, FiDownload, FiArchive, FiRotateCw } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiUsers, FiX, FiPlus, FiEdit2, FiHome, FiBriefcase, FiEye, FiDownload, FiArchive, FiRotateCw, FiTrash2 } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import { useCustomFields } from '../../hooks/useCustomFields';
 import jsPDF from 'jspdf';
@@ -17,6 +17,7 @@ const AllUsers = () => {
   const [editingUserId, setEditingUserId] = useState(null);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [restoringUserId, setRestoringUserId] = useState(null);
+  const [permanentlyDeletingId, setPermanentlyDeletingId] = useState(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [viewingUserId, setViewingUserId] = useState(null);
   const [activeTab, setActiveTab] = useState('active'); // 'active' or 'archived'
@@ -180,6 +181,37 @@ const AllUsers = () => {
       Swal.fire('Error', 'Failed to restore employee. Please try again.', 'error');
     } finally {
       setRestoringUserId(null);
+    }
+  };
+
+  const handlePermanentDeleteUser = async (userId, name) => {
+    const result = await Swal.fire({
+      title: 'Permanently Delete?',
+      text: `This will permanently delete ${name || 'this employee'} and cannot be undone.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete forever',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      setPermanentlyDeletingId(userId);
+      const token = localStorage.getItem('token');
+      await axios.delete(API_ENDPOINTS.deleteUserPermanent(userId), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      await fetchArchivedUsers();
+      Swal.fire('Deleted', 'Employee was permanently deleted.', 'success');
+    } catch (error) {
+      console.error('Failed to permanently delete user:', error);
+      Swal.fire('Error', 'Failed to permanently delete employee. Please try again.', 'error');
+    } finally {
+      setPermanentlyDeletingId(null);
     }
   };
 
@@ -800,18 +832,32 @@ const AllUsers = () => {
                             )}
                           </button>
                         ) : (
-                          <button
-                            onClick={() => handleRestoreUser(user._id, user.name)}
-                            disabled={restoringUserId === user._id}
-                            className="text-green-600 hover:text-green-900 p-2 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Restore Employee"
-                          >
-                            {restoringUserId === user._id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-green-600"></div>
-                            ) : (
-                              <FiRotateCw size={18} />
-                            )}
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleRestoreUser(user._id, user.name)}
+                              disabled={restoringUserId === user._id || permanentlyDeletingId === user._id}
+                              className="text-green-600 hover:text-green-900 p-2 rounded-lg hover:bg-green-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Restore Employee"
+                            >
+                              {restoringUserId === user._id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-green-600"></div>
+                              ) : (
+                                <FiRotateCw size={18} />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handlePermanentDeleteUser(user._id, user.name)}
+                              disabled={permanentlyDeletingId === user._id || restoringUserId === user._id}
+                              className="text-red-600 hover:text-red-900 p-2 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Permanently Delete"
+                            >
+                              {permanentlyDeletingId === user._id ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-red-600"></div>
+                              ) : (
+                                <FiTrash2 size={18} />
+                              )}
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
