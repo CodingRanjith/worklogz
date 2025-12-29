@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+
+// Load environment variables from .env file
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 // Import routes
 const attendanceRoutes = require('./routes/attendanceRoutes');
@@ -38,16 +40,31 @@ const authMiddleware = require('./middleware/auth');
 const app = express();
 
 // CORS configuration
+const allowedOrigins = [
+  'https://worklogz.com',
+  'http://worklogz.com',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3001',
+];
+
 const corsOptions = {
-  origin: [
-    'https://worklogz.netlify.app',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://worklogz.com',
-    'http://worklogz.com',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:3001',
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Normalize origin by removing trailing slash for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
+    // Check if normalized origin is in allowed list
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma', 'Expires'],
   credentials: true,

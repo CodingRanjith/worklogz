@@ -4,6 +4,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const MasterAdmin = require('../models/MasterAdmin');
 const PendingUser = require('../models/PendingUser');
 const transporter = require('../config/emailConfig');
 
@@ -11,6 +12,42 @@ const authController = {
   login: async (req, res) => {
     try {
       const { email, password } = req.body;
+      
+      // First check MasterAdmin collection (separate collection for development use)
+      let masterAdmin = await MasterAdmin.findOne({ email, isActive: true });
+      if (masterAdmin && await bcrypt.compare(password, masterAdmin.password)) {
+        // Update last login
+        masterAdmin.lastLogin = new Date();
+        await masterAdmin.save();
+
+        const token = jwt.sign(
+          {
+            userId: masterAdmin._id,
+            role: 'master-admin',
+            name: masterAdmin.name,
+            email: masterAdmin.email,
+            phone: masterAdmin.phone,
+            company: masterAdmin.company,
+            position: 'Master Admin',
+            isMasterAdmin: true // Flag to identify master admin
+          },
+          process.env.JWT_SECRET,
+          { expiresIn: '30d' }
+        );
+
+        return res.json({
+          token,
+          userId: masterAdmin._id,
+          role: 'master-admin',
+          name: masterAdmin.name,
+          email: masterAdmin.email,
+          company: masterAdmin.company,
+          position: 'Master Admin',
+          isMasterAdmin: true
+        });
+      }
+
+      // If not master admin, check User collection
       const user = await User.findOne({ email });
 
       if (!user || !(await bcrypt.compare(password, user.password))) {
@@ -25,7 +62,8 @@ const authController = {
           email: user.email,
           phone: user.phone,
           company: user.company,
-          position: user.position
+          position: user.position,
+          isMasterAdmin: false
         },
         process.env.JWT_SECRET,
         { expiresIn: '30d' }
@@ -41,6 +79,7 @@ const authController = {
         position: user.position
       });
     } catch (error) {
+      console.error('Login error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },

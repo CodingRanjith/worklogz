@@ -1,16 +1,14 @@
 const FeePayment = require('../models/FeePayment');
 const cloudinary = require('../config/cloudinary');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinaryStorage = require('multer-storage-cloudinary');
 const multer = require('multer');
 
 // Configure multer for Cloudinary uploads
-const storage = new CloudinaryStorage({
+const storage = cloudinaryStorage({
   cloudinary,
-  params: {
-    folder: 'fee_payments',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-    transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
-  }
+  folder: 'fee_payments',
+  allowedFormats: ['jpg', 'jpeg', 'png'],
+  transformation: [{ width: 1200, height: 1200, crop: 'limit' }],
 });
 
 const upload = multer({ 

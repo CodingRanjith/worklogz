@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const MasterAdmin = require('../models/MasterAdmin');
 
 module.exports = async function (req, res, next) {
   try {
@@ -25,7 +26,45 @@ module.exports = async function (req, res, next) {
       return res.status(401).json({ msg: 'Invalid token payload' });
     }
     
-    // Fetch user from database to get adminAccess flag
+    // Check if this is a master admin (from separate collection)
+    if (decoded.isMasterAdmin || decoded.role === 'master-admin') {
+      try {
+        const masterAdmin = await MasterAdmin.findById(decoded.userId).select('email isActive');
+        if (!masterAdmin || !masterAdmin.isActive) {
+          return res.status(401).json({ msg: 'Master admin account not found or inactive' });
+        }
+        
+        req.user = {
+          _id: decoded.userId,
+          role: 'master-admin',
+          adminAccess: false, // Master admin doesn't have adminAccess flag
+          name: decoded.name,
+          email: decoded.email,
+          phone: decoded.phone,
+          company: decoded.company,
+          position: decoded.position,
+          isMasterAdmin: true // Flag to identify master admin
+        };
+        return next();
+      } catch (dbError) {
+        console.error('Database error in auth middleware (master admin):', dbError);
+        // Fallback to token data
+        req.user = {
+          _id: decoded.userId,
+          role: 'master-admin',
+          adminAccess: false,
+          name: decoded.name,
+          email: decoded.email,
+          phone: decoded.phone,
+          company: decoded.company,
+          position: decoded.position,
+          isMasterAdmin: true
+        };
+        return next();
+      }
+    }
+    
+    // Regular user from User collection
     let user;
     try {
       user = await User.findById(decoded.userId).select('role adminAccess');
@@ -40,7 +79,8 @@ module.exports = async function (req, res, next) {
         email: decoded.email,
         phone: decoded.phone,
         company: decoded.company,
-        position: decoded.position
+        position: decoded.position,
+        isMasterAdmin: false
       };
       return next();
     }
@@ -53,7 +93,8 @@ module.exports = async function (req, res, next) {
       email: decoded.email,
       phone: decoded.phone,
       company: decoded.company,
-      position: decoded.position
+      position: decoded.position,
+      isMasterAdmin: false
     };
     next();
   } catch (err) {
