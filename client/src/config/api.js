@@ -3,7 +3,7 @@
  * Centralized API base URL and configuration
  */
 
-const DEFAULT_PROD_URL = 'https://worklogz.onrender.com';
+const DEFAULT_PROD_URL = 'https://zovcur-worklogz.onrender.com';
 const DEFAULT_DEV_URL = 'http://localhost:5000';
 
 export const API_CONFIG = {
