@@ -77,6 +77,16 @@ const MasterControl = () => {
 
   // Sidebar menu structure (same as employee sidebar) - editable
   const [menuItems, setMenuItems] = useState([]);
+  const makeId = (prefix = 'id') => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const ensureIds = (items = []) =>
+    items.map((item, idx) => ({
+      ...item,
+      id: item.id || item._id || makeId(`cat-${idx}`),
+      subItems: (item.subItems || []).map((sub, sIdx) => ({
+        ...sub,
+        id: sub.id || sub._id || makeId(`sub-${idx}-${sIdx}`),
+      })),
+    }));
   const allPaths = useMemo(
     () => getAllMenuPaths(menuItems),
     [menuItems]
@@ -139,7 +149,7 @@ const MasterControl = () => {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         let items = res.data?.items || [];
-        setMenuItems(normalizeMenuOrder(items));
+        setMenuItems(normalizeMenuOrder(ensureIds(items)));
       } catch (err) {
         console.error('Failed to load sidebar menu for Master Control', err);
         setMenuItems([]);
@@ -229,12 +239,28 @@ const MasterControl = () => {
       reindexMenu([
         ...prev,
         {
-          id: `new-${Date.now()}-${prev.length}`,
+          id: makeId('cat'),
           label: 'New Category',
           icon: '',
           path: '',
           order: prev.length,
           subItems: [],
+        },
+      ])
+    );
+  };
+
+  const handleAddRootItem = () => {
+    setMenuItems((prev) =>
+      reindexMenu([
+        ...prev,
+        {
+          id: makeId('item'),
+          label: 'New Item',
+          icon: '',
+          path: '',
+          order: prev.length,
+          // No subItems - this is a root-level item
         },
       ])
     );
@@ -260,8 +286,9 @@ const MasterControl = () => {
                 subItems: [
                   ...(item.subItems || []),
                   {
+                    id: makeId('sub'),
                     label: 'New Item',
-                    path: '/new-path',
+                    path: '',
                     isSection: false,
                     order: (item.subItems || []).length,
                     icon: '',
@@ -279,15 +306,28 @@ const MasterControl = () => {
       reindexMenu(
         prev.map((item, i) => {
           if (i !== categoryIndex) return item;
-          const updatedSubItems = (item.subItems || []).map((sub, si) =>
-            si === subIndex
-              ? {
-                  ...sub,
-                  [field]: field === 'isSection' ? !!value : value,
-                  path: field === 'isSection' && value ? '#' : sub.path,
-                }
-              : sub
-          );
+          const updatedSubItems = (item.subItems || []).map((sub, si) => {
+            if (si !== subIndex) return sub;
+
+            // Preserve last non-section path so toggling Section off restores it
+            if (field === 'isSection') {
+              const nextIsSection = !!value;
+              const prevPath = sub.path || '';
+              const fallbackPath = sub._prevPath || sub.path || '/new-path';
+              return {
+                ...sub,
+                isSection: nextIsSection,
+                // When enabling section, park the current path; when disabling, restore it
+                _prevPath: nextIsSection ? prevPath : undefined,
+                path: nextIsSection ? '#' : fallbackPath,
+              };
+            }
+
+            return {
+              ...sub,
+              [field]: value,
+            };
+          });
           return { ...item, subItems: updatedSubItems };
         })
       )
@@ -345,7 +385,7 @@ const MasterControl = () => {
 
   const handleSaveSidebarStructure = async () => {
     try {
-      const orderedMenu = normalizeMenuOrder(menuItems);
+      const orderedMenu = normalizeMenuOrder(ensureIds(menuItems));
       // Strip any non‑JSON data (just to be safe)
       const payloadItems = orderedMenu.map((item, idx) => ({
         label: item.label,
@@ -437,6 +477,13 @@ const MasterControl = () => {
             <div className="flex items-center gap-2">
               <button
                 type="button"
+                onClick={handleAddRootItem}
+                className="px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+              >
+                Add Item
+              </button>
+              <button
+                type="button"
                 onClick={handleAddCategory}
                 className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
               >
@@ -462,7 +509,8 @@ const MasterControl = () => {
                 {...provided.droppableProps}
               >
                 {menuItems.map((item, categoryIndex) => {
-                  if (item.subItems) {
+                  // Only treat as category if it has subItems array with items
+                  if (item.subItems && Array.isArray(item.subItems) && item.subItems.length > 0) {
                     const normalizedSubItems = normalizeMenuOrder(item.subItems || []);
                     const categoryPaths = normalizedSubItems
                       .filter((sub) => !sub.isSection && sub.path && sub.path !== '#')
@@ -589,10 +637,7 @@ const MasterControl = () => {
                                 >
                                   {normalizedSubItems.map((sub, subIndex) => {
                                     const checked = isPathEnabled(sub.path);
-                                    const draggableId =
-                                      sub._id ||
-                                      sub.id ||
-                                      `${categoryIndex}-${sub.path || 'section'}-${subIndex}`;
+                                    const draggableId = sub.id || sub._id || `${categoryIndex}-${subIndex}`;
                                     return (
                                       <Draggable
                                         key={draggableId}
@@ -657,20 +702,40 @@ const MasterControl = () => {
                                                 </label>
                                               </div>
                                               {!sub.isSection && (
-                                                <input
-                                                  type="text"
-                                                  value={sub.path}
-                                                  onChange={(e) =>
-                                                    handleSubItemChange(
-                                                      categoryIndex,
-                                                      subIndex,
-                                                      'path',
-                                                      e.target.value
-                                                    )
-                                                  }
-                                                  className="border rounded-md px-2 py-1 text-xs"
-                                                  placeholder="/route-path"
-                                                />
+                                                <>
+                                                  <input
+                                                    type="text"
+                                                    value={sub.path}
+                                                    onChange={(e) =>
+                                                      handleSubItemChange(
+                                                        categoryIndex,
+                                                        subIndex,
+                                                        'path',
+                                                        e.target.value
+                                                      )
+                                                    }
+                                                    className="border rounded-md px-2 py-1 text-xs flex-1"
+                                                    placeholder="/route-path"
+                                                  />
+                                                  <select
+                                                    value={sub.icon || ''}
+                                                    onChange={(e) =>
+                                                      handleSubItemChange(
+                                                        categoryIndex,
+                                                        subIndex,
+                                                        'icon',
+                                                        e.target.value
+                                                      )
+                                                    }
+                                                    className="border rounded-md px-2 py-1 text-xs"
+                                                  >
+                                                    {ICON_OPTIONS.map((opt) => (
+                                                      <option key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                      </option>
+                                                    ))}
+                                                  </select>
+                                                </>
                                               )}
                                             </div>
                                             <button
@@ -710,38 +775,74 @@ const MasterControl = () => {
                           {...catProvided.draggableProps}
                           className="border rounded-lg p-4 bg-gray-50"
                         >
-                          <label className="flex items-center gap-3 cursor-pointer">
+                          <div className="flex items-start gap-3">
                             <span
                               {...catProvided.dragHandleProps}
-                              className="text-gray-400 hover:text-gray-600 cursor-grab"
+                              className="text-gray-400 hover:text-gray-600 cursor-grab mt-1"
                               title="Drag to reorder item"
                             >
-                              <FiMove />
+                              <FiMove size={16} />
                             </span>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={() => togglePath(item.path)}
-                              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                            />
-                            <div className="flex items-center gap-3 flex-1">
-                              {(() => {
-                                const IconComponent = getIconComponent(item.icon);
-                                return IconComponent ? (
-                                  <span className="text-xl text-gray-700">
-                                    <IconComponent />
-                                  </span>
-                                ) : null;
-                              })()}
-                              <span
-                                className={`text-sm font-medium ${
-                                  checked ? 'text-gray-900' : 'text-gray-700'
-                                }`}
-                              >
-                                {item.label}
-                              </span>
+                            <div className="flex-1 flex flex-col gap-3">
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => togglePath(item.path)}
+                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                />
+                                {(() => {
+                                  const IconComponent = getIconComponent(item.icon);
+                                  return IconComponent ? (
+                                    <span className="text-xl text-gray-700 flex-shrink-0">
+                                      <IconComponent />
+                                    </span>
+                                  ) : null;
+                                })()}
+                                <input
+                                  type="text"
+                                  value={item.label}
+                                  onChange={(e) =>
+                                    handleCategoryChange(categoryIndex, 'label', e.target.value)
+                                  }
+                                  className="border rounded-md px-2 py-1 text-sm flex-1"
+                                  placeholder="Item label"
+                                />
+                                <select
+                                  value={item.icon || ''}
+                                  onChange={(e) =>
+                                    handleCategoryChange(categoryIndex, 'icon', e.target.value)
+                                  }
+                                  className="border rounded-md px-2 py-1 text-xs"
+                                >
+                                  {ICON_OPTIONS.map((opt) => (
+                                    <option key={opt.value || 'none'} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <label className="text-xs text-gray-600 whitespace-nowrap">Path:</label>
+                                <input
+                                  type="text"
+                                  value={item.path || ''}
+                                  onChange={(e) =>
+                                    handleCategoryChange(categoryIndex, 'path', e.target.value)
+                                  }
+                                  className="border rounded-md px-2 py-1 text-xs flex-1"
+                                  placeholder="/route-path (e.g., /home, /attendance)"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCategory(categoryIndex)}
+                                  className="px-3 py-1.5 text-xs bg-red-100 text-red-700 rounded-md font-medium hover:bg-red-200 transition-colors"
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </div>
-                          </label>
+                          </div>
                         </div>
                       )}
                     </Draggable>

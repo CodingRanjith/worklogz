@@ -6,10 +6,13 @@ const mongoose = require('mongoose');
  */
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/worklogz';
+    if (!process.env.MONGODB_URI) {
+      console.warn('MONGODB_URI not set; falling back to local MongoDB at 127.0.0.1:27017/worklogz');
+    }
+
+    // Mongoose 7+ no longer requires legacy parser/topology flags.
+    const conn = await mongoose.connect(uri);
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('MongoDB connection error:', error.message);

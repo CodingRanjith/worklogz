@@ -32,6 +32,7 @@ export const API_ENDPOINTS = {
   getUserById: (userId) => `${BASE_URL}/users/${userId}`,
   updateUser: (userId) => `${BASE_URL}/users/${userId}`,
   deleteUser: (userId) => `${BASE_URL}/users/${userId}`,
+  deleteUserPermanent: (userId) => `${BASE_URL}/users/${userId}/permanent`,
   getArchivedUsers: `${BASE_URL}/users/archived/list`,
   restoreUser: (userId) => `${BASE_URL}/users/${userId}/restore`,
   updateSalary: (userId) => `${BASE_URL}/users/${userId}/salary`,

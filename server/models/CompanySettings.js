@@ -110,7 +110,7 @@ const CompanySettingsSchema = new mongoose.Schema({
   // Employee ID Settings
   employeeIdPrefix: {
     type: String,
-    default: 'THC',
+    default: 'EMP',
     trim: true,
     uppercase: true,
     maxlength: 10
@@ -142,7 +142,7 @@ CompanySettingsSchema.statics.getCompanySettings = async function() {
     settings = await this.create({
       companyName: 'Worklogz',
       companyDescription: 'Employee management and HR system',
-      employeeIdPrefix: 'THC'
+      employeeIdPrefix: 'EMP'
     });
   }
   return settings;

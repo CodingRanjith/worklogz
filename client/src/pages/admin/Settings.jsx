@@ -10,7 +10,6 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState('company');
   const [logoPreview, setLogoPreview] = useState('');
   const [logoFile, setLogoFile] = useState(null);
-  const [isPrefixLocked, setIsPrefixLocked] = useState(false);
   const [settings, setSettings] = useState({
     // Company Settings
     companyName: '',
@@ -40,7 +39,7 @@ const Settings = () => {
     dateFormat: 'DD/MM/YYYY',
     currency: 'INR',
     currencySymbol: '₹',
-    employeeIdPrefix: 'THC',
+    employeeIdPrefix: 'EMP',
 
     // Attendance Settings
     checkInTime: '09:00',
@@ -117,7 +116,7 @@ const Settings = () => {
           dateFormat: data.dateFormat || 'DD/MM/YYYY',
           currency: data.currency || 'INR',
           currencySymbol: data.currencySymbol || '₹',
-          employeeIdPrefix: data.employeeIdPrefix || 'THC',
+          employeeIdPrefix: data.employeeIdPrefix || 'EMP',
           // Keep other settings
           checkInTime: settings.checkInTime,
           checkOutTime: settings.checkOutTime,
@@ -139,11 +138,6 @@ const Settings = () => {
           salaryDay: settings.salaryDay,
           taxDeduction: settings.taxDeduction
         });
-        
-        // Lock prefix if it has been saved before (check if company name exists or prefix is set)
-        // This prevents changing prefix after employees have been created
-        setIsPrefixLocked(!!data.companyName || !!data.employeeIdPrefix);
-        
         if (data.companyLogo) {
           // Set logo preview - Cloudinary URL should be ready to use
           setLogoPreview(data.companyLogo);
@@ -248,8 +242,10 @@ const Settings = () => {
         }
         setSettings({ ...settings, companyLogo: updatedSettings.companyLogo || '' });
         
-        // Lock prefix after first save to prevent changes
-        setIsPrefixLocked(true);
+        // Trigger event to refresh company info in Layout components
+        window.dispatchEvent(new CustomEvent('companySettingsUpdated', {
+          detail: { settings: updatedSettings }
+        }));
       }
       
       Swal.fire({
@@ -501,27 +497,18 @@ const Settings = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Employee ID Prefix *
-                      {isPrefixLocked && (
-                        <span className="ml-2 text-xs text-orange-600 font-normal">(Locked - Cannot be changed)</span>
-                      )}
                     </label>
                     <input
                       type="text"
                       value={settings.employeeIdPrefix}
-                      onChange={(e) => !isPrefixLocked && setSettings({ ...settings, employeeIdPrefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })}
-                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 ${
-                        isPrefixLocked ? 'bg-gray-100 cursor-not-allowed opacity-75' : ''
-                      }`}
-                      placeholder="THC"
+                      onChange={(e) => setSettings({ ...settings, employeeIdPrefix: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      placeholder="EMP"
                       maxLength={10}
                       required
-                      disabled={isPrefixLocked}
-                      readOnly={isPrefixLocked}
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      {isPrefixLocked 
-                        ? 'Prefix cannot be changed after initial setup to maintain consistency with existing employee IDs.'
-                        : 'Prefix for employee IDs (e.g., THC001, THC002). This cannot be changed after saving.'}
+                      Prefix for employee IDs (e.g., EMP001, ABC002).
                     </p>
                   </div>
                 </div>
