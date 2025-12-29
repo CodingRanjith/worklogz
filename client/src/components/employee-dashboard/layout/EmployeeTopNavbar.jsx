@@ -56,31 +56,7 @@ const EmployeeTopNavbar = ({ setSidebarOpen, sidebarCollapsed }) => {
     fetchUnreadCount();
     fetchCompanyDetails();
     const interval = setInterval(fetchUnreadCount, 30000);
-    
-    // Listen for company settings updates
-    const handleCompanySettingsUpdate = (event) => {
-      const updatedSettings = event.detail?.settings;
-      if (updatedSettings) {
-        setCompanyDetails({
-          companyLogo: updatedSettings.companyLogo || '',
-          companyName: updatedSettings.companyName || 'WORKLOGZ',
-          companySize: updatedSettings.companySize || '',
-          companyWebsite: updatedSettings.companyWebsite || '',
-          companyFoundedYear: updatedSettings.companyFoundedYear || '',
-          companyIndustry: updatedSettings.companyIndustry || ''
-        });
-      } else {
-        // If no detail, refetch from server
-        fetchCompanyDetails();
-      }
-    };
-    
-    window.addEventListener('companySettingsUpdated', handleCompanySettingsUpdate);
-    
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('companySettingsUpdated', handleCompanySettingsUpdate);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   const handleNotificationClick = () => {

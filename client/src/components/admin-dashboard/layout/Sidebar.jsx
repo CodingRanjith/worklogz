@@ -36,7 +36,7 @@ export const menuItems = [
   { label: 'Settings', icon: <FiSettings />, path: '/settings' }
 ];
 
-const Sidebar = ({ isOpen, setIsOpen, onCollapseChange, companyInfo }) => {
+const Sidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
   // Initialize all items with subItems as expanded by default
   const [expandedItems, setExpandedItems] = React.useState(() => {
     const initialExpanded = {};
@@ -97,34 +97,6 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange, companyInfo }) => {
         }`}>
           {isCollapsed ? (
             <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
-                  {companyInfo?.logo ? (
-                    <img
-                      src={companyInfo.logo}
-                      alt={companyInfo.name || 'Logo'}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.error('Failed to load company logo:', companyInfo.logo);
-                        e.target.style.display = 'none';
-                        // Show fallback initials if image fails
-                        const parent = e.target.parentElement;
-                        if (parent && !parent.querySelector('span')) {
-                          const fallback = document.createElement('span');
-                          fallback.className = 'text-xs font-semibold text-gray-700';
-                          fallback.textContent = (companyInfo?.name || 'C').slice(0, 2).toUpperCase();
-                          parent.appendChild(fallback);
-                        }
-                      }}
-                      onLoad={() => {
-                        console.log('Company logo loaded successfully:', companyInfo.logo);
-                      }}
-                    />
-                  ) : (
-                    <span className="text-xs font-semibold text-gray-700">
-                      {(companyInfo?.name || 'C').slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
-              </div>
               <button
                 onClick={toggleSidebar}
                 className="p-2 hover:bg-gray-100 rounded-md transition-colors"
@@ -136,41 +108,24 @@ const Sidebar = ({ isOpen, setIsOpen, onCollapseChange, companyInfo }) => {
           ) : (
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
-                  {companyInfo?.logo ? (
-                    <img
-                      src={companyInfo.logo}
-                      alt={companyInfo.name || 'Logo'}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.error('Failed to load company logo:', companyInfo.logo);
-                        e.target.style.display = 'none';
-                        // Show fallback initials if image fails
-                        const parent = e.target.parentElement;
-                        if (parent && !parent.querySelector('div')) {
-                          const fallback = document.createElement('div');
-                          fallback.className = 'w-full h-full flex items-center justify-center text-sm font-semibold text-gray-700';
-                          fallback.textContent = (companyInfo?.name || 'C').slice(0, 2).toUpperCase();
-                          parent.appendChild(fallback);
-                        }
-                      }}
-                      onLoad={() => {
-                        console.log('Company logo loaded successfully:', companyInfo.logo);
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm font-semibold text-gray-700">
-                      {(companyInfo?.name || 'C').slice(0, 2).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <div className="text-base font-semibold text-gray-900 truncate">
-                    {companyInfo?.name || 'Admin Portal'}
-                  </div>
-                  <div className="text-xs text-gray-500 truncate">
-                    {companyInfo?.email || companyInfo?.website || 'User Management System'}
-                  </div>
+                <div style={{
+                  textTransform: 'uppercase',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.08em',
+                  fontWeight: '700',
+                  color: '#1c1f33',
+                  lineHeight: '1.3',
+                  minWidth: 0
+                }}>
+                  <div>WORKLOGZ</div>
+                  <small style={{
+                    display: 'block',
+                    color: '#94a3b8',
+                    marginTop: '6px',
+                    fontWeight: '600',
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.05em'
+                  }}>POWERED BY TECHACKODE</small>
                 </div>
               </div>
               <button

@@ -24,10 +24,10 @@ const parseEmployeeNumber = (value = '') => {
 const getEmployeeIdPrefix = async () => {
   try {
     const settings = await CompanySettings.findOne();
-    return settings?.employeeIdPrefix || 'EMP';
+    return settings?.employeeIdPrefix || 'THC';
   } catch (error) {
     console.error('Error fetching employee ID prefix from company settings:', error);
-    return 'EMP'; // Fallback to default
+    return 'THC'; // Fallback to default
   }
 };
 
@@ -440,28 +440,6 @@ const userController = {
     } catch (error) {
       console.error('Error archiving user:', error);
       res.status(500).json({ error: 'Failed to archive user' });
-    }
-  },
-
-  // Permanently delete an archived user
-  deleteUserPermanent: async (req, res) => {
-    const { id } = req.params;
-    try {
-      const user = await User.findById(id);
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
-      }
-
-      if (!user.isDeleted) {
-        return res.status(400).json({ error: 'User must be archived before permanent deletion' });
-      }
-
-      await User.deleteOne({ _id: id });
-
-      res.json({ message: 'User permanently deleted' });
-    } catch (error) {
-      console.error('Error permanently deleting user:', error);
-      res.status(500).json({ error: 'Failed to permanently delete user' });
     }
   },
 

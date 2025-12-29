@@ -404,23 +404,6 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
         }`}>
           {isCollapsed ? (
             <div className="flex flex-col items-center gap-3">
-              <a
-                href="https://www.worklogz.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center hover:opacity-80 transition-opacity"
-                title="Worklogz"
-              >
-                <img 
-                  src="/worklogz-logo.png" 
-                  alt="Worklogz" 
-                  className="h-8 w-auto object-contain"
-                  onError={(e) => {
-                    console.error('Failed to load Worklogz logo');
-                    e.target.style.display = 'none';
-                  }}
-                />
-              </a>
               <button
                 onClick={toggleSidebar}
                 className="p-2 hover:bg-gray-100 rounded-md transition-colors"
@@ -431,55 +414,25 @@ const EmployeeSidebar = ({ isOpen, setIsOpen, onCollapseChange }) => {
             </div>
           ) : (
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <a
-                  href="https://www.worklogz.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-                  title="Worklogz"
-                >
-                  <img 
-                    src="/worklogz-logo.png" 
-                    alt="Worklogz Logo" 
-                    className="h-8 w-auto object-contain flex-shrink-0"
-                    onError={(e) => {
-                      console.error('Failed to load Worklogz logo');
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                </a>
-                <div className="flex flex-col">
-                  <a
-                    href="https://www.worklogz.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:opacity-80 transition-opacity"
-                    title="Worklogz"
-                  >
-                    <div style={{
-                      textTransform: 'uppercase',
-                      fontSize: '0.85rem',
-                      letterSpacing: '0.08em',
-                      fontWeight: '700',
-                      color: theme.primary || '#1c1f33',
-                      lineHeight: '1.2',
-                      minWidth: 0
-                    }}>
-                      WORKLOGZ
-                    </div>
-                  </a>
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <div style={{
+                  textTransform: 'uppercase',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.08em',
+                  fontWeight: '700',
+                  color: theme.primary || '#1c1f33',
+                  lineHeight: '1.3',
+                  minWidth: 0
+                }}>
+                  <div>WORKLOGZ</div>
                   <small style={{
                     display: 'block',
                     color: theme.secondary || '#94a3b8',
-                    fontWeight: '400',
-                    fontSize: '0.5rem',
-                    letterSpacing: '0.03em',
-                    lineHeight: '1.2',
-                    marginTop: '2px'
-                  }}>
-                    POWERED BY TECHACKODE
-                  </small>
+                    marginTop: '6px',
+                    fontWeight: '600',
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.05em'
+                  }}>POWERED BY TECHACKODE</small>
                 </div>
               </div>
               <button

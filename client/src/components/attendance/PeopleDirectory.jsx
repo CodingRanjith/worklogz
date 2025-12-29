@@ -3,17 +3,16 @@ import "./PeopleDirectory.css";
 
 const formatEmployeeId = (value) => {
   if (!value) return "—";
-  const clean = value.toString().trim();
-  const match = clean.match(/^([A-Za-z]+)?\s*:?(\d+)$/);
-
-  // Preserve any prefix already present; otherwise fall back to EMP
-  if (match) {
-    const prefix = (match[1] || "EMP").toUpperCase();
-    const digits = match[2].replace(/^0+/, "") || "0";
-    const padded = digits.padStart(3, "0");
-    return `${prefix}${padded}`;
+  // Remove any existing THC prefix and whitespace
+  const clean = value.toString().replace(/^thc\s*:?\s*/i, "").trim();
+  // Extract digits only
+  const digits = clean.replace(/\D/g, '');
+  // If we have digits, format as THC001 format
+  if (digits) {
+    const padded = digits.padStart(3, '0');
+    return `THC${padded}`;
   }
-
+  // If no digits but has value, return as is
   return clean || "—";
 };
 

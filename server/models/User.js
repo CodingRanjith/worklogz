@@ -19,7 +19,6 @@ const BankDetailsSchema = new mongoose.Schema({
 const formatEmployeeId = (value) => {
   if (!value) return value;
   const strValue = value.toString().trim();
-  const defaultPrefix = 'EMP';
   
   // If it already has a prefix pattern (e.g., "ABC123"), preserve it
   const prefixMatch = strValue.match(/^([A-Z]+)(\d+)$/i);
@@ -38,7 +37,7 @@ const formatEmployeeId = (value) => {
   }
   const normalized = digitsOnly.replace(/^0+/, '') || '0';
   const padded = normalized.padStart(3, '0');
-  return `${defaultPrefix}${padded}`;
+  return `THC${padded}`;
 };
 
 // Main User schema

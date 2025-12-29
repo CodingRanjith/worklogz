@@ -1,8 +1,7 @@
 import React from 'react';
-import { FiMenu, FiBell } from 'react-icons/fi';
+import { FiUser, FiLogOut, FiMenu, FiBell, FiSearch } from 'react-icons/fi';
 
-const TopNavbar = ({ setSidebarOpen, sidebarCollapsed = false, companyInfo }) => {
-  const initials = (companyInfo?.name || 'C').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+const TopNavbar = ({ setSidebarOpen, sidebarCollapsed = false }) => {
   return (
     <header className={`h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 fixed top-0 left-0 right-0 z-30 shadow-sm transition-all duration-300 ${
       sidebarCollapsed ? 'md:left-16' : 'md:left-64'
@@ -21,26 +20,13 @@ const TopNavbar = ({ setSidebarOpen, sidebarCollapsed = false, companyInfo }) =>
       </div>
 
       <div className="flex items-center gap-4">
-        <div className="hidden md:flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center">
-            {companyInfo?.logo ? (
-              <img
-                src={companyInfo.logo}
-                alt={companyInfo.name || 'Company Logo'}
-                className="w-full h-full object-cover"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              <span className="text-sm font-semibold text-gray-700">{initials}</span>
-            )}
-          </div>
-          <div className="text-sm">
-            <div className="font-semibold text-gray-800 truncate max-w-[200px]">
-              {companyInfo?.name || 'Admin Dashboard'}
-            </div>
-            <div className="text-xs text-gray-500 truncate max-w-[200px]">
-              {companyInfo?.email || companyInfo?.website || 'User Management System'}
-            </div>
+        
+        
+        <div className="flex items-center gap-2">
+          
+          <div className="hidden md:block text-sm">
+            <div className="font-medium text-gray-800">Admin Dashboard</div>
+            <div className="text-xs text-gray-500">User Management System</div>
           </div>
         </div>
         <button className="p-2 rounded-full hover:bg-gray-100 relative">

@@ -31,7 +31,7 @@ const CreateUser = ({ onClose, onCreated }) => {
   const [form, setForm] = useState(defaultForm);
   const [skillsInput, setSkillsInput] = useState('');
   const [rolesInput, setRolesInput] = useState('');
-  const [nextEmployeeId, setNextEmployeeId] = useState('EMP001');
+  const [nextEmployeeId, setNextEmployeeId] = useState('THC001');
   const [fetchingId, setFetchingId] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isAdminControl, setIsAdminControl] = useState(false); // Admin control checkbox (independent from role)
@@ -52,14 +52,14 @@ const CreateUser = ({ onClose, onCreated }) => {
       const { data } = await axios.get(API_ENDPOINTS.getNextEmployeeId, {
         headers: authHeaders
       });
-      const generatedId = data?.employeeId || 'EMP001';
+      const generatedId = data?.employeeId || 'THC001';
       setNextEmployeeId(generatedId);
       setForm((prev) => ({ ...prev, employeeId: generatedId }));
     } catch (error) {
       console.error('Failed to fetch next employee ID:', error);
       Swal.fire('Warning', 'Unable to fetch next employee ID. Using fallback value.', 'warning');
-      setNextEmployeeId('EMP001');
-      setForm((prev) => ({ ...prev, employeeId: 'EMP001' }));
+      setNextEmployeeId('THC001');
+      setForm((prev) => ({ ...prev, employeeId: 'THC001' }));
     } finally {
       setFetchingId(false);
     }
@@ -391,10 +391,12 @@ const CreateUser = ({ onClose, onCreated }) => {
                     <option value="employee">Employee</option>
                     {roleFields.length > 0 ? (
                       roleFields.map((field) => {
-                        // Normalize role value (lowercase, no spaces) - allow all custom roles
+                        // Map role values to database enum format
                         const roleValue = field.value.toLowerCase().replace(/\s+/g, '');
+                        const validRoles = ['employee', 'admin', 'manager', 'hr', 'supervisor', 'teamlead'];
+                        const mappedValue = validRoles.includes(roleValue) ? roleValue : 'employee';
                         return (
-                          <option key={field._id || field.value} value={roleValue}>
+                          <option key={field._id || field.value} value={mappedValue}>
                             {field.value}
                           </option>
                         );
@@ -405,7 +407,6 @@ const CreateUser = ({ onClose, onCreated }) => {
                         <option value="hr">HR</option>
                         <option value="supervisor">Supervisor</option>
                         <option value="teamlead">Team Lead</option>
-                        <option value="admin">Admin</option>
                       </>
                     )}
                   </select>

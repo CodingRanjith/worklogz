@@ -54,13 +54,11 @@ function HomePage() {
 
   const formatEmployeeId = (value) => {
     if (!value) return "";
-    const clean = value.toString().trim();
-    const match = clean.match(/^([A-Za-z]+)?\s*:?(\d+)$/);
-    if (match) {
-      const prefix = (match[1] || "EMP").toUpperCase();
-      const digits = match[2].replace(/^0+/, '') || '0';
+    const clean = value.toString().replace(/^thc\s*:?\s*/i, "").trim();
+    const digits = clean.replace(/\D/g, '');
+    if (digits) {
       const padded = digits.padStart(3, '0');
-      return `${prefix}${padded}`;
+      return `THC${padded}`;
     }
     return clean || "";
   };

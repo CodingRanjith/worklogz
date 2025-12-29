@@ -30,9 +30,6 @@ router.get('/archived/list', auth, role('admin'), (req, res, next) => {
   next();
 }, userController.getArchivedUsers);
 
-// ✅ Permanently delete archived user
-router.delete('/:id/permanent', auth, role('admin'), userController.deleteUserPermanent);
-
 // ✅ GET user by ID (users can access their own, admins can access any)
 router.get('/:id', auth, userController.getSingleUser);
 
