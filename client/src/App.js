@@ -99,6 +99,10 @@ import DailySalaryCredit from './pages/admin/DailySalaryCredit';
 // Invoices
 import Invoices from './pages/employee/Invoices';
 
+// Income & Expense
+import IncomeExpense from './pages/admin/IncomeExpense';
+import DayToday from './pages/admin/DayToday';
+
 // ============================================================================
 // DOCUMENTS & ADMINISTRATION MODULE
 // ============================================================================
@@ -469,6 +473,9 @@ function App() {
         <Route path="/payslip" element={<PayslipGenerator />} />
         <Route path="/salaryhistory" element={<PayslipList />} />
         <Route path="/daily-salary-credit" element={<DailySalaryCredit />} />
+        <Route path="/income-expense" element={<IncomeExpense />} />
+        <Route path="/income&expence" element={<IncomeExpense />} />
+        <Route path="/daytoday" element={<DayToday />} />
 
         {/* Documents & Administration - Admin Routes */}
         <Route path="/upload-documents" element={<UploadDocuments />} />

@@ -78,10 +78,11 @@ const EmployeeLayout = () => {
         </main>
       </div>
 
-      <WorklogzChatbot
+      {/* Worklogz AI Chatbot - Hidden per user request */}
+      {/* <WorklogzChatbot
         currentUser={currentUser}
         sidebarCollapsed={sidebarCollapsed}
-      />
+      /> */}
     </div>
   );
 };

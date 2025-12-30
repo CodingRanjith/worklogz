@@ -1,0 +1,88 @@
+/* Income & Expense Management - Tailwind CSS Styles */
+
+/* Custom scrollbar for dropdowns */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Chip hover effects */
+.chip-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chip-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-enter {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content-enter {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Table row hover effect */
+.table-row-hover {
+  transition: background-color 0.15s ease;
+}
+
+/* Input focus ring */
+.input-focus:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  border-color: #6366f1;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+  
+  .table-responsive th,
+  .table-responsive td {
+    padding: 0.5rem;
+  }
+}

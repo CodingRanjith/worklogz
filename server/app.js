@@ -32,6 +32,8 @@ const feePaymentRoutes = require('./routes/feePaymentRoutes');
 const companySettingsRoutes = require('./routes/companySettingsRoutes');
 const sidebarMenuRoutes = require('./routes/sidebarMenuRoutes');
 const customFieldRoutes = require('./routes/customFieldRoutes');
+const incomeExpenseRoutes = require('./routes/incomeExpenseRoutes');
+const dayTodayRoutes = require('./routes/dayTodayRoutes');
 
 // Import middleware
 const authMiddleware = require('./middleware/auth');
@@ -121,6 +123,8 @@ app.use('/api/demo', demoRoutes);
 app.use('/api/fee-payments', feePaymentRoutes);
 app.use('/api/company-settings', companySettingsRoutes);
 app.use('/api/sidebar-menu', sidebarMenuRoutes);
+app.use('/api/income-expense', incomeExpenseRoutes);
+app.use('/api/daytoday', dayTodayRoutes);
 
 // Custom Fields Routes
 try {

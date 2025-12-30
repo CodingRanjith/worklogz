@@ -316,6 +316,30 @@ export const API_ENDPOINTS = {
   updateFeePaymentStatus: (id) => `${BASE_URL}/api/fee-payments/${id}/status`,
   deleteFeePayment: (id) => `${BASE_URL}/api/fee-payments/${id}`,
 
+  // -----------------
+  // Income & Expense APIs
+  // -----------------
+  getAllIncomeExpense: `${BASE_URL}/api/income-expense`,
+  getIncomeExpenseById: (id) => `${BASE_URL}/api/income-expense/${id}`,
+  createIncomeExpense: `${BASE_URL}/api/income-expense`,
+  updateIncomeExpense: (id) => `${BASE_URL}/api/income-expense/${id}`,
+  deleteIncomeExpense: (id) => `${BASE_URL}/api/income-expense/${id}`,
+  getIncomeExpenseSummary: `${BASE_URL}/api/income-expense/summary`,
+
+  // -----------------
+  // Day Today APIs
+  // -----------------
+  getAllDayTodayCards: `${BASE_URL}/api/daytoday/cards`,
+  getDayTodayCardById: (id) => `${BASE_URL}/api/daytoday/cards/${id}`,
+  createDayTodayCard: `${BASE_URL}/api/daytoday/cards`,
+  updateDayTodayCard: (id) => `${BASE_URL}/api/daytoday/cards/${id}`,
+  deleteDayTodayCard: (id) => `${BASE_URL}/api/daytoday/cards/${id}`,
+  getDayTodayAttendance: (cardId) => `${BASE_URL}/api/daytoday/cards/${cardId}/attendance`,
+  updateDayTodayAttendance: (cardId) => `${BASE_URL}/api/daytoday/cards/${cardId}/attendance`,
+  bulkUpdateDayTodayAttendance: (cardId) => `${BASE_URL}/api/daytoday/cards/${cardId}/attendance/bulk`,
+  deleteDayTodayAttendance: (cardId, attendanceId) => `${BASE_URL}/api/daytoday/cards/${cardId}/attendance/${attendanceId}`,
+  deleteDayTodayAttendanceByUserAndDate: (cardId) => `${BASE_URL}/api/daytoday/cards/${cardId}/attendance`,
+
 };
 
 // -----------------
