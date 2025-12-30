@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../utils/api';
-import { FiPlus, FiX, FiChevronDown, FiChevronUp, FiCheck, FiXCircle, FiEdit2, FiTrash2, FiSearch, FiUser, FiBriefcase, FiTag, FiDownload, FiEye } from 'react-icons/fi';
+import { FiPlus, FiX, FiChevronDown, FiChevronUp, FiCheck, FiXCircle, FiEdit2, FiTrash2, FiSearch, FiUser, FiBriefcase, FiTag, FiDownload, FiEye, FiMove } from 'react-icons/fi';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -20,6 +21,7 @@ const DayToday = () => {
   const [attendanceData, setAttendanceData] = useState({}); // { userId_date: 'worked'/'not_worked' }
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
   const [expandedMonthIndex, setExpandedMonthIndex] = useState(null); // Track which month is expanded in table view
+  const [orderedEmployees, setOrderedEmployees] = useState([]); // Track user order for drag and drop
   
   // Card form state
   const [cardForm, setCardForm] = useState({
@@ -45,7 +47,86 @@ const DayToday = () => {
     if (selectedCard) {
       fetchAttendanceData();
     }
-  }, [selectedCard]);
+  }, [selectedCard?._id]);
+
+  // Separate effect for loading employee order - only runs when card changes
+  useEffect(() => {
+    if (!selectedCard) {
+      setOrderedEmployees([]);
+      return;
+    }
+    
+    // Get current employees
+    let employees = [];
+    if (selectedCard.employeeIds && selectedCard.employeeIds.length > 0) {
+      if (typeof selectedCard.employeeIds[0] === 'object') {
+        employees = selectedCard.employeeIds;
+      } else {
+        if (users.length === 0) return; // Wait for users to load
+        employees = users.filter(user => selectedCard.employeeIds.includes(user._id));
+      }
+    }
+    
+    if (employees.length === 0) {
+      setOrderedEmployees([]);
+      return;
+    }
+    
+    // Check if we already have an order that matches the current employees
+    setOrderedEmployees((prevOrdered) => {
+      // If we have a previous order and it matches the current employees, keep it
+      if (prevOrdered.length > 0) {
+        const prevIds = new Set(prevOrdered.map(e => e._id));
+        const currentIds = new Set(employees.map(e => e._id));
+        
+        // If the sets match (same employees), keep the existing order
+        if (prevIds.size === currentIds.size && 
+            [...prevIds].every(id => currentIds.has(id))) {
+          // Update employee data but keep the order
+          const employeeMap = new Map(employees.map(emp => [emp._id, emp]));
+          return prevOrdered
+            .map(emp => employeeMap.get(emp._id) || emp)
+            .filter(Boolean);
+        }
+      }
+      
+      // Load saved order if exists
+      const savedOrder = localStorage.getItem(`dayTodayOrder_${selectedCard._id}`);
+      if (savedOrder) {
+        try {
+          const orderIds = JSON.parse(savedOrder);
+          
+          if (orderIds.length > 0) {
+            // Create a map for quick lookup
+            const employeeMap = new Map(employees.map(emp => [emp._id, emp]));
+            
+            // Build ordered list from saved order
+            const ordered = orderIds
+              .map(id => employeeMap.get(id))
+              .filter(Boolean);
+            
+            // Add any employees not in the saved order (newly added employees)
+            const orderedIds = new Set(ordered.map(e => e._id));
+            employees.forEach(emp => {
+              if (!orderedIds.has(emp._id)) {
+                ordered.push(emp);
+              }
+            });
+            
+            // Return the ordered list
+            if (ordered.length > 0) {
+              return ordered;
+            }
+          }
+        } catch (error) {
+          console.error('Error loading saved order:', error);
+        }
+      }
+      
+      // If no saved order or loading failed, return current employees in original order
+      return employees;
+    });
+  }, [selectedCard?._id, users.length]); // Only depend on card ID and users length
 
   const fetchUsers = async () => {
     try {
@@ -588,17 +669,75 @@ const DayToday = () => {
 
   const getCardEmployees = () => {
     if (!selectedCard) return [];
-    // If employeeIds are populated, use them directly, otherwise filter from users
+    
+    // Get base employees list
+    let employees = [];
     if (selectedCard.employeeIds && selectedCard.employeeIds.length > 0) {
       if (typeof selectedCard.employeeIds[0] === 'object') {
         // Already populated
-        return selectedCard.employeeIds;
+        employees = selectedCard.employeeIds;
       } else {
         // Need to filter from users
-        return users.filter(user => selectedCard.employeeIds.includes(user._id));
+        employees = users.filter(user => selectedCard.employeeIds.includes(user._id));
       }
     }
-    return [];
+    
+    // Always use orderedEmployees if it exists and matches the current employees
+    if (orderedEmployees.length > 0) {
+      // Check if orderedEmployees still matches the current employee set
+      const orderedIds = new Set(orderedEmployees.map(e => e._id));
+      const currentIds = new Set(employees.map(e => e._id));
+      
+      // If the sets match (same employees), use the ordered list
+      if (orderedIds.size === currentIds.size && 
+          [...orderedIds].every(id => currentIds.has(id))) {
+        // Create a map for quick lookup of updated employee data
+        const employeeMap = new Map(employees.map(emp => [emp._id, emp]));
+        
+        // Return employees in the saved order, with updated data
+        return orderedEmployees
+          .map(emp => employeeMap.get(emp._id) || emp)
+          .filter(Boolean);
+      }
+    }
+    
+    // If no saved order or employees changed, return original order
+    return employees;
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+    if (result.destination.index === result.source.index) return;
+    if (!selectedCard) return;
+
+    // Use functional update to ensure we have the latest state
+    setOrderedEmployees((prevOrdered) => {
+      // If we have a previous order, use it; otherwise get from card
+      let currentEmployees = prevOrdered;
+      
+      if (currentEmployees.length === 0) {
+        // Fallback to getting employees from card
+        if (selectedCard.employeeIds && selectedCard.employeeIds.length > 0) {
+          if (typeof selectedCard.employeeIds[0] === 'object') {
+            currentEmployees = selectedCard.employeeIds;
+          } else {
+            currentEmployees = users.filter(user => selectedCard.employeeIds.includes(user._id));
+          }
+        }
+      }
+      
+      if (currentEmployees.length === 0) return prevOrdered;
+      
+      // Reorder the array
+      const reordered = Array.from(currentEmployees);
+      const [removed] = reordered.splice(result.source.index, 1);
+      reordered.splice(result.destination.index, 0, removed);
+
+      // Save order to localStorage for persistence
+      localStorage.setItem(`dayTodayOrder_${selectedCard._id}`, JSON.stringify(reordered.map(e => e._id)));
+      
+      return reordered;
+    });
   };
 
   if (loading) {
@@ -1040,52 +1179,74 @@ const DayToday = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {getCardEmployees().map(user => {
-                      const daysInMonth = getDaysInMonth(selectedCard.year, expandedMonthIndex);
-                      const totals = getMonthTotals(user._id, expandedMonthIndex);
-                      
-                      return (
-                        <tr key={user._id}>
-                          <td className="sticky-col user-col">
-                            <div className="table-user-info">
-                              <div className="table-user-avatar">
-                                {user.name?.charAt(0).toUpperCase()}
-                              </div>
-                              <div className="table-user-details">
-                                <div className="table-user-name">{user.name}</div>
-                                <div className="table-user-email">{user.email}</div>
-                              </div>
-                            </div>
-                          </td>
-                          {Array.from({ length: daysInMonth }, (_, i) => {
-                            const day = i + 1;
-                            const dateKey = getDateKey(selectedCard.year, expandedMonthIndex, day);
-                            const status = getAttendanceStatus(user._id, dateKey);
+                  <DragDropContext onDragEnd={handleDragEnd}>
+                    <Droppable droppableId="employees-list" direction="vertical">
+                      {(provided) => (
+                        <tbody ref={provided.innerRef} {...provided.droppableProps}>
+                          {getCardEmployees().map((user, index) => {
+                            const daysInMonth = getDaysInMonth(selectedCard.year, expandedMonthIndex);
+                            const totals = getMonthTotals(user._id, expandedMonthIndex);
                             
                             return (
-                              <td
-                                key={day}
-                                className={`table-date-cell ${status === 'worked' ? 'worked' : status === 'not_worked' ? 'not-worked' : ''}`}
-                                onClick={() => toggleAttendance(user._id, dateKey)}
-                                title={`${user.name} - ${MONTH_NAMES[expandedMonthIndex]} ${day}, ${selectedCard.year}`}
-                              >
-                                {status === 'worked' && <FiCheck className="table-status-icon worked-icon" />}
-                                {status === 'not_worked' && <FiXCircle className="table-status-icon not-worked-icon" />}
-                              </td>
+                              <Draggable key={user._id} draggableId={user._id} index={index}>
+                                {(provided, snapshot) => (
+                                  <tr
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    className={snapshot.isDragging ? 'dragging-row' : ''}
+                                  >
+                                    <td className="sticky-col user-col">
+                                      <div className="table-user-info">
+                                        <div
+                                          {...provided.dragHandleProps}
+                                          className="drag-handle"
+                                          title="Drag to reorder"
+                                        >
+                                          <FiMove />
+                                        </div>
+                                        <div className="table-user-avatar">
+                                          {user.name?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div className="table-user-details">
+                                          <div className="table-user-name">{user.name}</div>
+                                          <div className="table-user-email">{user.email}</div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    {Array.from({ length: daysInMonth }, (_, i) => {
+                                      const day = i + 1;
+                                      const dateKey = getDateKey(selectedCard.year, expandedMonthIndex, day);
+                                      const status = getAttendanceStatus(user._id, dateKey);
+                                      
+                                      return (
+                                        <td
+                                          key={day}
+                                          className={`table-date-cell ${status === 'worked' ? 'worked' : status === 'not_worked' ? 'not-worked' : ''}`}
+                                          onClick={() => toggleAttendance(user._id, dateKey)}
+                                          title={`${user.name} - ${MONTH_NAMES[expandedMonthIndex]} ${day}, ${selectedCard.year}`}
+                                        >
+                                          {status === 'worked' && <FiCheck className="table-status-icon worked-icon" />}
+                                          {status === 'not_worked' && <FiXCircle className="table-status-icon not-worked-icon" />}
+                                        </td>
+                                      );
+                                    })}
+                                    {/* Total cells */}
+                                    <td key="present-total" className="total-cell present-total-cell">
+                                      <span className="total-value present-value">{totals.present}</span>
+                                    </td>
+                                    <td key="absent-total" className="total-cell absent-total-cell">
+                                      <span className="total-value absent-value">{totals.absent}</span>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Draggable>
                             );
                           })}
-                          {/* Total cells */}
-                          <td key="present-total" className="total-cell present-total-cell">
-                            <span className="total-value present-value">{totals.present}</span>
-                          </td>
-                          <td key="absent-total" className="total-cell absent-total-cell">
-                            <span className="total-value absent-value">{totals.absent}</span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
+                          {provided.placeholder}
+                        </tbody>
+                      )}
+                    </Droppable>
+                  </DragDropContext>
                 </table>
               </div>
             </div>
