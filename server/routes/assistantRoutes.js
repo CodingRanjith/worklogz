@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const auth = require('../middleware/auth');
+const authorizeAccess = require('../middleware/authorizeAccess');
 const ChatHistory = require('../models/ChatHistory');
 
 const router = express.Router();
@@ -20,7 +21,7 @@ const buildSystemPrompt = (user = {}) => {
   ].join(' ');
 };
 
-router.post('/chat', auth, async (req, res) => {
+router.post('/chat', auth, authorizeAccess, async (req, res) => {
   try {
     if (!process.env.OPENROUTER_API_KEY) {
       return res.status(500).json({ msg: 'OpenRouter API key not configured on server.' });
@@ -92,7 +93,7 @@ const buildSkillDevelopmentPrompt = (user = {}) => {
   ].join(' ');
 };
 
-router.post('/skill-chat', auth, async (req, res) => {
+router.post('/skill-chat', auth, authorizeAccess, async (req, res) => {
   try {
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ msg: 'Groq API key not configured on server.' });
@@ -173,7 +174,7 @@ const isWorklogzRelated = (message) => {
 };
 
 // Get chat history for user
-router.get('/worklogz-chat/history', auth, async (req, res) => {
+router.get('/worklogz-chat/history', auth, authorizeAccess, async (req, res) => {
   try {
     const userId = req.user._id;
     const chatHistory = await ChatHistory.findOne({ userId })
@@ -192,7 +193,7 @@ router.get('/worklogz-chat/history', auth, async (req, res) => {
 });
 
 // Worklogz AI Chat endpoint
-router.post('/worklogz-chat', auth, async (req, res) => {
+router.post('/worklogz-chat', auth, authorizeAccess, async (req, res) => {
   try {
     if (!process.env.GROQ_API_KEY) {
       return res.status(500).json({ msg: 'Groq API key not configured on server.' });
@@ -323,7 +324,7 @@ router.post('/worklogz-chat', auth, async (req, res) => {
 });
 
 // Clear chat history
-router.delete('/worklogz-chat/history', auth, async (req, res) => {
+router.delete('/worklogz-chat/history', auth, authorizeAccess, async (req, res) => {
   try {
     const userId = req.user._id;
     await ChatHistory.deleteMany({ userId });

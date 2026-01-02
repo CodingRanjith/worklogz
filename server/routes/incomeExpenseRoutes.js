@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const authorizeAccess = require('../middleware/authorizeAccess');
 const {
   getAllIncomeExpense,
   getIncomeExpenseById,
@@ -10,29 +11,26 @@ const {
   getIncomeExpenseSummary
 } = require('../controllers/incomeExpenseController');
 
-// All routes require authentication
-router.use(auth);
-
 // Get summary statistics (must be before /:id route)
-router.get('/summary', getIncomeExpenseSummary);
+router.get('/summary', auth, authorizeAccess, getIncomeExpenseSummary);
 
 // Get all income/expense records
-router.get('/', getAllIncomeExpense);
+router.get('/', auth, authorizeAccess, getAllIncomeExpense);
 
 // Create income/expense record (must be before /:id route)
-router.post('/', (req, res, next) => {
+router.post('/', auth, authorizeAccess, (req, res, next) => {
   console.log('POST /api/income-expense route hit');
   next();
 }, createIncomeExpense);
 
 // Get single income/expense record
-router.get('/:id', getIncomeExpenseById);
+router.get('/:id', auth, authorizeAccess, getIncomeExpenseById);
 
 // Update income/expense record
-router.put('/:id', updateIncomeExpense);
+router.put('/:id', auth, authorizeAccess, updateIncomeExpense);
 
 // Delete income/expense record
-router.delete('/:id', deleteIncomeExpense);
+router.delete('/:id', auth, authorizeAccess, deleteIncomeExpense);
 
 module.exports = router;
 

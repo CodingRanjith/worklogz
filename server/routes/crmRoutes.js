@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth');
+const authorizeAccess = require('../middleware/authorizeAccess');
 const {
   getStages,
   createStage,
@@ -15,21 +16,19 @@ const {
   deleteLead,
 } = require('../controllers/crmController');
 
-router.use(authMiddleware);
-
 // Stage routes
-router.get('/stages', getStages);
-router.post('/stages', createStage);
-router.put('/stages/:id', updateStage);
-router.delete('/stages/:id', deleteStage);
-router.post('/stages/reorder', reorderStages);
+router.get('/stages', authMiddleware, authorizeAccess, getStages);
+router.post('/stages', authMiddleware, authorizeAccess, createStage);
+router.put('/stages/:id', authMiddleware, authorizeAccess, updateStage);
+router.delete('/stages/:id', authMiddleware, authorizeAccess, deleteStage);
+router.post('/stages/reorder', authMiddleware, authorizeAccess, reorderStages);
 
 // Lead routes
-router.get('/leads', getLeads);
-router.get('/leads/:id', getLeadById);
-router.post('/leads', createLead);
-router.put('/leads/:id', updateLead);
-router.patch('/leads/:id/move', moveLead);
-router.delete('/leads/:id', deleteLead);
+router.get('/leads', authMiddleware, authorizeAccess, getLeads);
+router.get('/leads/:id', authMiddleware, authorizeAccess, getLeadById);
+router.post('/leads', authMiddleware, authorizeAccess, createLead);
+router.put('/leads/:id', authMiddleware, authorizeAccess, updateLead);
+router.patch('/leads/:id/move', authMiddleware, authorizeAccess, moveLead);
+router.delete('/leads/:id', authMiddleware, authorizeAccess, deleteLead);
 
 module.exports = router;

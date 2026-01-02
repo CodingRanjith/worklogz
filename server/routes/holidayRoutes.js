@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const role = require('../middleware/role');
+const authorizeAccess = require('../middleware/authorizeAccess');
 const holidayController = require('../controllers/holidayController');
 
-router.get('/', auth, holidayController.getAllHolidays);
-router.post('/', auth, role('admin'), holidayController.createHoliday);
-router.get('/filter', auth, holidayController.getHolidays);
-router.delete('/delete/:id',auth,holidayController.deleteHoliday);
-router.put('/update/:id',auth,holidayController.updateHoliday);
+router.get('/', auth, authorizeAccess, holidayController.getAllHolidays);
+router.post('/', auth, authorizeAccess, holidayController.createHoliday);
+router.get('/filter', auth, authorizeAccess, holidayController.getHolidays);
+router.delete('/delete/:id', auth, authorizeAccess, holidayController.deleteHoliday);
+router.put('/update/:id', auth, authorizeAccess, holidayController.updateHoliday);
 module.exports = router;

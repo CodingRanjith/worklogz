@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const authorizeAccess = require('../middleware/authorizeAccess');
 const HelpdeskTicket = require('../models/HelpdeskTicket');
 const User = require('../models/User');
 
@@ -23,7 +24,7 @@ const ensureAdmin = (req, res, next) => {
   next();
 };
 
-router.get('/tickets', auth, async (req, res) => {
+router.get('/tickets', auth, authorizeAccess, async (req, res) => {
   try {
     const filter =
       req.user.role === 'admin' || req.user.role === 'master-admin'
@@ -47,7 +48,7 @@ router.get('/tickets', auth, async (req, res) => {
   }
 });
 
-router.get('/tickets/:id', auth, async (req, res) => {
+router.get('/tickets/:id', auth, authorizeAccess, async (req, res) => {
   try {
     const ticket = await HelpdeskTicket.findById(req.params.id);
     if (!ticket) {
@@ -72,7 +73,7 @@ router.get('/tickets/:id', auth, async (req, res) => {
   }
 });
 
-router.post('/tickets', auth, async (req, res) => {
+router.post('/tickets', auth, authorizeAccess, async (req, res) => {
   try {
     const { subject, description, category, priority, message } = req.body;
     if (!subject || !description) {
@@ -103,7 +104,7 @@ router.post('/tickets', auth, async (req, res) => {
   }
 });
 
-router.patch('/tickets/:id/status', auth, ensureAdmin, async (req, res) => {
+router.patch('/tickets/:id/status', auth, authorizeAccess, ensureAdmin, async (req, res) => {
   try {
     const { status, assignedTo } = req.body;
     const update = {};
@@ -139,7 +140,7 @@ router.patch('/tickets/:id/status', auth, ensureAdmin, async (req, res) => {
   }
 });
 
-router.post('/tickets/:id/messages', auth, async (req, res) => {
+router.post('/tickets/:id/messages', auth, authorizeAccess, async (req, res) => {
   try {
     const { message } = req.body;
     if (!message) {
@@ -176,7 +177,7 @@ router.post('/tickets/:id/messages', auth, async (req, res) => {
   }
 });
 
-router.get('/summary', auth, async (req, res) => {
+router.get('/summary', auth, authorizeAccess, async (req, res) => {
   try {
     const baseFilter =
       req.user.role === 'admin' || req.user.role === 'master-admin'
@@ -203,7 +204,7 @@ router.get('/summary', auth, async (req, res) => {
   }
 });
 
-router.get('/contacts', auth, (_req, res) => {
+router.get('/contacts', auth, authorizeAccess, (_req, res) => {
   res.json([
     {
       label: 'HR Support',

@@ -16,29 +16,29 @@ const {
 } = require('../controllers/achievementController');
 
 const authenticate = require('../middleware/auth');
-const roleMiddleware = require('../middleware/role');
+const authorizeAccess = require('../middleware/authorizeAccess');
 
 // ========== ACHIEVEMENTS ==========
-router.get('/achievements/me', authenticate, getUserAchievements);
-router.get('/achievements/:userId', authenticate, getUserAchievements);
-router.post('/achievements/award', authenticate, roleMiddleware('admin'), awardAchievement);
-router.get('/leaderboard', authenticate, getLeaderboard);
+router.get('/achievements/me', authenticate, authorizeAccess, getUserAchievements);
+router.get('/achievements/:userId', authenticate, authorizeAccess, getUserAchievements);
+router.post('/achievements/award', authenticate, authorizeAccess, awardAchievement);
+router.get('/leaderboard', authenticate, authorizeAccess, getLeaderboard);
 
 // ========== GOALS ==========
-router.get('/goals/me', authenticate, getUserGoals);
-router.get('/goals/:userId', authenticate, getUserGoals);
-router.post('/goals', authenticate, createGoal);
-router.put('/goals/:id/progress', authenticate, updateGoalProgress);
-router.delete('/goals/:id', authenticate, deleteGoal);
+router.get('/goals/me', authenticate, authorizeAccess, getUserGoals);
+router.get('/goals/:userId', authenticate, authorizeAccess, getUserGoals);
+router.post('/goals', authenticate, authorizeAccess, createGoal);
+router.put('/goals/:id/progress', authenticate, authorizeAccess, updateGoalProgress);
+router.delete('/goals/:id', authenticate, authorizeAccess, deleteGoal);
 
 // ========== EVENTS/CALENDAR ==========
-router.get('/events', authenticate, getUserEvents);
-router.post('/events', authenticate, createEvent);
-router.put('/events/:id', authenticate, updateEvent);
-router.delete('/events/:id', authenticate, deleteEvent);
+router.get('/events', authenticate, authorizeAccess, getUserEvents);
+router.post('/events', authenticate, authorizeAccess, createEvent);
+router.put('/events/:id', authenticate, authorizeAccess, updateEvent);
+router.delete('/events/:id', authenticate, authorizeAccess, deleteEvent);
 
 // ========== DASHBOARD ==========
-router.get('/dashboard/stats', authenticate, getDashboardStats);
+router.get('/dashboard/stats', authenticate, authorizeAccess, getDashboardStats);
 
 module.exports = router;
 

@@ -11,30 +11,30 @@ const {
   getDepartmentStats
 } = require('../controllers/workCardController');
 const auth = require('../middleware/auth');
-const role = require('../middleware/role');
+const authorizeAccess = require('../middleware/authorizeAccess');
 
 // Get all work cards with filtering (Admin only)
-router.get('/', auth, role(['admin']), getWorkCards);
+router.get('/', auth, authorizeAccess, getWorkCards);
 
 // Get department statistics (Admin only)
-router.get('/stats', auth, role(['admin']), getDepartmentStats);
+router.get('/stats', auth, authorizeAccess, getDepartmentStats);
 
 // Get single work card by ID (Admin only)
-router.get('/:id', auth, role(['admin']), getWorkCardById);
+router.get('/:id', auth, authorizeAccess, getWorkCardById);
 
 // Create new work card (Admin only)
-router.post('/', auth, role(['admin']), createWorkCard);
+router.post('/', auth, authorizeAccess, createWorkCard);
 
 // Update work card (Admin only)
-router.put('/:id', auth, role(['admin']), updateWorkCard);
+router.put('/:id', auth, authorizeAccess, updateWorkCard);
 
 // Delete work card (Admin only)
-router.delete('/:id', auth, role(['admin']), deleteWorkCard);
+router.delete('/:id', auth, authorizeAccess, deleteWorkCard);
 
 // Add comment to work card (Admin only)
-router.post('/:id/comments', auth, role(['admin']), addComment);
+router.post('/:id/comments', auth, authorizeAccess, addComment);
 
 // Update work card progress (Admin only)
-router.patch('/:id/progress', auth, role(['admin']), updateProgress);
+router.patch('/:id/progress', auth, authorizeAccess, updateProgress);
 
 module.exports = router;

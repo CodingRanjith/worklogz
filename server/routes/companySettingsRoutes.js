@@ -2,16 +2,16 @@ const express = require('express');
 const router = express.Router();
 const companySettingsController = require('../controllers/companySettingsController');
 const auth = require('../middleware/auth');
-const role = require('../middleware/role');
+const authorizeAccess = require('../middleware/authorizeAccess');
 
 // Get company settings (public or authenticated)
-router.get('/', auth, companySettingsController.getCompanySettings);
+router.get('/', auth, authorizeAccess, companySettingsController.getCompanySettings);
 
 // Update company settings (admin only)
-router.put('/', auth, role('admin'), companySettingsController.updateCompanySettings);
+router.put('/', auth, authorizeAccess, companySettingsController.updateCompanySettings);
 
 // Delete company logo (admin only)
-router.delete('/logo', auth, role('admin'), companySettingsController.deleteCompanyLogo);
+router.delete('/logo', auth, authorizeAccess, companySettingsController.deleteCompanyLogo);
 
 module.exports = router;
 

@@ -1,24 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const role = require('../middleware/role');
+const authorizeAccess = require('../middleware/authorizeAccess');
 const projectController = require('../controllers/projectController');
 
-router.get('/user/me', auth, projectController.getMyProjects);
+router.get('/user/me', auth, authorizeAccess, projectController.getMyProjects);
 
 router
   .route('/')
-  .get(auth, role('admin'), projectController.getProjects)
-  .post(auth, role('admin'), projectController.createProject);
+  .get(auth, authorizeAccess, projectController.getProjects)
+  .post(auth, authorizeAccess, projectController.createProject);
 
 router
   .route('/:projectId')
-  .get(auth, projectController.getProjectById)
-  .put(auth, role('admin'), projectController.updateProject)
-  .delete(auth, role('admin'), projectController.deleteProject);
+  .get(auth, authorizeAccess, projectController.getProjectById)
+  .put(auth, authorizeAccess, projectController.updateProject)
+  .delete(auth, authorizeAccess, projectController.deleteProject);
 
-router.post('/:projectId/members', auth, role('admin'), projectController.assignUser);
-router.delete('/:projectId/members/:memberId', auth, role('admin'), projectController.removeUser);
+router.post('/:projectId/members', auth, authorizeAccess, projectController.assignUser);
+router.delete('/:projectId/members/:memberId', auth, authorizeAccess, projectController.removeUser);
 
 module.exports = router;
 

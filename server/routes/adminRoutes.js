@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const role = require('../middleware/role');
+const authorizeAccess = require('../middleware/authorizeAccess');
 const adminController = require('../controllers/adminController');
 
 /**
@@ -10,10 +10,10 @@ const adminController = require('../controllers/adminController');
  * Master admin uses these routes for development purposes
  * Note: Master admin does NOT have access to user management routes (/users/*)
  */
-router.get('/summary', auth, adminController.getAdminSummary);
-router.get('/recent-attendance', auth, adminController.getRecentAttendance);
-router.get('/pending-users', auth, adminController.getPendingUsers);
-router.post('/approve/:id', auth, adminController.approveUser);
-router.delete('/reject/:id', auth, adminController.rejectUser);
+router.get('/summary', auth, authorizeAccess, adminController.getAdminSummary);
+router.get('/recent-attendance', auth, authorizeAccess, adminController.getRecentAttendance);
+router.get('/pending-users', auth, authorizeAccess, adminController.getPendingUsers);
+router.post('/approve/:id', auth, authorizeAccess, adminController.approveUser);
+router.delete('/reject/:id', auth, authorizeAccess, adminController.rejectUser);
 
 module.exports = router;

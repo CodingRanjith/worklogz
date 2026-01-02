@@ -1,6 +1,9 @@
 // server/middleware/role.js
+const RoutePermission = require('../models/RoutePermission');
+const User = require('../models/User');
+
 module.exports = function(roles) {
-  return function(req, res, next) {
+  return async function(req, res, next) {
     try {
       // Handle both single role (string) and multiple roles (array)
       const allowedRoles = Array.isArray(roles) ? roles : [roles];
@@ -29,6 +32,57 @@ module.exports = function(roles) {
       // Normalize admin roles - treat administrator, admin, and master-admin as equivalent
       const isAdminRole = ['admin', 'master-admin', 'administrator'].includes(userRole.toLowerCase());
       
+      // If user is master-admin or admin, grant full access (skip route permission check)
+      if (isAdminRole || req.user.isMasterAdmin) {
+        return next();
+      }
+      
+      // Check route permissions (CRUD access) for non-admin users
+      const userId = req.user._id;
+      const method = req.method;
+      const path = req.originalUrl.split('?')[0]; // Remove query string
+      
+      try {
+        const permission = await RoutePermission.findOne({ userId });
+        
+        if (permission && permission.routes && permission.routes.length > 0) {
+          // Check if there's a specific route permission
+          const routePermission = permission.routes.find(r => {
+            // Check if path matches (exact match or wildcard pattern)
+            const pathMatch = r.path === path || 
+              (r.path.includes('*') && new RegExp(`^${r.path.replace(/\*/g, '.*')}$`).test(path)) ||
+              path.startsWith(r.path + '/') || path === r.path;
+            
+            if (!pathMatch) return false;
+            
+            // If explicitly denied, block access
+            if (r.allowed === false) return false;
+            
+            // Check if method is allowed
+            const methods = r.methods || [];
+            return methods.includes('ALL') || methods.includes(method);
+          });
+          
+          // If specific permission found and allowed, grant access (skip role check)
+          if (routePermission && routePermission.allowed !== false) {
+            return next();
+          }
+          
+          // If specific permission found but denied, block access
+          if (routePermission && routePermission.allowed === false) {
+            console.error(`Route permission denied: User ${userId} - ${method} ${path}`);
+            return res.status(403).json({ 
+              error: 'Forbidden - Route access denied',
+              message: `You do not have permission to ${method} ${path}`
+            });
+          }
+        }
+      } catch (permError) {
+        console.error('Error checking route permissions:', permError);
+        // Continue with role-based check if permission check fails
+      }
+      
+      // Fallback to role-based access control
       // Check if user role is allowed (normalize admin roles)
       const normalizedAllowedRoles = allowedRoles.map(role => {
         if (role === 'admin') {

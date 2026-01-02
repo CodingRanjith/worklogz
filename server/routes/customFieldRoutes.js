@@ -2,33 +2,31 @@ const express = require('express');
 const router = express.Router();
 const customFieldController = require('../controllers/customFieldController');
 const authMiddleware = require('../middleware/auth');
-
-// All routes require authentication
-router.use(authMiddleware);
+const authorizeAccess = require('../middleware/authorizeAccess');
 
 // Get all custom fields
-router.get('/', customFieldController.getAllCustomFields);
+router.get('/', authMiddleware, authorizeAccess, customFieldController.getAllCustomFields);
 
 // Get field types summary (grouped by type)
-router.get('/summary', customFieldController.getFieldTypesSummary);
+router.get('/summary', authMiddleware, authorizeAccess, customFieldController.getFieldTypesSummary);
 
 // Get custom fields by type
-router.get('/type/:fieldType', customFieldController.getCustomFieldsByType);
+router.get('/type/:fieldType', authMiddleware, authorizeAccess, customFieldController.getCustomFieldsByType);
 
 // Create a new custom field
-router.post('/', customFieldController.createCustomField);
+router.post('/', authMiddleware, authorizeAccess, customFieldController.createCustomField);
 
 // Bulk create custom fields
-router.post('/bulk', customFieldController.bulkCreateCustomFields);
+router.post('/bulk', authMiddleware, authorizeAccess, customFieldController.bulkCreateCustomFields);
 
 // Update a custom field
-router.put('/:id', customFieldController.updateCustomField);
+router.put('/:id', authMiddleware, authorizeAccess, customFieldController.updateCustomField);
 
 // Toggle active status
-router.patch('/:id/toggle', customFieldController.toggleActiveStatus);
+router.patch('/:id/toggle', authMiddleware, authorizeAccess, customFieldController.toggleActiveStatus);
 
 // Delete a custom field
-router.delete('/:id', customFieldController.deleteCustomField);
+router.delete('/:id', authMiddleware, authorizeAccess, customFieldController.deleteCustomField);
 
 module.exports = router;
 

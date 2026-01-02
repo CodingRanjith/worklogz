@@ -2,22 +2,22 @@ const express = require('express');
 const router = express.Router();
 const planController = require('../controllers/planController');
 const auth = require('../middleware/auth');
-const role = require('../middleware/role');
+const authorizeAccess = require('../middleware/authorizeAccess');
 
 // Public routes - get active plans
 router.get('/active', planController.getActivePlans);
 
 // Public routes - get all plans (for employees)
-router.get('/', auth, planController.getAllPlans);
+router.get('/', auth, authorizeAccess, planController.getAllPlans);
 
 // Get single plan
-router.get('/:id', auth, planController.getPlanById);
+router.get('/:id', auth, authorizeAccess, planController.getPlanById);
 
 // Admin only routes
-router.post('/', auth, role('admin'), planController.createPlan);
-router.put('/:id', auth, role('admin'), planController.updatePlan);
-router.delete('/:id', auth, role('admin'), planController.deletePlan);
-router.patch('/:id/toggle', auth, role('admin'), planController.togglePlanStatus);
+router.post('/', auth, authorizeAccess, planController.createPlan);
+router.put('/:id', auth, authorizeAccess, planController.updatePlan);
+router.delete('/:id', auth, authorizeAccess, planController.deletePlan);
+router.patch('/:id/toggle', auth, authorizeAccess, planController.togglePlanStatus);
 
 module.exports = router;
 

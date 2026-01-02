@@ -20,6 +20,9 @@ import {
   FiSettings,
   FiBarChart2,
   FiFileText,
+  FiHelpCircle,
+  FiGrid,
+  FiCheckSquare,
 } from 'react-icons/fi';
 import { API_ENDPOINTS } from '../../utils/api';
 import {
@@ -28,6 +31,13 @@ import {
   setAccessForUsers
 } from '../../utils/sidebarAccess';
 import { normalizeMenuOrder } from '../../utils/sidebarMenu';
+import {
+  fetchAvailableRoutes,
+  getRoutePermissionsMap,
+  setRoutePermissionsForUsers
+} from '../../utils/routePermissions';
+import { groupRoutesByPages } from '../../utils/routePageMapping';
+import { getPagesWithAccess, getPageForSidebarPath } from '../../utils/pageAccessMapping';
 
 // Icon map for resolving icon strings to components
 const ICON_MAP = {
@@ -50,6 +60,9 @@ const ICON_MAP = {
   FiSettings,
   FiBarChart2,
   FiFileText,
+  FiHelpCircle,
+  FiGrid,
+  FiCheckSquare,
 };
 
 // Helper to get icon component from string or component
@@ -73,6 +86,8 @@ const AdministrationAccess = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedCompany, setSelectedCompany] = useState('all');
   const [selectedUserIds, setSelectedUserIds] = useState([]);
+  
+  // Sidebar access state
   const [accessMap, setAccessMapState] = useState({});
   const [savedAccessMap, setSavedAccessMap] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -83,7 +98,12 @@ const AdministrationAccess = () => {
     () => getAllMenuPaths(menuItems),
     [menuItems]
   );
-  const currentMenuItems = menuItems;
+  
+  // Route permissions state
+  const [availableRoutes, setAvailableRoutes] = useState([]);
+  const [routePermissionsMap, setRoutePermissionsMap] = useState({});
+  const [savedRoutePermissionsMap, setSavedRoutePermissionsMap] = useState({});
+  const [isLoadingRoutes, setIsLoadingRoutes] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -144,6 +164,50 @@ const AdministrationAccess = () => {
 
     loadAccessMap();
   }, [scope]);
+
+  // Load available routes
+  useEffect(() => {
+    const loadAvailableRoutes = async () => {
+      setIsLoadingRoutes(true);
+      try {
+        const routes = await fetchAvailableRoutes();
+        setAvailableRoutes(routes);
+      } catch (err) {
+        console.error('Failed to load available routes', err);
+        setAvailableRoutes([]);
+      } finally {
+        setIsLoadingRoutes(false);
+      }
+    };
+
+    loadAvailableRoutes();
+  }, []);
+
+  // Load route permissions when selected users change
+  useEffect(() => {
+    const loadRoutePermissions = async () => {
+      if (selectedUserIds.length === 0) {
+        setRoutePermissionsMap({});
+        setSavedRoutePermissionsMap({});
+        return;
+      }
+
+      setIsLoadingRoutes(true);
+      try {
+        const permissions = await getRoutePermissionsMap(selectedUserIds);
+        setRoutePermissionsMap(permissions);
+        setSavedRoutePermissionsMap(permissions);
+      } catch (err) {
+        console.error('Failed to load route permissions', err);
+        setRoutePermissionsMap({});
+        setSavedRoutePermissionsMap({});
+      } finally {
+        setIsLoadingRoutes(false);
+      }
+    };
+
+    loadRoutePermissions();
+  }, [selectedUserIds]);
 
   // Derive available filters from users list
   const roleOptions = useMemo(() => {
@@ -294,7 +358,29 @@ const AdministrationAccess = () => {
     return false;
   }, [accessMap, savedAccessMap, allPaths]);
 
-  // Save all changes
+  // Check if there are unsaved changes (routes)
+  const hasUnsavedRouteChanges = useMemo(() => {
+    const allUserIds = new Set([...Object.keys(routePermissionsMap), ...Object.keys(savedRoutePermissionsMap)]);
+    for (const userId of allUserIds) {
+      const current = routePermissionsMap[userId] || [];
+      const saved = savedRoutePermissionsMap[userId] || [];
+      
+      if (current.length !== saved.length) return true;
+      
+      // Compare route objects
+      const currentStr = JSON.stringify(current.sort((a, b) => a.path.localeCompare(b.path)));
+      const savedStr = JSON.stringify(saved.sort((a, b) => a.path.localeCompare(b.path)));
+      if (currentStr !== savedStr) return true;
+    }
+    return false;
+  }, [routePermissionsMap, savedRoutePermissionsMap]);
+
+  // Combined unsaved changes check
+  const hasUnsavedChangesCombined = useMemo(() => {
+    return hasUnsavedChanges || hasUnsavedRouteChanges;
+  }, [hasUnsavedChanges, hasUnsavedRouteChanges]);
+
+  // Save all changes (sidebar)
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -344,6 +430,31 @@ const AdministrationAccess = () => {
     }
   };
 
+  // Save route permissions
+  const handleSaveRoutes = async () => {
+    try {
+      if (selectedUserIds.length === 0) {
+        return;
+      }
+
+      // Build permissions map for selected users
+      const permissionsMap = {};
+      selectedUserIds.forEach(userId => {
+        permissionsMap[userId] = routePermissionsMap[userId] || [];
+      });
+
+      await setRoutePermissionsForUsers(selectedUserIds, permissionsMap);
+      
+      // Update saved state
+      setSavedRoutePermissionsMap({ ...routePermissionsMap });
+      
+      alert(`Successfully saved route permissions for ${selectedUserIds.length} user(s).`);
+    } catch (err) {
+      console.error('Failed to save route permissions', err);
+      alert('Failed to save route permissions. Please try again.');
+    }
+  };
+
   const getPathState = (path) => {
     if (selectedUserIds.length === 0) return { checked: false, indeterminate: false };
     
@@ -359,6 +470,95 @@ const AdministrationAccess = () => {
       checked: allChecked,
       indeterminate: someChecked && !allChecked
     };
+  };
+
+  // Route permissions helper functions
+  const getRoutesForUser = (userId) => {
+    return routePermissionsMap[userId] || [];
+  };
+
+  const toggleRouteMethod = (routePath, method) => {
+    setRoutePermissionsMap((prev) => {
+      const updated = { ...prev };
+      selectedUserIds.forEach((userId) => {
+        const userRoutes = prev[userId] || [];
+        const routeIndex = userRoutes.findIndex(r => r.path === routePath);
+        
+        if (routeIndex >= 0) {
+          const route = { ...userRoutes[routeIndex] };
+          const methods = route.methods || [];
+          const methodIndex = methods.indexOf(method);
+          
+          if (methodIndex >= 0) {
+            // Remove method
+            route.methods = methods.filter(m => m !== method);
+            if (route.methods.length === 0) {
+              // Remove route if no methods left
+              updated[userId] = userRoutes.filter(r => r.path !== routePath);
+            } else {
+              updated[userId] = [...userRoutes];
+              updated[userId][routeIndex] = route;
+            }
+          } else {
+            // Add method
+            route.methods = [...methods, method];
+            updated[userId] = [...userRoutes];
+            updated[userId][routeIndex] = route;
+          }
+        } else {
+          // Add new route
+          updated[userId] = [...userRoutes, { path: routePath, methods: [method], allowed: true }];
+        }
+      });
+      return updated;
+    });
+  };
+
+  const getRouteMethodState = (routePath, method) => {
+    if (selectedUserIds.length === 0) return false;
+    
+    const userStates = selectedUserIds.map((userId) => {
+      const routes = getRoutesForUser(userId);
+      const route = routes.find(r => r.path === routePath);
+      if (!route) return false;
+      const methods = route.methods || [];
+      return methods.includes(method) || methods.includes('ALL');
+    });
+    
+    return userStates.every(state => state === true);
+  };
+
+  const toggleAllRouteMethods = (routePath, enable) => {
+    setRoutePermissionsMap((prev) => {
+      const updated = { ...prev };
+      selectedUserIds.forEach((userId) => {
+        const userRoutes = prev[userId] || [];
+        const routeIndex = userRoutes.findIndex(r => r.path === routePath);
+        
+        if (enable) {
+          // Enable all methods for this route
+          const route = routeIndex >= 0 ? { ...userRoutes[routeIndex] } : { path: routePath, methods: [], allowed: true };
+          const availableRoute = availableRoutes.find(r => r.path === routePath);
+          if (availableRoute) {
+            route.methods = [...availableRoute.methods];
+            if (routeIndex >= 0) {
+              updated[userId] = [...userRoutes];
+              updated[userId][routeIndex] = route;
+            } else {
+              updated[userId] = [...userRoutes, route];
+            }
+          }
+        } else {
+          // Remove route entirely
+          if (routeIndex >= 0) {
+            updated[userId] = userRoutes.filter(r => r.path !== routePath);
+          } else {
+            updated[userId] = userRoutes;
+          }
+        }
+      });
+      return updated;
+    });
   };
 
   const renderMenuControls = () => {
@@ -432,7 +632,7 @@ const AdministrationAccess = () => {
         </div>
 
         <div className="space-y-6">
-          {currentMenuItems.map((item) => {
+          {menuItems.map((item) => {
             if (item.subItems) {
               // Get all non-section paths for this category
               const categoryPaths = item.subItems
@@ -599,6 +799,344 @@ const AdministrationAccess = () => {
     );
   };
 
+  const renderUnifiedAccess = () => {
+    if (isLoading || isLoadingRoutes) {
+      return (
+        <div className="bg-white rounded-lg shadow p-6 text-gray-500">
+          Loading access settings...
+        </div>
+      );
+    }
+
+    if (selectedUserIds.length === 0) {
+      return (
+        <div className="bg-white rounded-lg shadow p-6 text-gray-500">
+          Select one or more users to manage access.
+        </div>
+      );
+    }
+
+    // Get pages with both sidebar paths and API routes
+    const pagesWithAccess = getPagesWithAccess(menuItems, availableRoutes);
+    
+    // Convert to array and sort by page order (keep original order from ROUTE_PAGE_MAPPING)
+    const pageEntries = Object.entries(pagesWithAccess);
+
+    // Helper to toggle all sidebar paths for a page
+    const toggleAllSidebarPathsForPage = (pageKey, enable) => {
+      const page = pagesWithAccess[pageKey];
+      if (!page || !page.sidebarPaths) return;
+      
+      const paths = page.sidebarPaths.map(sp => sp.path);
+      toggleCategoryPaths(paths, enable);
+    };
+
+    // Helper to toggle all API routes for a page
+    const toggleAllApiRoutesForPage = (pageKey, enable) => {
+      const page = pagesWithAccess[pageKey];
+      if (!page || !page.apiRoutes) return;
+      
+      page.apiRoutes.forEach(route => {
+        toggleAllRouteMethods(route.path, enable);
+      });
+    };
+
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              {selectedUsers.length} {selectedUsers.length === 1 ? 'User' : 'Users'} Selected
+            </h3>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {selectedUsers.map((user) => (
+                <span
+                  key={user._id}
+                  className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs"
+                >
+                  {user.name || user.email}
+                </span>
+              ))}
+            </div>
+            <p className="text-sm text-gray-500">
+              Control which sidebar items and API routes the selected users can access. Organized by pages/features. Changes apply to all selected users. Click Save to persist changes.
+            </p>
+            {hasUnsavedChangesCombined && (
+              <p className="text-sm text-orange-600 font-medium mt-1">
+                You have unsaved changes
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                // Enable all sidebar paths
+                toggleAll(true);
+                // Enable all API routes
+                availableRoutes.forEach(route => {
+                  toggleAllRouteMethods(route.path, true);
+                });
+              }}
+              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+            >
+              Enable All
+            </button>
+            <button
+              onClick={() => {
+                // Disable all sidebar paths
+                toggleAll(false);
+                // Disable all API routes
+                availableRoutes.forEach(route => {
+                  toggleAllRouteMethods(route.path, false);
+                });
+              }}
+              className="px-3 py-2 bg-gray-100 text-gray-800 rounded-md text-sm hover:bg-gray-200"
+            >
+              Disable All
+            </button>
+            <button
+              onClick={async () => {
+                setIsSaving(true);
+                try {
+                  await handleSaveRoutes();
+                  await handleSave();
+                } catch (err) {
+                  console.error('Failed to save', err);
+                } finally {
+                  setIsSaving(false);
+                }
+              }}
+              disabled={!hasUnsavedChangesCombined || isSaving || selectedUserIds.length === 0}
+              className={`px-4 py-2 rounded-md text-sm font-medium ${
+                hasUnsavedChangesCombined && !isSaving && selectedUserIds.length > 0
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {pageEntries.map(([pageKey, pageData]) => {
+            const sidebarPaths = pageData.sidebarPaths || [];
+            const apiRoutes = pageData.apiRoutes || [];
+            
+            // Skip pages with no content at all (neither sidebar nor API routes)
+            // But show pages with only API routes (no sidebar items)
+            if (sidebarPaths.length === 0 && apiRoutes.length === 0) return null;
+
+            // Check if all sidebar paths are enabled
+            const allSidebarPathsEnabled = sidebarPaths.length > 0 && 
+              sidebarPaths.every(sp => {
+                const state = getPathState(sp.path);
+                return state.checked;
+              });
+
+            // Check if all API routes are enabled
+            const allApiRoutesEnabled = apiRoutes.length > 0 &&
+              apiRoutes.every(route => 
+                route.methods.every(method => getRouteMethodState(route.path, method))
+              );
+            
+            const pageIcon = getIconComponent(pageData.icon);
+
+            return (
+              <div key={pageKey} className="border rounded-lg p-5 bg-gray-50">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                  <div className="flex items-center gap-3">
+                    {pageIcon && (
+                      <span className="text-xl text-gray-700">
+                        {pageIcon}
+                      </span>
+                    )}
+                    <div>
+                      <h4 className="font-semibold text-gray-800 text-lg">{pageData.label}</h4>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {sidebarPaths.length > 0 && `${sidebarPaths.length} ${sidebarPaths.length === 1 ? 'menu item' : 'menu items'}`}
+                        {sidebarPaths.length > 0 && apiRoutes.length > 0 && ' • '}
+                        {apiRoutes.length > 0 && `${apiRoutes.length} ${apiRoutes.length === 1 ? 'API route' : 'API routes'}`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        toggleAllSidebarPathsForPage(pageKey, !allSidebarPathsEnabled);
+                        toggleAllApiRoutesForPage(pageKey, !allApiRoutesEnabled);
+                      }}
+                      className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                        (allSidebarPathsEnabled || sidebarPaths.length === 0) && (allApiRoutesEnabled || apiRoutes.length === 0)
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                      }`}
+                      title="Enable all items in this page"
+                    >
+                      {(allSidebarPathsEnabled || sidebarPaths.length === 0) && (allApiRoutesEnabled || apiRoutes.length === 0) ? 'All Enabled' : 'Enable All'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        toggleAllSidebarPathsForPage(pageKey, false);
+                        toggleAllApiRoutesForPage(pageKey, false);
+                      }}
+                      className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
+                      title="Disable all items in this page"
+                    >
+                      Disable All
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Sidebar Menu Items Section */}
+                  {sidebarPaths.length > 0 && (
+                    <div>
+                      <div className="mb-3 flex items-center justify-between">
+                        <h5 className="text-sm font-semibold text-gray-700">Sidebar Menu Items</h5>
+                        <button
+                          onClick={() => toggleAllSidebarPathsForPage(pageKey, !allSidebarPathsEnabled)}
+                          className={`px-2 py-1 text-xs rounded font-medium transition-colors ${
+                            allSidebarPathsEnabled
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                          }`}
+                        >
+                          {allSidebarPathsEnabled ? 'All Enabled' : 'Enable All'}
+                        </button>
+                      </div>
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                        {sidebarPaths.map((sidebarPath) => {
+                          const pathState = getPathState(sidebarPath.path);
+                          const sidebarIcon = getIconComponent(sidebarPath.icon);
+                          
+                          return (
+                            <label
+                              key={sidebarPath.path}
+                              className={`flex items-center gap-2 p-2.5 rounded-md border transition-colors cursor-pointer ${
+                                pathState.checked
+                                  ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                                  : 'bg-white border-gray-200 hover:bg-gray-50'
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={pathState.checked}
+                                ref={(el) => {
+                                  if (el) el.indeterminate = pathState.indeterminate;
+                                }}
+                                onChange={() => togglePath(sidebarPath.path)}
+                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                              />
+                              {sidebarIcon && (
+                                <span className="text-gray-600">
+                                  {sidebarIcon}
+                                </span>
+                              )}
+                              <span className={`text-sm ${
+                                pathState.checked ? 'text-gray-900 font-medium' : 'text-gray-700'
+                              }`}>
+                                {sidebarPath.label}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* API Routes Section */}
+                  {apiRoutes.length > 0 && (
+                    <div>
+                      <div className="mb-3 flex items-center justify-between">
+                        <h5 className="text-sm font-semibold text-gray-700">API Routes</h5>
+                        <button
+                          onClick={() => toggleAllApiRoutesForPage(pageKey, !allApiRoutesEnabled)}
+                          className={`px-2 py-1 text-xs rounded font-medium transition-colors ${
+                            allApiRoutesEnabled
+                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                          }`}
+                        >
+                          {allApiRoutesEnabled ? 'All Enabled' : 'Enable All'}
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {apiRoutes.map((route) => {
+                          const allMethodsEnabled = route.methods.every(method => 
+                            getRouteMethodState(route.path, method)
+                          );
+                          
+                          return (
+                            <div key={route.path} className="border rounded-md p-4 bg-white">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900 text-sm">{route.path}</div>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    Available methods: {route.methods.join(', ')}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => toggleAllRouteMethods(route.path, !allMethodsEnabled)}
+                                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
+                                    allMethodsEnabled
+                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                  }`}
+                                  title="Enable all methods for this route"
+                                >
+                                  {allMethodsEnabled ? 'All Enabled' : 'Enable All'}
+                                </button>
+                              </div>
+                              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                                {route.methods.map((method) => {
+                                  const isEnabled = getRouteMethodState(route.path, method);
+                                  return (
+                                    <label
+                                      key={method}
+                                      className={`flex items-center gap-2 p-2.5 rounded-md border transition-colors cursor-pointer ${
+                                        isEnabled
+                                          ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                                          : 'bg-white border-gray-200 hover:bg-gray-50'
+                                      }`}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={isEnabled}
+                                        onChange={() => toggleRouteMethod(route.path, method)}
+                                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                                      />
+                                      <span className={`text-sm ${
+                                        isEnabled ? 'text-gray-900 font-medium' : 'text-gray-700'
+                                      }`}>
+                                        {method}
+                                      </span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-xs text-gray-500 mt-3">
+          Changes apply to all {selectedUsers.length} selected {selectedUsers.length === 1 ? 'user' : 'users'}. 
+          {hasUnsavedChangesCombined && (
+            <span className="text-orange-600 font-medium ml-1">Don't forget to save!</span>
+          )}
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow p-4 flex flex-col gap-3">
@@ -606,63 +1144,63 @@ const AdministrationAccess = () => {
           <div>
             <h2 className="text-xl font-bold text-gray-800">Administration</h2>
             <p className="text-sm text-gray-500">
-              Manage which employee sidebar options are visible for each user.
+              Manage sidebar access and API route permissions for users.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border rounded-md px-3 py-2 text-sm w-48 md:w-64"
-            />
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="border rounded-md px-2 py-2 text-sm"
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border rounded-md px-3 py-2 text-sm w-48 md:w-64"
+          />
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="border rounded-md px-2 py-2 text-sm"
+          >
+            <option value="all">All roles</option>
+            {roleOptions.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            className="border rounded-md px-2 py-2 text-sm"
+          >
+            <option value="all">All departments</option>
+            {departmentOptions.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedCompany}
+            onChange={(e) => setSelectedCompany(e.target.value)}
+            className="border rounded-md px-2 py-2 text-sm"
+          >
+            <option value="all">All companies</option>
+            {companyOptions.map((company) => (
+              <option key={company} value={company}>
+                {company}
+              </option>
+            ))}
+          </select>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-xs px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
             >
-              <option value="all">All roles</option>
-              {roleOptions.map((role) => (
-                <option key={role} value={role}>
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="border rounded-md px-2 py-2 text-sm"
-            >
-              <option value="all">All departments</option>
-              {departmentOptions.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
-              className="border rounded-md px-2 py-2 text-sm"
-            >
-              <option value="all">All companies</option>
-              {companyOptions.map((company) => (
-                <option key={company} value={company}>
-                  {company}
-                </option>
-              ))}
-            </select>
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="text-xs px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
-              >
-                Clear
-              </button>
-            )}
-          </div>
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -721,7 +1259,9 @@ const AdministrationAccess = () => {
           </div>
         </div>
 
-        <div className="md:col-span-2">{renderMenuControls()}</div>
+        <div className="md:col-span-2">
+          {renderUnifiedAccess()}
+        </div>
       </div>
     </div>
   );
