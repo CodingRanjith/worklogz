@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../../utils/api';
-import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiX, FiCheck, FiClock, FiMail, FiPhone, FiBookOpen, FiUser, FiEye } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiX, FiCheck, FiClock, FiMail, FiPhone, FiBookOpen, FiUser, FiEye, FiDownload, FiPrinter } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -14,6 +16,7 @@ const Trainers = () => {
   const [editingTrainer, setEditingTrainer] = useState(null);
   const [viewingTrainer, setViewingTrainer] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [companySettings, setCompanySettings] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -33,7 +36,20 @@ const Trainers = () => {
 
   useEffect(() => {
     fetchTrainers();
+    fetchCompanySettings();
   }, []);
+
+  const fetchCompanySettings = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(API_ENDPOINTS.getCompanySettings, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCompanySettings(response.data);
+    } catch (error) {
+      console.error('Failed to fetch company settings:', error);
+    }
+  };
 
   const fetchTrainers = async () => {
     try {
@@ -271,6 +287,325 @@ const Trainers = () => {
     const availableDays = timings.filter(t => t.isAvailable && t.timeSlots.length > 0);
     if (availableDays.length === 0) return 'Not set';
     return availableDays.map(t => `${t.day.substring(0, 3)}: ${t.timeSlots.map(ts => `${ts.startTime}-${ts.endTime}`).join(', ')}`).join(' | ');
+  };
+
+  const generateTrainerPDF = async (trainer) => {
+    try {
+      if (!trainer) {
+        throw new Error('Trainer data is required');
+      }
+
+      const doc = new jsPDF();
+      
+      if (!doc.autoTable) {
+        doc.autoTable = autoTable;
+      }
+      
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Colors
+      const primaryColor = [0, 102, 204];
+      const secondaryColor = [60, 60, 60];
+      
+      // Company Name (default to Techackode Edutech or from settings)
+      const companyName = companySettings?.companyName || 'Techackode Edutech';
+      const companyAddress = companySettings?.companyAddress || '';
+      const companyEmail = companySettings?.companyEmail || '';
+      const companyPhone = companySettings?.companyPhone || '';
+      const companyLogo = companySettings?.companyLogo || '';
+
+      // Add Logo if available (skip if errors occur)
+      if (companyLogo && companyLogo.startsWith('http')) {
+        try {
+          // Try to add logo, but don't fail if it doesn't work
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = companyLogo;
+          await new Promise((resolve) => {
+            const timeout = setTimeout(() => resolve(), 1500);
+            img.onload = () => {
+              clearTimeout(timeout);
+              try {
+                const logoSize = 30;
+                const logoX = pageWidth / 2 - logoSize / 2;
+                doc.addImage(img, 'PNG', logoX, yPosition, logoSize, logoSize);
+                yPosition += logoSize + 5;
+              } catch (err) {
+                console.warn('Could not add logo to PDF:', err);
+              }
+              resolve();
+            };
+            img.onerror = () => {
+              clearTimeout(timeout);
+              resolve();
+            };
+          });
+        } catch (err) {
+          console.warn('Logo error (continuing without logo):', err);
+        }
+      }
+
+      // Header - Company Name
+      doc.setFontSize(18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...primaryColor);
+      doc.text(companyName, pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 8;
+
+      // Company Address
+      if (companyAddress) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...secondaryColor);
+        doc.text(companyAddress, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 5;
+      }
+
+      // Company Contact
+      if (companyEmail || companyPhone) {
+        const contactInfo = [companyPhone, companyEmail].filter(Boolean).join(' | ');
+        doc.text(contactInfo, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 8;
+      }
+
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...primaryColor);
+      doc.text('TRAINER AGREEMENT', pageWidth / 2, yPosition, { align: 'center' });
+      yPosition += 10;
+
+      // Date
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...secondaryColor);
+      const currentDate = new Date();
+      const dateStr = `${currentDate.getDate()} ${currentDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' })}`;
+      doc.text(`Date: ${dateStr}`, pageWidth - margin, yPosition, { align: 'right' });
+      yPosition += 10;
+
+      // Divider
+      doc.setDrawColor(...primaryColor);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 10;
+
+      // Trainer Information Section
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...primaryColor);
+      doc.text('TRAINER INFORMATION', margin, yPosition);
+      yPosition += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+
+      const trainerInfo = [
+        ['Name:', trainer.name || 'N/A'],
+        ['Email:', trainer.email || 'N/A'],
+        ['Phone:', trainer.phone || 'N/A'],
+        ['Alternative Phone:', trainer.alternativePhone || 'N/A']
+      ];
+
+      trainerInfo.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, margin, yPosition);
+        doc.setFont('helvetica', 'normal');
+        doc.text(value, margin + 40, yPosition);
+        yPosition += 6;
+      });
+
+      yPosition += 5;
+
+      // Share Percentages
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...primaryColor);
+      doc.text('INCOME SHARE PERCENTAGES', margin, yPosition);
+      yPosition += 8;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+
+      const companyLeadPercent = trainer.companyLeadSharePercentage !== undefined ? trainer.companyLeadSharePercentage : (trainer.trainerSharePercentage !== undefined ? trainer.trainerSharePercentage : 0);
+      const trainerLeadPercent = trainer.trainerLeadSharePercentage !== undefined ? trainer.trainerLeadSharePercentage : (trainer.trainerSharePercentage !== undefined ? trainer.trainerSharePercentage : 0);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Company Lead Share:', margin, yPosition);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Company: ${companyLeadPercent}% | Trainer: ${100 - companyLeadPercent}%`, margin + 50, yPosition);
+      yPosition += 6;
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Trainer Lead Share:', margin, yPosition);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Trainer: ${trainerLeadPercent}% | Company: ${100 - trainerLeadPercent}%`, margin + 50, yPosition);
+      yPosition += 10;
+
+      // Courses Section
+      if (trainer.courses && trainer.courses.length > 0) {
+        // Ensure font system is initialized before autoTable
+        doc.setFont('helvetica');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...primaryColor);
+        doc.text('ASSIGNED COURSES', margin, yPosition);
+        yPosition += 8;
+
+        const coursesData = trainer.courses.map((course, index) => {
+          const courseName = typeof course === 'string' ? course : course.name;
+          const courseAmount = typeof course === 'object' ? (course.amount || 0) : 0;
+          const companyLeadCompanyShare = (courseAmount * companyLeadPercent) / 100;
+          const companyLeadTrainerShare = courseAmount - companyLeadCompanyShare;
+          const trainerLeadTrainerShare = (courseAmount * trainerLeadPercent) / 100;
+          const trainerLeadCompanyShare = courseAmount - trainerLeadTrainerShare;
+
+          return [
+            index + 1,
+            courseName,
+            `₹${courseAmount.toFixed(2)}`,
+            `Company: ₹${companyLeadCompanyShare.toFixed(2)} / Trainer: ₹${companyLeadTrainerShare.toFixed(2)}`,
+            `Trainer: ₹${trainerLeadTrainerShare.toFixed(2)} / Company: ₹${trainerLeadCompanyShare.toFixed(2)}`
+          ];
+        });
+
+        doc.autoTable({
+          startY: yPosition,
+          head: [['#', 'Course Name', 'Amount', 'Company Lead Share', 'Trainer Lead Share']],
+          body: coursesData,
+          headStyles: { fillColor: primaryColor, textColor: [255, 255, 255], fontStyle: 'bold' },
+          margin: { left: margin, right: margin },
+          styles: { cellPadding: 2 }
+        });
+
+        yPosition = doc.lastAutoTable.finalY + 10;
+      }
+
+      // Available Timings
+      if (trainer.availableTimings && trainer.availableTimings.some(t => t.isAvailable)) {
+        if (yPosition > pageHeight - 60) {
+          doc.addPage();
+          yPosition = margin;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...primaryColor);
+        doc.text('AVAILABLE TIMINGS', margin, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+
+        trainer.availableTimings.forEach((timing) => {
+          if (timing.isAvailable && timing.timeSlots && timing.timeSlots.length > 0) {
+            const timeSlotsText = timing.timeSlots.map(ts => `${ts.startTime || ts.start} - ${ts.endTime || ts.end}`).join(', ');
+            doc.text(`${timing.day}: ${timeSlotsText}`, margin, yPosition);
+            yPosition += 6;
+          }
+        });
+
+        yPosition += 5;
+      }
+
+      // Agreement Terms (if space allows)
+      if (yPosition < pageHeight - 80) {
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...primaryColor);
+        doc.text('TERMS AND CONDITIONS', margin, yPosition);
+        yPosition += 8;
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+
+        const terms = [
+          '1. This agreement is subject to the terms and conditions as mutually agreed.',
+          '2. Income sharing will be calculated based on the lead source as specified.',
+          '3. Both parties agree to maintain confidentiality of the agreement.',
+          '4. Any disputes shall be resolved through mutual discussion.'
+        ];
+
+        terms.forEach(term => {
+          if (yPosition > pageHeight - 30) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(term, margin, yPosition, { maxWidth: pageWidth - 2 * margin });
+          yPosition += 6;
+        });
+      }
+
+      // Signatures Section (on new page if needed)
+      if (yPosition > pageHeight - 60) {
+        doc.addPage();
+        yPosition = margin + 20;
+      } else {
+        yPosition += 15;
+      }
+
+      // Signature lines
+      const signatureY = pageHeight - 60;
+      const leftSignatureX = margin + 30;
+      const rightSignatureX = pageWidth - margin - 70;
+
+      // Left signature (Trainer)
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.5);
+      doc.line(leftSignatureX, signatureY, leftSignatureX + 60, signatureY);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Trainer Signature', leftSignatureX + 30, signatureY + 5, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      doc.text(trainer.name || 'Trainer Name', leftSignatureX + 30, signatureY + 10, { align: 'center' });
+      doc.text('Date: ___________', leftSignatureX + 30, signatureY + 15, { align: 'center' });
+
+      // Right signature (Company)
+      doc.line(rightSignatureX, signatureY, rightSignatureX + 60, signatureY);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Company Signature', rightSignatureX + 30, signatureY + 5, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      doc.text(companyName, rightSignatureX + 30, signatureY + 10, { align: 'center' });
+      doc.text('Date: ___________', rightSignatureX + 30, signatureY + 15, { align: 'center' });
+
+      // Footer
+      const footerY = pageHeight - 15;
+      doc.setFontSize(8);
+      doc.setTextColor(...secondaryColor);
+      doc.setFont('helvetica', 'italic');
+      doc.text('This is a computer-generated document. Signatures required for validity.', pageWidth / 2, footerY, { align: 'center' });
+
+      // Save PDF
+      const today = new Date();
+      const dateStrForFile = today.toISOString().split('T')[0];
+      const safeName = (trainer.name || 'Trainer').replace(/[^a-zA-Z0-9_]/g, '_');
+      const fileName = `Trainer_Agreement_${safeName}_${dateStrForFile}.pdf`;
+      doc.save(fileName);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      console.error('Error details:', error.message, error.stack);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: error.message || 'Failed to generate PDF. Please try again.',
+        footer: 'Check browser console for details'
+      });
+    }
+  };
+
+  const handlePrintPDF = async (trainer) => {
+    await generateTrainerPDF(trainer);
+    // Open print dialog after a short delay
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
   if (loading) {
@@ -797,15 +1132,33 @@ const Trainers = () => {
                 <h2 className="text-2xl font-bold text-gray-900">
                   Trainer Details
                 </h2>
-                <button
-                  onClick={() => {
-                    setIsViewModalOpen(false);
-                    setViewingTrainer(null);
-                  }}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <FiX size={24} />
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => generateTrainerPDF(viewingTrainer)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    title="Download PDF"
+                  >
+                    <FiDownload size={18} />
+                    Download PDF
+                  </button>
+                  <button
+                    onClick={() => handlePrintPDF(viewingTrainer)}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    title="Print"
+                  >
+                    <FiPrinter size={18} />
+                    Print
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsViewModalOpen(false);
+                      setViewingTrainer(null);
+                    }}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <FiX size={24} />
+                  </button>
+                </div>
               </div>
 
               <div className="p-6 space-y-6">
