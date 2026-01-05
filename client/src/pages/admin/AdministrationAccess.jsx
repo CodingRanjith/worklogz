@@ -1147,60 +1147,60 @@ const AdministrationAccess = () => {
               Manage sidebar access and API route permissions for users.
             </p>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-md px-3 py-2 text-sm w-48 md:w-64"
-          />
-          <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value)}
-            className="border rounded-md px-2 py-2 text-sm"
-          >
-            <option value="all">All roles</option>
-            {roleOptions.map((role) => (
-              <option key={role} value={role}>
-                {role.charAt(0).toUpperCase() + role.slice(1)}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedDepartment}
-            onChange={(e) => setSelectedDepartment(e.target.value)}
-            className="border rounded-md px-2 py-2 text-sm"
-          >
-            <option value="all">All departments</option>
-            {departmentOptions.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            className="border rounded-md px-2 py-2 text-sm"
-          >
-            <option value="all">All companies</option>
-            {companyOptions.map((company) => (
-              <option key={company} value={company}>
-                {company}
-              </option>
-            ))}
-          </select>
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="text-xs px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm w-48 md:w-64"
+            />
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="border rounded-md px-2 py-2 text-sm"
             >
-              Clear
-            </button>
-          )}
+              <option value="all">All roles</option>
+              {roleOptions.map((role) => (
+                <option key={role} value={role}>
+                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedDepartment}
+              onChange={(e) => setSelectedDepartment(e.target.value)}
+              className="border rounded-md px-2 py-2 text-sm"
+            >
+              <option value="all">All departments</option>
+              {departmentOptions.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              className="border rounded-md px-2 py-2 text-sm"
+            >
+              <option value="all">All companies</option>
+              {companyOptions.map((company) => (
+                <option key={company} value={company}>
+                  {company}
+                </option>
+              ))}
+            </select>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
+              >
+                Clear
+              </button>
+            )}
         </div>
       </div>
 

@@ -45,6 +45,7 @@ import Dashboard from './pages/admin/Dashboard';
 import Employees from './pages/admin/Employees';
 import AllUsers from './pages/admin/AllUsers';
 import PendingUsers from './pages/admin/PendingUsers';
+import Trainers from './pages/admin/Trainers';
 import EditUser from './components/EditUser';
 import PeoplePage from './pages/employee/PeoplePage';
 import ApplicationsPage from './pages/employee/ApplicationsPage';
@@ -434,6 +435,7 @@ function App() {
         <Route path="/all-users" element={<AllUsers />} />
         <Route path="/employees" element={<Employees />} />
         <Route path="/pending-users" element={<PendingUsers />} />
+        <Route path="/trainers" element={<Trainers />} />
         <Route path="/edit-user" element={<EditUser />} />
 
         {/* Company Settings */}
@@ -547,6 +549,7 @@ function App() {
         <Route path="/skill-development" element={<SkillDevelopment />} />
         <Route path="/employee/assessments" element={<EmployeeAssessments />} />
         <Route path="/employee/worklogztube" element={<WorklogzTube />} />
+        <Route path="/employee/trainers" element={<Trainers />} />
 
         {/* Goals & Performance */}
         <Route path="/goals-achievements" element={<GoalsAchievements />} />

@@ -78,6 +78,15 @@ export const API_ENDPOINTS = {
   getBulkPagePermissions: (userIds) => `${BASE_URL}/api/page-permissions/bulk?userIds=${Array.isArray(userIds) ? userIds.join(',') : userIds}`,
   setPagePermissions: (userId) => `${BASE_URL}/api/page-permissions/user/${userId}`,
   setBulkPagePermissions: `${BASE_URL}/api/page-permissions/bulk`,
+  
+  // -----------------
+  // Trainers
+  // -----------------
+  getTrainers: `${BASE_URL}/api/trainers`,
+  getTrainerById: (id) => `${BASE_URL}/api/trainers/${id}`,
+  createTrainer: `${BASE_URL}/api/trainers`,
+  updateTrainer: (id) => `${BASE_URL}/api/trainers/${id}`,
+  deleteTrainer: (id) => `${BASE_URL}/api/trainers/${id}`,
   getAvailablePages: `${BASE_URL}/api/page-permissions/available-pages`,
   getSchedules: `${BASE_URL}/schedules`,
   createUserSchedule: `${BASE_URL}/schedules`,
