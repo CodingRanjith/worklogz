@@ -19,6 +19,7 @@ const DayToday = () => {
   const [loading, setLoading] = useState(true);
   const [expandedMonths, setExpandedMonths] = useState({}); // { userId_month: true/false }
   const [attendanceData, setAttendanceData] = useState({}); // { userId_date: 'worked'/'not_worked' }
+  const [pendingAttendance, setPendingAttendance] = useState({}); // Track in-flight attendance mutations
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'card'
   const [expandedMonthIndex, setExpandedMonthIndex] = useState(null); // Track which month is expanded in table view
   const [orderedEmployees, setOrderedEmployees] = useState([]); // Track user order for drag and drop
@@ -399,8 +400,10 @@ const DayToday = () => {
 
   const toggleAttendance = async (userId, date) => {
     if (!selectedCard) return;
-
+    
     const key = `${userId}_${date}`;
+    if (pendingAttendance[key]) return; // avoid double-submits while request is in flight
+
     const currentStatus = attendanceData[key];
     
     let newStatus;
@@ -411,6 +414,18 @@ const DayToday = () => {
     } else {
       newStatus = 'worked';
     }
+
+    // Optimistic UI update
+    setAttendanceData(prev => {
+      const next = { ...prev };
+      if (newStatus === null) {
+        delete next[key];
+      } else {
+        next[key] = newStatus;
+      }
+      return next;
+    });
+    setPendingAttendance(prev => ({ ...prev, [key]: true }));
 
     try {
       const token = localStorage.getItem('token');
@@ -455,8 +470,27 @@ const DayToday = () => {
     } catch (error) {
       console.error('Error updating attendance:', error);
       const errorMessage = error.response?.data?.error || 'Failed to update attendance';
+      
+      // Revert optimistic update on failure
+      setAttendanceData(prev => {
+        const reverted = { ...prev };
+        if (currentStatus === undefined) {
+          delete reverted[key];
+        } else {
+          reverted[key] = currentStatus;
+        }
+        return reverted;
+      });
+
       Swal.fire('Error', errorMessage, 'error');
     }
+
+    // Clear pending flag
+    setPendingAttendance(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   };
 
   const getAttendanceStatus = (userId, date) => {
@@ -1217,11 +1251,12 @@ const DayToday = () => {
                                       const day = i + 1;
                                       const dateKey = getDateKey(selectedCard.year, expandedMonthIndex, day);
                                       const status = getAttendanceStatus(user._id, dateKey);
+                                      const isPending = pendingAttendance[dateKey];
                                       
                                       return (
                                         <td
                                           key={day}
-                                          className={`table-date-cell ${status === 'worked' ? 'worked' : status === 'not_worked' ? 'not-worked' : ''}`}
+                                          className={`table-date-cell ${isPending ? 'pending' : ''} ${status === 'worked' ? 'worked' : status === 'not_worked' ? 'not-worked' : ''}`}
                                           onClick={() => toggleAttendance(user._id, dateKey)}
                                           title={`${user.name} - ${MONTH_NAMES[expandedMonthIndex]} ${day}, ${selectedCard.year}`}
                                         >
