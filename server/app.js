@@ -5,6 +5,10 @@ const path = require('path');
 // Load environment variables from .env file
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+// Swagger setup
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 // Import routes
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -90,10 +94,50 @@ app.use(express.urlencoded({ extended: true }));
 const uploadsPath = path.join(__dirname, 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// Health check route
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'WorkLogz API Documentation',
+}));
+
+/**
+ * @swagger
+ * /ping:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: Server is running
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: pong
+ */
 app.get('/ping', (req, res) => res.send('pong'));
 
-// Test attendance route (for debugging)
+/**
+ * @swagger
+ * /attendance/test:
+ *   get:
+ *     summary: Test attendance route (for debugging)
+ *     tags: [Attendance]
+ *     responses:
+ *       200:
+ *         description: Attendance route is working
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Attendance route is working
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ */
 app.get('/attendance/test', (req, res) => {
   res.json({ message: 'Attendance route is working', timestamp: new Date() });
 });
@@ -138,6 +182,52 @@ try {
   console.error('Error loading custom fields routes:', error);
 }
 
+/**
+ * @swagger
+ * /employeesAttendance:
+ *   get:
+ *     summary: Get employees attendance list (Legacy route)
+ *     description: Returns list of users for attendance purposes. Admins see all users, employees see only employees.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users for attendance
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   _id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   role:
+ *                     type: string
+ *                   company:
+ *                     type: string
+ *                   position:
+ *                     type: string
+ *                   department:
+ *                     type: string
+ *                   employeeId:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   isActive:
+ *                     type: boolean
+ *                   adminAccess:
+ *                     type: boolean
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 // Legacy route - consider moving to proper controller
 app.get('/employeesAttendance', authMiddleware, async (req, res) => {
   try {

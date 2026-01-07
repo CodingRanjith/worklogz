@@ -21,6 +21,32 @@ const buildSystemPrompt = (user = {}) => {
   ].join(' ');
 };
 
+/**
+ * @swagger
+ * /api/assistant/chat:
+ *   post:
+ *     summary: Chat with AI assistant (Techackode Copilot)
+ *     tags: [Assistant]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AssistantChatRequest'
+ *     responses:
+ *       200:
+ *         description: AI assistant response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AssistantChatResponse'
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Server error
+ */
 router.post('/chat', auth, authorizeAccess, async (req, res) => {
   try {
     if (!process.env.OPENROUTER_API_KEY) {
@@ -93,6 +119,32 @@ const buildSkillDevelopmentPrompt = (user = {}) => {
   ].join(' ');
 };
 
+/**
+ * @swagger
+ * /api/assistant/skill-chat:
+ *   post:
+ *     summary: Chat with skill development AI assistant
+ *     tags: [Assistant]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/AssistantChatRequest'
+ *     responses:
+ *       200:
+ *         description: AI assistant response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AssistantChatResponse'
+ *       400:
+ *         description: Invalid request
+ *       500:
+ *         description: Server error
+ */
 router.post('/skill-chat', auth, authorizeAccess, async (req, res) => {
   try {
     if (!process.env.GROQ_API_KEY) {

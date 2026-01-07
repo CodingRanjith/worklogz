@@ -24,6 +24,26 @@ const ensureAdmin = (req, res, next) => {
   next();
 };
 
+/**
+ * @swagger
+ * /api/helpdesk/tickets:
+ *   get:
+ *     summary: Get all helpdesk tickets
+ *     tags: [Helpdesk]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of tickets
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/HelpdeskTicket'
+ *       500:
+ *         description: Server error
+ */
 router.get('/tickets', auth, authorizeAccess, async (req, res) => {
   try {
     const filter =
@@ -48,6 +68,33 @@ router.get('/tickets', auth, authorizeAccess, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/helpdesk/tickets/{id}:
+ *   get:
+ *     summary: Get ticket by ID
+ *     tags: [Helpdesk]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Ticket ID
+ *     responses:
+ *       200:
+ *         description: Ticket details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HelpdeskTicket'
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Ticket not found
+ */
 router.get('/tickets/:id', auth, authorizeAccess, async (req, res) => {
   try {
     const ticket = await HelpdeskTicket.findById(req.params.id);
@@ -73,6 +120,30 @@ router.get('/tickets/:id', auth, authorizeAccess, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/helpdesk/tickets:
+ *   post:
+ *     summary: Create a new helpdesk ticket
+ *     tags: [Helpdesk]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/HelpdeskTicketCreate'
+ *     responses:
+ *       201:
+ *         description: Ticket created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HelpdeskTicket'
+ *       400:
+ *         description: Validation error
+ */
 router.post('/tickets', auth, authorizeAccess, async (req, res) => {
   try {
     const { subject, description, category, priority, message } = req.body;
@@ -104,6 +175,39 @@ router.post('/tickets', auth, authorizeAccess, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/helpdesk/tickets/{id}/status:
+ *   patch:
+ *     summary: Update ticket status (Admin only)
+ *     tags: [Helpdesk]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Ticket ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TicketStatusUpdate'
+ *     responses:
+ *       200:
+ *         description: Ticket status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HelpdeskTicket'
+ *       403:
+ *         description: Admin access required
+ *       404:
+ *         description: Ticket not found
+ */
 router.patch('/tickets/:id/status', auth, authorizeAccess, ensureAdmin, async (req, res) => {
   try {
     const { status, assignedTo } = req.body;
@@ -140,6 +244,39 @@ router.patch('/tickets/:id/status', auth, authorizeAccess, ensureAdmin, async (r
   }
 });
 
+/**
+ * @swagger
+ * /api/helpdesk/tickets/{id}/messages:
+ *   post:
+ *     summary: Add message to a ticket
+ *     tags: [Helpdesk]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Ticket ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/TicketMessageCreate'
+ *     responses:
+ *       200:
+ *         description: Message added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HelpdeskTicket'
+ *       403:
+ *         description: Access denied
+ *       404:
+ *         description: Ticket not found
+ */
 router.post('/tickets/:id/messages', auth, authorizeAccess, async (req, res) => {
   try {
     const { message } = req.body;
@@ -177,6 +314,22 @@ router.post('/tickets/:id/messages', auth, authorizeAccess, async (req, res) => 
   }
 });
 
+/**
+ * @swagger
+ * /api/helpdesk/summary:
+ *   get:
+ *     summary: Get helpdesk summary statistics
+ *     tags: [Helpdesk]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Helpdesk summary
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HelpdeskSummary'
+ */
 router.get('/summary', auth, authorizeAccess, async (req, res) => {
   try {
     const baseFilter =
@@ -204,6 +357,33 @@ router.get('/summary', auth, authorizeAccess, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/helpdesk/contacts:
+ *   get:
+ *     summary: Get helpdesk contact information
+ *     tags: [Helpdesk]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Contact information
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   label:
+ *                     type: string
+ *                   email:
+ *                     type: string
+ *                   phone:
+ *                     type: string
+ *                   hours:
+ *                     type: string
+ */
 router.get('/contacts', auth, authorizeAccess, (_req, res) => {
   res.json([
     {
