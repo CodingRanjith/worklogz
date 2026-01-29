@@ -80,7 +80,7 @@ const TaskManager = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const teams = response.data || [];
-        
+
         // Check if user is a team lead in any team
         const userIsTeamLead = teams.some(team => {
           const teamLeadId = team.teamLead?._id || team.teamLead;
@@ -127,17 +127,17 @@ const TaskManager = () => {
   }, [teamMemberIds, isTeamLead, currentUserRole]);
 
   useEffect(() => {
-    let filtered = users.filter(user => 
+    let filtered = users.filter(user =>
       user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.employeeId?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    
+
     // Filter by department
     if (selectedDepartment) {
       filtered = filtered.filter(user => user.department === selectedDepartment);
     }
-    
+
     setFilteredUsers(filtered);
   }, [users, searchTerm, selectedDepartment]);
 
@@ -177,7 +177,7 @@ const TaskManager = () => {
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       let usersData = data.users || data || [];
-      
+
       // Only filter if user is a team lead AND not an admin
       // Admins should always see all users without any filtering
       if (currentUserRole === 'admin' || currentUserRole === 'master-admin') {
@@ -195,7 +195,7 @@ const TaskManager = () => {
         // Only admins and team leads should access this page
         setUsers([]);
       }
-      
+
       // Fetch task counts for each user
       await fetchUserTaskCounts(usersData);
     } catch (error) {
@@ -209,14 +209,14 @@ const TaskManager = () => {
     try {
       const token = localStorage.getItem('token');
       const taskCounts = {};
-      
+
       // Fetch tasks for each user
       await Promise.all(
         usersData.map(async (user) => {
           try {
             const response = await getAllTasksWithFilters({ userId: user._id }, token);
             const tasks = response.tasks || response || [];
-            
+
             taskCounts[user._id] = {
               total: tasks.length,
               done: tasks.filter(t => t.status === 'done').length,
@@ -235,7 +235,7 @@ const TaskManager = () => {
           }
         })
       );
-      
+
       // Only update if there are actual changes
       setUserTaskCounts(prevCounts => {
         const hasChanges = Object.keys(taskCounts).some(userId => {
@@ -243,7 +243,7 @@ const TaskManager = () => {
           const current = taskCounts[userId] || {};
           return JSON.stringify(prev) !== JSON.stringify(current);
         });
-        
+
         return hasChanges ? taskCounts : prevCounts;
       });
     } catch (error) {
@@ -255,8 +255,8 @@ const TaskManager = () => {
 
   const handleViewTimesheet = (userId, userName) => {
     // Navigate to user's timesheet - we'll create this route later
-    navigate(`/user-timesheet/${userId}`, { 
-      state: { userName: userName } 
+    navigate(`/user-timesheet/${userId}`, {
+      state: { userName: userName }
     });
   };
 
@@ -344,7 +344,7 @@ const TaskManager = () => {
 
   const handleCreateTaskSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!taskForm.title.trim()) {
       Swal.fire({
         icon: 'error',
@@ -367,17 +367,17 @@ const TaskManager = () => {
     try {
       setCreateTaskLoading(true);
       const token = localStorage.getItem('token');
-      
+
       // Filter selected users - ensure team leads can only assign to their team members
       const selectedUsers = users.filter(u => taskForm.selectedUserIds.includes(u._id));
-      
+
       // Additional validation for team leads: ensure all selected users are in their team
       if (currentUserRole !== 'admin' && currentUserRole !== 'master-admin' && isTeamLead && teamMemberIds.length > 0) {
         const invalidUsers = selectedUsers.filter(user => {
           const userId = user._id || user.id;
           return !teamMemberIds.includes(userId.toString());
         });
-        
+
         if (invalidUsers.length > 0) {
           Swal.fire({
             icon: 'error',
@@ -413,11 +413,11 @@ const TaskManager = () => {
           errors.push(user.name);
         }
       }
-      
+
       // Immediate refresh of task counts for real-time update
       await fetchUserTaskCounts(users);
       setLastUpdated(Date.now());
-      
+
       // Show success/error message
       if (createdTasks.length > 0 && errors.length === 0) {
         Swal.fire({
@@ -463,7 +463,7 @@ const TaskManager = () => {
         status: 'backlog'
       });
       setUserSearchTerm('');
-      
+
     } catch (error) {
       console.error('Error creating tasks:', error);
       Swal.fire({
@@ -504,7 +504,7 @@ const TaskManager = () => {
                 )}
               </div>
               <p className="text-gray-600">
-                {isTeamLead && currentUserRole !== 'admin' 
+                {isTeamLead && currentUserRole !== 'admin'
                   ? 'Manage and view tasks for your team members only'
                   : 'Manage and view employee timesheets and tasks'}
               </p>
@@ -533,7 +533,7 @@ const TaskManager = () => {
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 />
               </div>
-              
+
               {/* Department Filter */}
               <div className="flex items-center gap-2">
                 <FiBriefcase className="text-gray-500" />
@@ -560,7 +560,7 @@ const TaskManager = () => {
                 )}
               </div>
             </div>
-            
+
             {/* Live Status & Controls */}
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-sm">
@@ -570,16 +570,15 @@ const TaskManager = () => {
                 </span>
                 <button
                   onClick={toggleAutoRefresh}
-                  className={`px-2 py-1 text-xs rounded ${
-                    autoRefresh 
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  } transition-colors`}
+                  className={`px-2 py-1 text-xs rounded ${autoRefresh
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    } transition-colors`}
                 >
                   {autoRefresh ? 'ON' : 'OFF'}
                 </button>
               </div>
-              
+
               <button
                 onClick={handleManualRefresh}
                 disabled={loading}
@@ -589,12 +588,12 @@ const TaskManager = () => {
                 <div className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}>🔄</div>
                 Refresh
               </button>
-              
+
               <div className="text-xs text-gray-500">
                 Updated: {new Date(lastUpdated).toLocaleTimeString()}
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
                 Total Users: {users.length}
@@ -607,7 +606,7 @@ const TaskManager = () => {
         </div>
 
         {/* Users Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
           {filteredUsers.map((user, index) => (
             <div
               key={user._id}
@@ -622,11 +621,10 @@ const TaskManager = () => {
                   <div className="flex-1">
                     <h3 className="font-bold text-lg text-gray-900">{user.name || 'Unknown'}</h3>
                     <p className="text-sm text-gray-600">ID: {user.employeeId || 'N/A'}</p>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                      user.isActive !== false 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
-                    }`}>
+                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${user.isActive !== false
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      }`}>
                       {user.isActive !== false ? 'Active' : 'Inactive'}
                     </span>
                   </div>
@@ -640,12 +638,12 @@ const TaskManager = () => {
                     <FiMail className="mr-3 text-indigo-500 flex-shrink-0" />
                     <span className="truncate">{user.email || 'No email'}</span>
                   </div>
-                  
+
                   <div className="flex items-center text-sm text-gray-600">
                     <FiPhone className="mr-3 text-indigo-500 flex-shrink-0" />
                     <span>{user.phone || 'No phone'}</span>
                   </div>
-                  
+
                   <div className="flex items-center text-sm text-gray-600">
                     <FiUser className="mr-3 text-indigo-500 flex-shrink-0" />
                     <span className="capitalize">{user.role || 'Employee'}</span>
@@ -690,8 +688,8 @@ const TaskManager = () => {
                           </span>
                         </div>
                         <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300" 
+                          <div
+                            className="bg-indigo-600 h-1.5 rounded-full transition-all duration-300"
                             style={{
                               width: `${(userTaskCounts[user._id].done / userTaskCounts[user._id].total) * 100}%`
                             }}
@@ -767,7 +765,7 @@ const TaskManager = () => {
                     </button>
                   </div>
                 </div>
-                
+
                 {/* User Search Filter */}
                 <div className="mb-3">
                   <input
@@ -782,8 +780,8 @@ const TaskManager = () => {
                 {/* User Selection List */}
                 <div className="border border-gray-300 rounded-lg max-h-64 overflow-y-auto">
                   {users
-                    .filter(user => 
-                      !userSearchTerm || 
+                    .filter(user =>
+                      !userSearchTerm ||
                       user.name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
                       user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
                       (user.employeeId && user.employeeId.toLowerCase().includes(userSearchTerm.toLowerCase()))
@@ -798,9 +796,8 @@ const TaskManager = () => {
                         <div
                           key={user._id}
                           onClick={() => toggleUserSelection(user._id)}
-                          className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors ${
-                            isSelected ? 'bg-indigo-50 border-indigo-200' : ''
-                          }`}
+                          className={`p-3 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors ${isSelected ? 'bg-indigo-50 border-indigo-200' : ''
+                            }`}
                         >
                           <div className="flex items-center gap-3">
                             <input
@@ -813,11 +810,10 @@ const TaskManager = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-gray-900">{user.name || 'Unknown'}</span>
-                                <span className={`px-2.5 py-1 text-xs font-bold rounded border-2 ${
-                                  user.employeeId 
-                                    ? 'bg-indigo-100 text-indigo-800 border-indigo-400' 
-                                    : 'bg-gray-100 text-gray-600 border-gray-400'
-                                }`}>
+                                <span className={`px-2.5 py-1 text-xs font-bold rounded border-2 ${user.employeeId
+                                  ? 'bg-indigo-100 text-indigo-800 border-indigo-400'
+                                  : 'bg-gray-100 text-gray-600 border-gray-400'
+                                  }`}>
                                   ID: {user.employeeId || 'N/A'}
                                 </span>
                               </div>
@@ -837,19 +833,19 @@ const TaskManager = () => {
                         </div>
                       );
                     })}
-                  
-                  {users.filter(user => 
-                    !userSearchTerm || 
+
+                  {users.filter(user =>
+                    !userSearchTerm ||
                     user.name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
                     user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
                     user.employeeId?.toLowerCase().includes(userSearchTerm.toLowerCase())
                   ).length === 0 && (
-                    <div className="p-4 text-center text-gray-500 text-sm">
-                      No users found matching "{userSearchTerm}"
-                    </div>
-                  )}
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No users found matching "{userSearchTerm}"
+                      </div>
+                    )}
                 </div>
-                
+
                 {taskForm.selectedUserIds.length > 0 && (
                   <div className="mt-3 p-3 bg-indigo-50 rounded-lg border border-indigo-200">
                     <div className="text-xs font-medium text-indigo-900 mb-2">
@@ -865,9 +861,8 @@ const TaskManager = () => {
                             className="inline-flex items-center gap-1.5 px-2 py-1 bg-white border border-indigo-300 rounded text-xs"
                           >
                             <span className="font-medium text-gray-900">{user.name}</span>
-                            <span className={`font-semibold ${
-                              user.employeeId ? 'text-indigo-600' : 'text-gray-500'
-                            }`}>
+                            <span className={`font-semibold ${user.employeeId ? 'text-indigo-600' : 'text-gray-500'
+                              }`}>
                               ({user.employeeId || 'No ID'})
                             </span>
                           </div>

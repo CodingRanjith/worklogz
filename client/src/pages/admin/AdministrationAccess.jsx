@@ -86,7 +86,7 @@ const AdministrationAccess = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [selectedCompany, setSelectedCompany] = useState('all');
   const [selectedUserIds, setSelectedUserIds] = useState([]);
-  
+
   // Sidebar access state
   const [accessMap, setAccessMapState] = useState({});
   const [savedAccessMap, setSavedAccessMap] = useState({});
@@ -98,7 +98,7 @@ const AdministrationAccess = () => {
     () => getAllMenuPaths(menuItems),
     [menuItems]
   );
-  
+
   // Route permissions state
   const [availableRoutes, setAvailableRoutes] = useState([]);
   const [routePermissionsMap, setRoutePermissionsMap] = useState({});
@@ -345,7 +345,7 @@ const AdministrationAccess = () => {
       const saved = savedAccessMap[userId];
       const currentPaths = current !== undefined ? current : allPaths;
       const savedPaths = saved !== undefined ? saved : allPaths;
-      
+
       // Compare arrays
       if (currentPaths.length !== savedPaths.length) return true;
       const currentSet = new Set(currentPaths);
@@ -364,9 +364,9 @@ const AdministrationAccess = () => {
     for (const userId of allUserIds) {
       const current = routePermissionsMap[userId] || [];
       const saved = savedRoutePermissionsMap[userId] || [];
-      
+
       if (current.length !== saved.length) return true;
-      
+
       // Compare route objects
       const currentStr = JSON.stringify(current.sort((a, b) => a.path.localeCompare(b.path)));
       const savedStr = JSON.stringify(saved.sort((a, b) => a.path.localeCompare(b.path)));
@@ -386,7 +386,7 @@ const AdministrationAccess = () => {
     try {
       // Get all users that have changes (either in current or saved map)
       const allUserIds = new Set([...Object.keys(accessMap), ...Object.keys(savedAccessMap)]);
-      
+
       if (allUserIds.size === 0) {
         setIsSaving(false);
         return;
@@ -410,17 +410,17 @@ const AdministrationAccess = () => {
       });
 
       await Promise.all(savePromises);
-      
+
       // Update saved state to match current state
       setSavedAccessMap({ ...accessMap });
-      
+
       // Dispatch event to notify sidebar to refresh
       selectedUserIds.forEach(userId => {
-        window.dispatchEvent(new CustomEvent('sidebarAccessUpdated', { 
-          detail: { userId, scope, paths: accessMap[userId] || allPaths } 
+        window.dispatchEvent(new CustomEvent('sidebarAccessUpdated', {
+          detail: { userId, scope, paths: accessMap[userId] || allPaths }
         }));
       });
-      
+
       alert(`Successfully saved access for ${selectedUserIds.length} user(s). Sidebar will refresh automatically.`);
     } catch (err) {
       console.error('Failed to save access changes', err);
@@ -444,10 +444,10 @@ const AdministrationAccess = () => {
       });
 
       await setRoutePermissionsForUsers(selectedUserIds, permissionsMap);
-      
+
       // Update saved state
       setSavedRoutePermissionsMap({ ...routePermissionsMap });
-      
+
       alert(`Successfully saved route permissions for ${selectedUserIds.length} user(s).`);
     } catch (err) {
       console.error('Failed to save route permissions', err);
@@ -457,15 +457,15 @@ const AdministrationAccess = () => {
 
   const getPathState = (path) => {
     if (selectedUserIds.length === 0) return { checked: false, indeterminate: false };
-    
+
     const userStates = selectedUserIds.map((userId) => {
       const userPaths = getPathsForUser(userId);
       return userPaths.includes(path);
     });
-    
+
     const allChecked = userStates.every((state) => state === true);
     const someChecked = userStates.some((state) => state === true);
-    
+
     return {
       checked: allChecked,
       indeterminate: someChecked && !allChecked
@@ -483,12 +483,12 @@ const AdministrationAccess = () => {
       selectedUserIds.forEach((userId) => {
         const userRoutes = prev[userId] || [];
         const routeIndex = userRoutes.findIndex(r => r.path === routePath);
-        
+
         if (routeIndex >= 0) {
           const route = { ...userRoutes[routeIndex] };
           const methods = route.methods || [];
           const methodIndex = methods.indexOf(method);
-          
+
           if (methodIndex >= 0) {
             // Remove method
             route.methods = methods.filter(m => m !== method);
@@ -516,7 +516,7 @@ const AdministrationAccess = () => {
 
   const getRouteMethodState = (routePath, method) => {
     if (selectedUserIds.length === 0) return false;
-    
+
     const userStates = selectedUserIds.map((userId) => {
       const routes = getRoutesForUser(userId);
       const route = routes.find(r => r.path === routePath);
@@ -524,7 +524,7 @@ const AdministrationAccess = () => {
       const methods = route.methods || [];
       return methods.includes(method) || methods.includes('ALL');
     });
-    
+
     return userStates.every(state => state === true);
   };
 
@@ -534,7 +534,7 @@ const AdministrationAccess = () => {
       selectedUserIds.forEach((userId) => {
         const userRoutes = prev[userId] || [];
         const routeIndex = userRoutes.findIndex(r => r.path === routePath);
-        
+
         if (enable) {
           // Enable all methods for this route
           const route = routeIndex >= 0 ? { ...userRoutes[routeIndex] } : { path: routePath, methods: [], allowed: true };
@@ -620,27 +620,26 @@ const AdministrationAccess = () => {
             <button
               onClick={handleSave}
               disabled={!hasUnsavedChanges || isSaving || selectedUserIds.length === 0}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                hasUnsavedChanges && !isSaving && selectedUserIds.length > 0
+              className={`px-4 py-2 rounded-md text-sm font-medium ${hasUnsavedChanges && !isSaving && selectedUserIds.length > 0
                   ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+                }`}
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8 divide-y divide-gray-200">
           {menuItems.map((item) => {
             if (item.subItems) {
               // Get all non-section paths for this category
               const categoryPaths = item.subItems
                 .filter(sub => !sub.isSection && sub.path !== '#')
                 .map(sub => sub.path);
-              
+
               // Check if all category items are enabled for all selected users
-              const allCategoryEnabled = categoryPaths.length > 0 && 
+              const allCategoryEnabled = categoryPaths.length > 0 &&
                 categoryPaths.every(path => {
                   const state = getPathState(path);
                   return state.checked;
@@ -649,7 +648,7 @@ const AdministrationAccess = () => {
               // Group sub-items by sections
               const sections = [];
               let currentSection = null;
-              
+
               item.subItems.forEach((sub) => {
                 if (sub.isSection) {
                   currentSection = {
@@ -667,13 +666,13 @@ const AdministrationAccess = () => {
               });
 
               return (
-                <div key={item.label} className="border rounded-lg p-5 bg-gray-50">
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+                <div key={item.label} className="pt-8 first:pt-0">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       {(() => {
                         const IconComponent = getIconComponent(item.icon);
                         return IconComponent ? (
-                          <span className="text-xl text-gray-700">
+                          <span className="text-xl text-blue-600">
                             <IconComponent />
                           </span>
                         ) : null;
@@ -688,59 +687,56 @@ const AdministrationAccess = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => toggleCategoryPaths(categoryPaths, true)}
-                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
-                          allCategoryEnabled
+                        className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${allCategoryEnabled
                             ? 'bg-green-100 text-green-700 hover:bg-green-200'
                             : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                        }`}
-                        title="Enable all items in this category"
+                          }`}
                       >
                         {allCategoryEnabled ? 'All Enabled' : 'Enable All'}
                       </button>
                       <button
                         onClick={() => toggleCategoryPaths(categoryPaths, false)}
-                        className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
-                        title="Disable all items in this category"
+                        className="px-3 py-1.5 text-xs bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition-colors"
                       >
                         Disable All
                       </button>
                     </div>
                   </div>
-                  
-                  <div className="space-y-4">
+
+                  <div className="space-y-4 pl-1">
                     {sections.map((section, sectionIdx) => (
                       <div key={sectionIdx} className="space-y-2">
                         {section.label && (
-                          <div className="px-2 py-1.5 bg-gray-200 rounded-md">
-                            <h5 className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                          <div className="mb-2">
+                            <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                               {section.label}
                             </h5>
                           </div>
                         )}
-                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 pl-2">
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           {section.items.map((sub) => {
                             const pathState = getPathState(sub.path);
                             return (
                               <label
                                 key={sub.path}
-                                className={`flex items-center gap-2 p-2.5 rounded-md border transition-colors cursor-pointer ${
-                                  pathState.checked
-                                    ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-                                    : 'bg-white border-gray-200 hover:bg-gray-50'
-                                }`}
+                                className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${pathState.checked
+                                    ? 'bg-blue-50 border-blue-200 shadow-sm'
+                                    : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
+                                  }`}
                               >
-                                <input
-                                  type="checkbox"
-                                  checked={pathState.checked}
-                                  ref={(el) => {
-                                    if (el) el.indeterminate = pathState.indeterminate;
-                                  }}
-                                  onChange={() => togglePath(sub.path)}
-                                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                                />
-                                <span className={`text-sm ${
-                                  pathState.checked ? 'text-gray-900 font-medium' : 'text-gray-700'
-                                }`}>
+                                <div className="flex items-center justify-center w-5 h-5">
+                                  <input
+                                    type="checkbox"
+                                    checked={pathState.checked}
+                                    ref={(el) => {
+                                      if (el) el.indeterminate = pathState.indeterminate;
+                                    }}
+                                    onChange={() => togglePath(sub.path)}
+                                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                                  />
+                                </div>
+                                <span className={`text-sm ${pathState.checked ? 'text-gray-900 font-medium' : 'text-gray-600'
+                                  }`}>
                                   {sub.label}
                                 </span>
                               </label>
@@ -757,8 +753,11 @@ const AdministrationAccess = () => {
             const pathState = getPathState(item.path);
 
             return (
-              <div key={item.path} className="border rounded-lg p-4 bg-gray-50">
-                <label className="flex items-center gap-3 cursor-pointer">
+              <div key={item.path} className="pt-8 first:pt-0">
+                <label className={`flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer ${pathState.checked
+                    ? 'bg-blue-50 border-blue-200 shadow-sm'
+                    : 'bg-white border-gray-100 hover:border-gray-200 hover:shadow-sm'
+                  }`}>
                   <input
                     type="checkbox"
                     checked={pathState.checked}
@@ -766,23 +765,25 @@ const AdministrationAccess = () => {
                       if (el) el.indeterminate = pathState.indeterminate;
                     }}
                     onChange={() => togglePath(item.path)}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-                />
-                <div className="flex items-center gap-3 flex-1">
-                  {(() => {
-                    const IconComponent = getIconComponent(item.icon);
-                    return IconComponent ? (
-                      <span className="text-xl text-gray-700">
-                        <IconComponent />
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                  />
+                  <div className="flex items-center gap-3 flex-1">
+                    {(() => {
+                      const IconComponent = getIconComponent(item.icon);
+                      return IconComponent ? (
+                        <span className="text-xl text-blue-600">
+                          <IconComponent />
+                        </span>
+                      ) : null;
+                    })()}
+                    <div>
+                      <span className={`text-base font-medium block ${pathState.checked ? 'text-gray-900' : 'text-gray-700'
+                        }`}>
+                        {item.label}
                       </span>
-                    ) : null;
-                  })()}
-                  <span className={`text-sm font-medium ${
-                    pathState.checked ? 'text-gray-900' : 'text-gray-700'
-                  }`}>
-                    {item.label}
-                  </span>
-                </div>
+                      <span className="text-xs text-gray-400">Main Menu Item</span>
+                    </div>
+                  </div>
                 </label>
               </div>
             );
@@ -790,7 +791,7 @@ const AdministrationAccess = () => {
         </div>
 
         <p className="text-xs text-gray-500 mt-3">
-          Changes apply to all {selectedUsers.length} selected {selectedUsers.length === 1 ? 'user' : 'users'}. 
+          Changes apply to all {selectedUsers.length} selected {selectedUsers.length === 1 ? 'user' : 'users'}.
           {hasUnsavedChanges && (
             <span className="text-orange-600 font-medium ml-1">Don't forget to save!</span>
           )}
@@ -799,343 +800,7 @@ const AdministrationAccess = () => {
     );
   };
 
-  const renderUnifiedAccess = () => {
-    if (isLoading || isLoadingRoutes) {
-      return (
-        <div className="bg-white rounded-lg shadow p-6 text-gray-500">
-          Loading access settings...
-        </div>
-      );
-    }
-
-    if (selectedUserIds.length === 0) {
-      return (
-        <div className="bg-white rounded-lg shadow p-6 text-gray-500">
-          Select one or more users to manage access.
-        </div>
-      );
-    }
-
-    // Get pages with both sidebar paths and API routes
-    const pagesWithAccess = getPagesWithAccess(menuItems, availableRoutes);
-    
-    // Convert to array and sort by page order (keep original order from ROUTE_PAGE_MAPPING)
-    const pageEntries = Object.entries(pagesWithAccess);
-
-    // Helper to toggle all sidebar paths for a page
-    const toggleAllSidebarPathsForPage = (pageKey, enable) => {
-      const page = pagesWithAccess[pageKey];
-      if (!page || !page.sidebarPaths) return;
-      
-      const paths = page.sidebarPaths.map(sp => sp.path);
-      toggleCategoryPaths(paths, enable);
-    };
-
-    // Helper to toggle all API routes for a page
-    const toggleAllApiRoutesForPage = (pageKey, enable) => {
-      const page = pagesWithAccess[pageKey];
-      if (!page || !page.apiRoutes) return;
-      
-      page.apiRoutes.forEach(route => {
-        toggleAllRouteMethods(route.path, enable);
-      });
-    };
-
-    return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              {selectedUsers.length} {selectedUsers.length === 1 ? 'User' : 'Users'} Selected
-            </h3>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {selectedUsers.map((user) => (
-                <span
-                  key={user._id}
-                  className="px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs"
-                >
-                  {user.name || user.email}
-                </span>
-              ))}
-            </div>
-            <p className="text-sm text-gray-500">
-              Control which sidebar items and API routes the selected users can access. Organized by pages/features. Changes apply to all selected users. Click Save to persist changes.
-            </p>
-            {hasUnsavedChangesCombined && (
-              <p className="text-sm text-orange-600 font-medium mt-1">
-                You have unsaved changes
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                // Enable all sidebar paths
-                toggleAll(true);
-                // Enable all API routes
-                availableRoutes.forEach(route => {
-                  toggleAllRouteMethods(route.path, true);
-                });
-              }}
-              className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
-            >
-              Enable All
-            </button>
-            <button
-              onClick={() => {
-                // Disable all sidebar paths
-                toggleAll(false);
-                // Disable all API routes
-                availableRoutes.forEach(route => {
-                  toggleAllRouteMethods(route.path, false);
-                });
-              }}
-              className="px-3 py-2 bg-gray-100 text-gray-800 rounded-md text-sm hover:bg-gray-200"
-            >
-              Disable All
-            </button>
-            <button
-              onClick={async () => {
-                setIsSaving(true);
-                try {
-                  await handleSaveRoutes();
-                  await handleSave();
-                } catch (err) {
-                  console.error('Failed to save', err);
-                } finally {
-                  setIsSaving(false);
-                }
-              }}
-              disabled={!hasUnsavedChangesCombined || isSaving || selectedUserIds.length === 0}
-              className={`px-4 py-2 rounded-md text-sm font-medium ${
-                hasUnsavedChangesCombined && !isSaving && selectedUserIds.length > 0
-                  ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {pageEntries.map(([pageKey, pageData]) => {
-            const sidebarPaths = pageData.sidebarPaths || [];
-            const apiRoutes = pageData.apiRoutes || [];
-            
-            // Skip pages with no content at all (neither sidebar nor API routes)
-            // But show pages with only API routes (no sidebar items)
-            if (sidebarPaths.length === 0 && apiRoutes.length === 0) return null;
-
-            // Check if all sidebar paths are enabled
-            const allSidebarPathsEnabled = sidebarPaths.length > 0 && 
-              sidebarPaths.every(sp => {
-                const state = getPathState(sp.path);
-                return state.checked;
-              });
-
-            // Check if all API routes are enabled
-            const allApiRoutesEnabled = apiRoutes.length > 0 &&
-              apiRoutes.every(route => 
-                route.methods.every(method => getRouteMethodState(route.path, method))
-              );
-            
-            const pageIcon = getIconComponent(pageData.icon);
-
-            return (
-              <div key={pageKey} className="border rounded-lg p-5 bg-gray-50">
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-                  <div className="flex items-center gap-3">
-                    {pageIcon && (
-                      <span className="text-xl text-gray-700">
-                        {pageIcon}
-                      </span>
-                    )}
-                    <div>
-                      <h4 className="font-semibold text-gray-800 text-lg">{pageData.label}</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {sidebarPaths.length > 0 && `${sidebarPaths.length} ${sidebarPaths.length === 1 ? 'menu item' : 'menu items'}`}
-                        {sidebarPaths.length > 0 && apiRoutes.length > 0 && ' • '}
-                        {apiRoutes.length > 0 && `${apiRoutes.length} ${apiRoutes.length === 1 ? 'API route' : 'API routes'}`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => {
-                        toggleAllSidebarPathsForPage(pageKey, !allSidebarPathsEnabled);
-                        toggleAllApiRoutesForPage(pageKey, !allApiRoutesEnabled);
-                      }}
-                      className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
-                        (allSidebarPathsEnabled || sidebarPaths.length === 0) && (allApiRoutesEnabled || apiRoutes.length === 0)
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                      }`}
-                      title="Enable all items in this page"
-                    >
-                      {(allSidebarPathsEnabled || sidebarPaths.length === 0) && (allApiRoutesEnabled || apiRoutes.length === 0) ? 'All Enabled' : 'Enable All'}
-                    </button>
-                    <button
-                      onClick={() => {
-                        toggleAllSidebarPathsForPage(pageKey, false);
-                        toggleAllApiRoutesForPage(pageKey, false);
-                      }}
-                      className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded-md font-medium hover:bg-gray-300 transition-colors"
-                      title="Disable all items in this page"
-                    >
-                      Disable All
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="space-y-6">
-                  {/* Sidebar Menu Items Section */}
-                  {sidebarPaths.length > 0 && (
-                    <div>
-                      <div className="mb-3 flex items-center justify-between">
-                        <h5 className="text-sm font-semibold text-gray-700">Sidebar Menu Items</h5>
-                        <button
-                          onClick={() => toggleAllSidebarPathsForPage(pageKey, !allSidebarPathsEnabled)}
-                          className={`px-2 py-1 text-xs rounded font-medium transition-colors ${
-                            allSidebarPathsEnabled
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                          }`}
-                        >
-                          {allSidebarPathsEnabled ? 'All Enabled' : 'Enable All'}
-                        </button>
-                      </div>
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                        {sidebarPaths.map((sidebarPath) => {
-                          const pathState = getPathState(sidebarPath.path);
-                          const sidebarIcon = getIconComponent(sidebarPath.icon);
-                          
-                          return (
-                            <label
-                              key={sidebarPath.path}
-                              className={`flex items-center gap-2 p-2.5 rounded-md border transition-colors cursor-pointer ${
-                                pathState.checked
-                                  ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-                                  : 'bg-white border-gray-200 hover:bg-gray-50'
-                              }`}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={pathState.checked}
-                                ref={(el) => {
-                                  if (el) el.indeterminate = pathState.indeterminate;
-                                }}
-                                onChange={() => togglePath(sidebarPath.path)}
-                                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                              />
-                              {sidebarIcon && (
-                                <span className="text-gray-600">
-                                  {sidebarIcon}
-                                </span>
-                              )}
-                              <span className={`text-sm ${
-                                pathState.checked ? 'text-gray-900 font-medium' : 'text-gray-700'
-                              }`}>
-                                {sidebarPath.label}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* API Routes Section */}
-                  {apiRoutes.length > 0 && (
-                    <div>
-                      <div className="mb-3 flex items-center justify-between">
-                        <h5 className="text-sm font-semibold text-gray-700">API Routes</h5>
-                        <button
-                          onClick={() => toggleAllApiRoutesForPage(pageKey, !allApiRoutesEnabled)}
-                          className={`px-2 py-1 text-xs rounded font-medium transition-colors ${
-                            allApiRoutesEnabled
-                              ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                          }`}
-                        >
-                          {allApiRoutesEnabled ? 'All Enabled' : 'Enable All'}
-                        </button>
-                      </div>
-                      <div className="space-y-3">
-                        {apiRoutes.map((route) => {
-                          const allMethodsEnabled = route.methods.every(method => 
-                            getRouteMethodState(route.path, method)
-                          );
-                          
-                          return (
-                            <div key={route.path} className="border rounded-md p-4 bg-white">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex-1">
-                                  <div className="font-medium text-gray-900 text-sm">{route.path}</div>
-                                  <div className="text-xs text-gray-500 mt-1">
-                                    Available methods: {route.methods.join(', ')}
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={() => toggleAllRouteMethods(route.path, !allMethodsEnabled)}
-                                  className={`px-3 py-1.5 text-xs rounded-md font-medium transition-colors ${
-                                    allMethodsEnabled
-                                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                  }`}
-                                  title="Enable all methods for this route"
-                                >
-                                  {allMethodsEnabled ? 'All Enabled' : 'Enable All'}
-                                </button>
-                              </div>
-                              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                                {route.methods.map((method) => {
-                                  const isEnabled = getRouteMethodState(route.path, method);
-                                  return (
-                                    <label
-                                      key={method}
-                                      className={`flex items-center gap-2 p-2.5 rounded-md border transition-colors cursor-pointer ${
-                                        isEnabled
-                                          ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-                                          : 'bg-white border-gray-200 hover:bg-gray-50'
-                                      }`}
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        checked={isEnabled}
-                                        onChange={() => toggleRouteMethod(route.path, method)}
-                                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                                      />
-                                      <span className={`text-sm ${
-                                        isEnabled ? 'text-gray-900 font-medium' : 'text-gray-700'
-                                      }`}>
-                                        {method}
-                                      </span>
-                                    </label>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <p className="text-xs text-gray-500 mt-3">
-          Changes apply to all {selectedUsers.length} selected {selectedUsers.length === 1 ? 'user' : 'users'}. 
-          {hasUnsavedChangesCombined && (
-            <span className="text-orange-600 font-medium ml-1">Don't forget to save!</span>
-          )}
-        </p>
-      </div>
-    );
-  };
+  // Render function is simply renderMenuControls from above
 
   return (
     <div className="space-y-6">
@@ -1144,63 +809,63 @@ const AdministrationAccess = () => {
           <div>
             <h2 className="text-xl font-bold text-gray-800">Administration</h2>
             <p className="text-sm text-gray-500">
-              Manage sidebar access and API route permissions for users.
+              Manage sidebar access for users.
             </p>
           </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border rounded-md px-3 py-2 text-sm w-48 md:w-64"
-            />
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="border rounded-md px-2 py-2 text-sm"
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border rounded-md px-3 py-2 text-sm w-48 md:w-64"
+          />
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="border rounded-md px-2 py-2 text-sm"
+          >
+            <option value="all">All roles</option>
+            {roleOptions.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
+            className="border rounded-md px-2 py-2 text-sm"
+          >
+            <option value="all">All departments</option>
+            {departmentOptions.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+          <select
+            value={selectedCompany}
+            onChange={(e) => setSelectedCompany(e.target.value)}
+            className="border rounded-md px-2 py-2 text-sm"
+          >
+            <option value="all">All companies</option>
+            {companyOptions.map((company) => (
+              <option key={company} value={company}>
+                {company}
+              </option>
+            ))}
+          </select>
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-xs px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
             >
-              <option value="all">All roles</option>
-              {roleOptions.map((role) => (
-                <option key={role} value={role}>
-                  {role.charAt(0).toUpperCase() + role.slice(1)}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedDepartment}
-              onChange={(e) => setSelectedDepartment(e.target.value)}
-              className="border rounded-md px-2 py-2 text-sm"
-            >
-              <option value="all">All departments</option>
-              {departmentOptions.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-            <select
-              value={selectedCompany}
-              onChange={(e) => setSelectedCompany(e.target.value)}
-              className="border rounded-md px-2 py-2 text-sm"
-            >
-              <option value="all">All companies</option>
-              {companyOptions.map((company) => (
-                <option key={company} value={company}>
-                  {company}
-                </option>
-              ))}
-            </select>
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="text-xs px-3 py-2 border rounded-md text-gray-700 hover:bg-gray-100"
-              >
-                Clear
-              </button>
-            )}
+              Clear
+            </button>
+          )}
         </div>
       </div>
 
@@ -1231,11 +896,10 @@ const AdministrationAccess = () => {
               return (
                 <label
                   key={user._id}
-                  className={`flex items-start gap-3 w-full text-left p-3 rounded-md border transition cursor-pointer ${
-                    isSelected
+                  className={`flex items-start gap-3 w-full text-left p-3 rounded-md border transition cursor-pointer ${isSelected
                       ? 'border-blue-600 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <input
                     type="checkbox"
@@ -1260,7 +924,7 @@ const AdministrationAccess = () => {
         </div>
 
         <div className="md:col-span-2">
-          {renderUnifiedAccess()}
+          {renderMenuControls()}
         </div>
       </div>
     </div>
