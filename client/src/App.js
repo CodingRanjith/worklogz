@@ -102,6 +102,7 @@ import Invoices from './pages/employee/Invoices';
 
 // Income & Expense
 import IncomeExpense from './pages/admin/IncomeExpense';
+import PersonalIncomeExpense from './pages/employee/PersonalIncomeExpense';
 import DayToday from './pages/admin/DayToday';
 
 // ============================================================================
@@ -535,6 +536,8 @@ function App() {
         {/* Finance & Compensation */}
         <Route path="/my-earnings" element={<MyEarnings />} />
         <Route path="/invoices" element={<Invoices />} />
+        <Route path="/personal-income-expense" element={<PersonalIncomeExpense />} />
+        <Route path="/my-income-expense" element={<PersonalIncomeExpense />} />
 
         {/* Documents & Administration */}
         <Route path="/documents" element={<DocumentCenter />} />

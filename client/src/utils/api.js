@@ -336,6 +336,16 @@ export const API_ENDPOINTS = {
   getIncomeExpenseSummary: `${BASE_URL}/api/income-expense/summary`,
 
   // -----------------
+  // Personal Income & Expense APIs (scoped to current user)
+  // -----------------
+  getMyIncomeExpense: `${BASE_URL}/api/personal-income-expense`,
+  getMyIncomeExpenseById: (id) => `${BASE_URL}/api/personal-income-expense/${id}`,
+  createMyIncomeExpense: `${BASE_URL}/api/personal-income-expense`,
+  updateMyIncomeExpense: (id) => `${BASE_URL}/api/personal-income-expense/${id}`,
+  deleteMyIncomeExpense: (id) => `${BASE_URL}/api/personal-income-expense/${id}`,
+  getMyIncomeExpenseSummary: `${BASE_URL}/api/personal-income-expense/summary`,
+
+  // -----------------
   // Day Today APIs
   // -----------------
   getAllDayTodayCards: `${BASE_URL}/api/daytoday/cards`,
