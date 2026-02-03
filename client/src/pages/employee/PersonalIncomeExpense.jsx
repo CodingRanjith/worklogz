@@ -1312,6 +1312,38 @@ const PersonalIncomeExpense = () => {
                     </span>
                   </div>
 
+                  {/* Category and Goal Type */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">Category</label>
+                      {viewingRecord.category && viewingRecord.category.trim() !== '' ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                          {viewingRecord.category}
+                        </span>
+                      ) : (
+                        <p className="text-sm text-gray-400">-</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-500 mb-1">Goal Type</label>
+                      {viewingRecord.goalType && viewingRecord.goalType.trim() !== '' ? (
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            viewingRecord.goalType === 'Needs'
+                              ? 'bg-blue-100 text-blue-800'
+                              : viewingRecord.goalType === 'Wants'
+                              ? 'bg-purple-100 text-purple-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}
+                        >
+                          {viewingRecord.goalType}
+                        </span>
+                      ) : (
+                        <p className="text-sm text-gray-400">-</p>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Comments */}
                   <div>
                     <label className="block text-sm font-medium text-gray-500 mb-1">Comments</label>
