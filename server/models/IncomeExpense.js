@@ -36,6 +36,15 @@ const incomeExpenseSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  category: {
+    type: String,
+    trim: true
+  },
+  goalType: {
+    type: String,
+    enum: ['Needs', 'Wants', 'Savings'],
+    trim: true
+  },
   comments: {
     type: String,
     trim: true,

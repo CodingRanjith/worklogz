@@ -9,8 +9,8 @@ const personalIncomeExpenseSchema = new mongoose.Schema(
     },
     sourceType: {
       type: String,
-      required: true,
       trim: true,
+      default: 'Personal',
     },
     givenBy: {
       type: String,
@@ -35,6 +35,15 @@ const personalIncomeExpenseSchema = new mongoose.Schema(
     transactionMethod: {
       type: String,
       required: true,
+      trim: true,
+    },
+    category: {
+      type: String,
+      trim: true,
+    },
+    goalType: {
+      type: String,
+      enum: ['Needs', 'Wants', 'Savings'],
       trim: true,
     },
     comments: {
@@ -62,6 +71,8 @@ const personalIncomeExpenseSchema = new mongoose.Schema(
 personalIncomeExpenseSchema.index({ date: -1 });
 personalIncomeExpenseSchema.index({ user: 1 });
 personalIncomeExpenseSchema.index({ transactionType: 1 });
+personalIncomeExpenseSchema.index({ goalType: 1 });
+personalIncomeExpenseSchema.index({ category: 1 });
 
 module.exports = mongoose.model('PersonalIncomeExpense', personalIncomeExpenseSchema);
 

@@ -1,4 +1,5 @@
 const IncomeExpense = require('../models/IncomeExpense');
+const PersonalIncomeExpense = require('../models/PersonalIncomeExpense');
 const User = require('../models/User');
 
 // Get all income/expense records
@@ -307,7 +308,7 @@ exports.getMyIncomeExpense = async (req, res) => {
       query.transactionType = transactionType;
     }
 
-    const records = await IncomeExpense.find(query)
+    const records = await PersonalIncomeExpense.find(query)
       .populate('user', 'name email')
       .populate('createdBy', 'name email')
       .sort({ date: -1 });
@@ -325,7 +326,7 @@ exports.getMyIncomeExpense = async (req, res) => {
 // Get my income/expense record by id (must belong to req.user._id)
 exports.getMyIncomeExpenseById = async (req, res) => {
   try {
-    const record = await IncomeExpense.findOne({ _id: req.params.id, user: req.user._id })
+    const record = await PersonalIncomeExpense.findOne({ _id: req.params.id, user: req.user._id })
       .populate('user', 'name email')
       .populate('createdBy', 'name email');
 
@@ -351,10 +352,12 @@ exports.createMyIncomeExpense = async (req, res) => {
       credit,
       debit,
       transactionMethod,
+      category,
+      goalType,
       comments,
     } = req.body;
 
-    if (!date || !sourceType || !givenBy || !transactionType || !transactionMethod) {
+    if (!date || !givenBy || !transactionType || !transactionMethod) {
       return res.status(400).json({ success: false, error: 'Missing required fields' });
     }
 
@@ -378,14 +381,16 @@ exports.createMyIncomeExpense = async (req, res) => {
       });
     }
 
-    const record = new IncomeExpense({
+    const record = new PersonalIncomeExpense({
       date: new Date(date),
-      sourceType,
+      sourceType: sourceType || 'Personal',
       givenBy,
       transactionType,
       credit: transactionType === 'Income' ? credit : 0,
       debit: transactionType === 'Expense' ? debit : 0,
       transactionMethod,
+      category: category || undefined,
+      goalType: goalType || undefined,
       comments: comments || '',
       user: req.user._id,
       createdBy: req.user._id,
@@ -413,19 +418,23 @@ exports.updateMyIncomeExpense = async (req, res) => {
       credit,
       debit,
       transactionMethod,
+      category,
+      goalType,
       comments,
     } = req.body;
 
-    const record = await IncomeExpense.findOne({ _id: req.params.id, user: req.user._id });
+    const record = await PersonalIncomeExpense.findOne({ _id: req.params.id, user: req.user._id });
 
     if (!record) {
       return res.status(404).json({ success: false, error: 'Record not found' });
     }
 
     if (date) record.date = new Date(date);
-    if (sourceType) record.sourceType = sourceType;
+    if (sourceType !== undefined) record.sourceType = sourceType || 'Personal';
     if (givenBy) record.givenBy = givenBy;
     if (transactionMethod) record.transactionMethod = transactionMethod;
+    if (category !== undefined) record.category = category || undefined;
+    if (goalType !== undefined) record.goalType = goalType || undefined;
     if (comments !== undefined) record.comments = comments;
 
     let resolvedType = record.transactionType;
@@ -457,7 +466,7 @@ exports.updateMyIncomeExpense = async (req, res) => {
 // Delete my record (must belong to req.user._id)
 exports.deleteMyIncomeExpense = async (req, res) => {
   try {
-    const record = await IncomeExpense.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    const record = await PersonalIncomeExpense.findOneAndDelete({ _id: req.params.id, user: req.user._id });
 
     if (!record) {
       return res.status(404).json({ success: false, error: 'Record not found' });
@@ -484,15 +493,15 @@ exports.getMyIncomeExpenseSummary = async (req, res) => {
     }
 
     const [totalIncome, totalExpense, totalRecords] = await Promise.all([
-      IncomeExpense.aggregate([
+      PersonalIncomeExpense.aggregate([
         { $match: { ...query, transactionType: 'Income' } },
         { $group: { _id: null, total: { $sum: '$credit' } } },
       ]),
-      IncomeExpense.aggregate([
+      PersonalIncomeExpense.aggregate([
         { $match: { ...query, transactionType: 'Expense' } },
         { $group: { _id: null, total: { $sum: '$debit' } } },
       ]),
-      IncomeExpense.countDocuments(query),
+      PersonalIncomeExpense.countDocuments(query),
     ]);
 
     const income = totalIncome[0]?.total || 0;

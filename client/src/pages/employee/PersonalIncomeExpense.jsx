@@ -13,6 +13,13 @@ import {
   FiTrendingUp,
   FiTrash2,
   FiX,
+  FiTarget,
+  FiCalendar,
+  FiSettings,
+  FiCheckCircle,
+  FiAlertCircle,
+  FiShoppingBag,
+  FiSave,
 } from 'react-icons/fi';
 import Swal from 'sweetalert2';
 import IncomeExpenseReports from '../../components/admin-dashboard/IncomeExpenseReports';
@@ -51,47 +58,143 @@ const PersonalIncomeExpense = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [filterSourceType, setFilterSourceType] = useState('all');
   const [filterGivenBy, setFilterGivenBy] = useState('all');
-
-  // Options for Source Type and Transaction Method
-  const [sourceTypeOptions, setSourceTypeOptions] = useState([
-    'Techackode IT Solutions',
-    'UC',
-    'Techackode Edutech',
-    'Techackode Pvt Ltd',
-  ]);
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().toISOString().slice(0, 7) // YYYY-MM format
+  );
+  const [showGoalsModal, setShowGoalsModal] = useState(false);
+  const [goals, setGoals] = useState({
+    needsPercent: 30,
+    wantsPercent: 20,
+    savingsPercent: 50,
+  });
   const [transactionMethodOptions, setTransactionMethodOptions] = useState([
     'Cash',
-    'Bank Transfer',
-    'UPI',
     'Credit Card',
     'Debit Card',
-    'Cheque',
+    'UPI',
+    'Net Banking',
+    'Digital Wallet',
+    'Other',
   ]);
 
   // Form data (userId is always current user on this page)
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
-    sourceType: '',
     givenBy: '',
     transactionType: 'Income',
+    amount: '',
     credit: '',
     debit: '',
+    category: '',
+    goalType: '', // Needs, Wants, Savings
     transactionMethod: '',
     comments: '',
   });
 
   // States for custom inputs
-  const [newSourceType, setNewSourceType] = useState('');
   const [newTransactionMethod, setNewTransactionMethod] = useState('');
-  const [givenBySearch, setGivenBySearch] = useState('');
-  const [givenByOpen, setGivenByOpen] = useState(false);
-  const givenByRef = useRef(null);
+  const [categoryOptions, setCategoryOptions] = useState([
+    'Food',
+    'Rent',
+    'Salary',
+    'Transport',
+    'Shopping',
+    'Bills',
+    'Entertainment',
+    'Investment',
+    'Other',
+  ]);
+  const [newCategory, setNewCategory] = useState('');
+
+  // Category mapping to goal types
+  const needsCategories = ['Food', 'Rent', 'Bills', 'Transport', 'Utilities'];
+  const wantsCategories = ['Shopping', 'Entertainment', 'Dining Out', 'Hobbies'];
+  const savingsCategories = ['Investment', 'Savings', 'Emergency Fund'];
+
+  // Load goals from localStorage
+  useEffect(() => {
+    const savedGoals = localStorage.getItem('personalIncomeGoals');
+    if (savedGoals) {
+      try {
+        const parsed = JSON.parse(savedGoals);
+        setGoals(parsed);
+      } catch (e) {
+        console.error('Error loading goals:', e);
+      }
+    }
+  }, []);
+
+  // Calculate month-wise expenses by goal type
+  const getMonthlyExpensesByGoal = () => {
+    const [year, month] = selectedMonth.split('-').map(Number);
+    const monthStart = new Date(year, month - 1, 1);
+    const monthEnd = new Date(year, month, 0, 23, 59, 59);
+
+    const monthRecords = records.filter((record) => {
+      const recordDate = new Date(record.date);
+      return recordDate >= monthStart && recordDate <= monthEnd && record.transactionType === 'Expense';
+    });
+
+    // Use goalType if available, otherwise fall back to category mapping
+    const needsExpense = monthRecords
+      .filter((r) => {
+        if (r.goalType) return r.goalType === 'Needs';
+        return needsCategories.includes(r.category);
+      })
+      .reduce((sum, r) => sum + (r.debit || 0), 0);
+
+    const wantsExpense = monthRecords
+      .filter((r) => {
+        if (r.goalType) return r.goalType === 'Wants';
+        return wantsCategories.includes(r.category);
+      })
+      .reduce((sum, r) => sum + (r.debit || 0), 0);
+
+    // For savings, calculate from goalType or use income - needs - wants
+    const savingsFromGoalType = monthRecords
+      .filter((r) => r.goalType === 'Savings')
+      .reduce((sum, r) => sum + (r.debit || 0), 0);
+
+    const monthIncome = records
+      .filter((r) => {
+        const recordDate = new Date(r.date);
+        return recordDate >= monthStart && recordDate <= monthEnd && r.transactionType === 'Income';
+      })
+      .reduce((sum, r) => sum + (r.credit || 0), 0);
+
+    // If savings transactions exist with goalType, use them; otherwise calculate
+    const actualSavings = savingsFromGoalType > 0 
+      ? savingsFromGoalType 
+      : Math.max(0, monthIncome - needsExpense - wantsExpense);
+
+    return {
+      needs: needsExpense,
+      wants: wantsExpense,
+      savings: actualSavings,
+      income: monthIncome,
+    };
+  };
+
+  const monthlyData = getMonthlyExpensesByGoal();
+
+  // Calculate goal amounts from percentages and income
+  const goalAmounts = {
+    needs: monthlyData.income > 0 ? (monthlyData.income * (goals.needsPercent || 0)) / 100 : 0,
+    wants: monthlyData.income > 0 ? (monthlyData.income * (goals.wantsPercent || 0)) / 100 : 0,
+    savings: monthlyData.income > 0 ? (monthlyData.income * (goals.savingsPercent || 0)) / 100 : 0,
+  };
+
+  // Calculate actual percentages (handle division by zero)
+  const actualPercentages = {
+    needs: monthlyData.income > 0 ? (monthlyData.needs / monthlyData.income) * 100 : 0,
+    wants: monthlyData.income > 0 ? (monthlyData.wants / monthlyData.income) * 100 : 0,
+    savings: monthlyData.income > 0 ? (monthlyData.savings / monthlyData.income) * 100 : 0,
+  };
 
   useEffect(() => {
     fetchCurrentUser();
-    fetchUsers();
   }, []);
 
   // Load records + summary using personal endpoints
@@ -100,21 +203,6 @@ const PersonalIncomeExpense = () => {
     fetchSummary();
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (givenByRef.current && !givenByRef.current.contains(event.target)) {
-        setGivenByOpen(false);
-      }
-    };
-
-    if (givenByOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [givenByOpen]);
 
   const fetchCurrentUser = async () => {
     try {
@@ -139,16 +227,19 @@ const PersonalIncomeExpense = () => {
       });
 
       if (response.data.success) {
-        setRecords(response.data.records || []);
-        // Extract unique source types and transaction methods from records
-        const uniqueSourceTypes = [
-          ...new Set((response.data.records || []).map((r) => r.sourceType).filter(Boolean)),
-        ];
+        const incomeExpenseRecords = response.data.records || [];
+        setRecords(incomeExpenseRecords);
+        // Extract unique methods and categories from records
         const uniqueMethods = [
-          ...new Set((response.data.records || []).map((r) => r.transactionMethod).filter(Boolean)),
+          ...new Set(incomeExpenseRecords.map((r) => r.transactionMethod).filter(Boolean)),
         ];
-        setSourceTypeOptions((prev) => [...new Set([...prev, ...uniqueSourceTypes])]);
         setTransactionMethodOptions((prev) => [...new Set([...prev, ...uniqueMethods])]);
+        const uniqueCategories = [
+          ...new Set(incomeExpenseRecords.map((r) => r.category).filter(Boolean)),
+        ];
+        if (uniqueCategories.length) {
+          setCategoryOptions((prev) => [...new Set([...prev, ...uniqueCategories])]);
+        }
       }
     } catch (error) {
       console.error('Error fetching records:', error);
@@ -173,28 +264,20 @@ const PersonalIncomeExpense = () => {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(API_ENDPOINTS.getUsers, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setUsers(response.data || []);
-    } catch (error) {
-      console.error('Error fetching users:', error);
-    }
-  };
 
   const handleOpenDialog = (record = null) => {
     if (record) {
       setEditingRecord(record);
+      const amountValue = record.credit > 0 ? record.credit : record.debit || '';
       setFormData({
         date: new Date(record.date).toISOString().split('T')[0],
-        sourceType: record.sourceType,
         givenBy: record.givenBy,
         transactionType: record.transactionType,
+        amount: amountValue,
         credit: record.credit || '',
         debit: record.debit || '',
+        category: record.category || '',
+        goalType: record.goalType || '',
         transactionMethod: record.transactionMethod,
         comments: record.comments || '',
       });
@@ -202,11 +285,13 @@ const PersonalIncomeExpense = () => {
       setEditingRecord(null);
       setFormData({
         date: new Date().toISOString().split('T')[0],
-        sourceType: '',
         givenBy: '',
         transactionType: 'Income',
+        amount: '',
         credit: '',
         debit: '',
+        category: '',
+        goalType: '',
         transactionMethod: '',
         comments: '',
       });
@@ -217,26 +302,33 @@ const PersonalIncomeExpense = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingRecord(null);
-    setNewSourceType('');
     setNewTransactionMethod('');
-    setGivenBySearch('');
-    setGivenByOpen(false);
+    setNewCategory('');
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const addSourceType = () => {
-    if (newSourceType.trim() && !sourceTypeOptions.includes(newSourceType.trim())) {
-      setSourceTypeOptions([...sourceTypeOptions, newSourceType.trim()]);
-      setFormData((prev) => ({ ...prev, sourceType: newSourceType.trim() }));
-      setNewSourceType('');
-    }
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      
+      // Auto-suggest goal type based on category selection (only for Expenses)
+      if (name === 'category' && prev.transactionType === 'Expense' && value) {
+        if (needsCategories.includes(value)) {
+          updated.goalType = 'Needs';
+        } else if (wantsCategories.includes(value)) {
+          updated.goalType = 'Wants';
+        } else if (savingsCategories.includes(value)) {
+          updated.goalType = 'Savings';
+        }
+      }
+      
+      // Reset goal type if transaction type changes to Income
+      if (name === 'transactionType' && value === 'Income') {
+        updated.goalType = '';
+      }
+      
+      return updated;
+    });
   };
 
   const addTransactionMethod = () => {
@@ -250,25 +342,14 @@ const PersonalIncomeExpense = () => {
     }
   };
 
-  const handleGivenBySelect = (value) => {
-    setFormData((prev) => ({ ...prev, givenBy: value }));
-    setGivenBySearch('');
-    setGivenByOpen(false);
-  };
-
-  const handleGivenByCustom = () => {
-    if (givenBySearch.trim()) {
-      setFormData((prev) => ({ ...prev, givenBy: givenBySearch.trim() }));
-      setGivenBySearch('');
-      setGivenByOpen(false);
+  const addCategory = () => {
+    if (newCategory.trim() && !categoryOptions.includes(newCategory.trim())) {
+      setCategoryOptions([...categoryOptions, newCategory.trim()]);
+      setFormData((prev) => ({ ...prev, category: newCategory.trim() }));
+      setNewCategory('');
     }
   };
 
-  const filteredUsers = users.filter(
-    (user) =>
-      user.name?.toLowerCase().includes(givenBySearch.toLowerCase()) ||
-      user.email?.toLowerCase().includes(givenBySearch.toLowerCase())
-  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -279,31 +360,37 @@ const PersonalIncomeExpense = () => {
     }
 
     // Validation
-    if (!formData.sourceType || !formData.givenBy || !formData.transactionMethod) {
+    if (!formData.givenBy || !formData.transactionMethod) {
       Swal.fire('Error', 'Please fill in all required fields', 'error');
       return;
     }
 
-    if (formData.transactionType === 'Income' && (!formData.credit || formData.credit <= 0)) {
-      Swal.fire('Error', 'Please enter a valid credit amount for Income', 'error');
+    // Goal Type is required for Expense transactions
+    if (formData.transactionType === 'Expense' && !formData.goalType) {
+      Swal.fire('Error', 'Please select a Goal Type for Expense transactions', 'error');
       return;
     }
 
-    if (formData.transactionType === 'Expense' && (!formData.debit || formData.debit <= 0)) {
-      Swal.fire('Error', 'Please enter a valid debit amount for Expense', 'error');
+    const amountValue = parseFloat(formData.amount);
+    if (!amountValue || amountValue <= 0) {
+      Swal.fire('Error', 'Please enter a valid amount', 'error');
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
+      const creditValue = formData.transactionType === 'Income' ? amountValue : 0;
+      const debitValue = formData.transactionType === 'Expense' ? amountValue : 0;
       const payload = {
         date: new Date(formData.date).toISOString(),
-        sourceType: formData.sourceType,
+        sourceType: '', // Not used in personal income/expense
         givenBy: formData.givenBy,
         transactionType: formData.transactionType,
-        credit: formData.transactionType === 'Income' ? parseFloat(formData.credit) : 0,
-        debit: formData.transactionType === 'Expense' ? parseFloat(formData.debit) : 0,
+        credit: creditValue,
+        debit: debitValue,
         transactionMethod: formData.transactionMethod,
+        category: formData.category || undefined,
+        goalType: formData.transactionType === 'Expense' ? (formData.goalType || undefined) : undefined,
         comments: formData.comments,
       };
 
@@ -370,21 +457,20 @@ const PersonalIncomeExpense = () => {
   };
 
   // Get unique values for filters
-  const uniqueSourceTypes = [...new Set(records.map((r) => r.sourceType))].sort();
   const uniqueGivenBy = [...new Set(records.map((r) => r.givenBy))].sort();
+  const uniqueCategories = [...new Set(records.map((r) => r.category).filter(Boolean))].sort();
 
   const filteredRecords = records.filter((record) => {
     const matchesSearch =
-      record.sourceType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.givenBy?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.transactionMethod?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.user?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      record.category?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesType = filterType === 'all' || record.transactionType === filterType;
-    const matchesSourceType = filterSourceType === 'all' || record.sourceType === filterSourceType;
     const matchesGivenBy = filterGivenBy === 'all' || record.givenBy === filterGivenBy;
+    const matchesCategory = filterCategory === 'all' || record.category === filterCategory;
 
-    return matchesSearch && matchesType && matchesSourceType && matchesGivenBy;
+    return matchesSearch && matchesType && matchesGivenBy && matchesCategory;
   });
 
   const formatCurrency = (amount) =>
@@ -400,11 +486,6 @@ const PersonalIncomeExpense = () => {
       month: 'short',
       day: 'numeric',
     });
-
-  const getSourceTypeColor = (sourceType) => {
-    const index = sourceTypeOptions.indexOf(sourceType);
-    return index >= 0 ? getChipColor(index) : CHIP_COLORS[0];
-  };
 
   const getTransactionMethodColor = (method) => {
     const index = transactionMethodOptions.indexOf(method);
@@ -449,6 +530,38 @@ const PersonalIncomeExpense = () => {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Set Goals Section */}
+      <div className="bg-white rounded-xl p-4 mb-6 shadow-md flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <FiTarget className="w-5 h-5 text-indigo-600" />
+          <h3 className="text-lg font-semibold text-gray-800">Monthly Goals</h3>
+          <select
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="ml-4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+          >
+            {Array.from({ length: 12 }, (_, i) => {
+              const date = new Date();
+              date.setMonth(date.getMonth() - i);
+              const monthStr = date.toISOString().slice(0, 7);
+              const monthName = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+              return (
+                <option key={monthStr} value={monthStr}>
+                  {monthName}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+        <button
+          onClick={() => setShowGoalsModal(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+        >
+          <FiSettings className="w-4 h-4" />
+          Set Goals
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -505,44 +618,54 @@ const PersonalIncomeExpense = () => {
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-6 text-white shadow-lg flex-1 min-w-[200px]">
+        {/* Needs Goal Card */}
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg flex-1 min-w-[200px]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-teal-100 text-sm font-medium mb-1">Revenue</p>
-              <p className="text-3xl font-bold text-white">{formatCurrency(summary.totalIncome)}</p>
+              <p className="text-blue-100 text-sm font-medium mb-1">Needs</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(monthlyData.needs)}</p>
+              <p className="text-blue-100 text-xs mt-1 opacity-90">
+                {monthlyData.income > 0 ? `${actualPercentages.needs.toFixed(1)}%` : '0.0%'} of income
+              </p>
+              <p className="text-blue-100 text-xs mt-1 opacity-75">
+                Goal: {goals.needsPercent || 0}%
+              </p>
             </div>
-            <FiTrendingUp className="w-12 h-12 text-white opacity-80" />
+            <FiTarget className="w-12 h-12 text-white opacity-80" />
           </div>
         </div>
 
-        <div
-          className={`bg-gradient-to-br ${
-            summary.balance >= 0
-              ? 'from-emerald-500 to-emerald-600'
-              : 'from-rose-500 to-rose-600'
-          } rounded-xl p-6 text-white shadow-lg flex-1 min-w-[200px]`}
-        >
+        {/* Wants Goal Card */}
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg flex-1 min-w-[200px]">
           <div className="flex items-center justify-between">
             <div>
-              <p
-                className={`${
-                  summary.balance >= 0 ? 'text-emerald-100' : 'text-rose-100'
-                } text-sm font-medium mb-1`}
-              >
-                Profit
+              <p className="text-purple-100 text-sm font-medium mb-1">Wants</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(monthlyData.wants)}</p>
+              <p className="text-purple-100 text-xs mt-1 opacity-90">
+                {monthlyData.income > 0 ? `${actualPercentages.wants.toFixed(1)}%` : '0.0%'} of income
               </p>
-              <p className="text-3xl font-bold text-white">{formatCurrency(summary.balance)}</p>
-              <p
-                className={`${
-                  summary.balance >= 0 ? 'text-emerald-100' : 'text-rose-100'
-                } text-xs mt-1 opacity-90`}
-              >
-                {summary.totalIncome > 0
-                  ? `${((summary.balance / summary.totalIncome) * 100).toFixed(1)}% margin`
-                  : '0% margin'}
+              <p className="text-purple-100 text-xs mt-1 opacity-75">
+                Goal: {goals.wantsPercent || 0}%
               </p>
             </div>
-            <FiDollarSign className="w-12 h-12 text-white opacity-80" />
+            <FiShoppingBag className="w-12 h-12 text-white opacity-80" />
+          </div>
+        </div>
+
+        {/* Savings Goal Card */}
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white shadow-lg flex-1 min-w-[200px]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100 text-sm font-medium mb-1">Savings</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(monthlyData.savings)}</p>
+              <p className="text-green-100 text-xs mt-1 opacity-90">
+                {monthlyData.income > 0 ? `${actualPercentages.savings.toFixed(1)}%` : '0.0%'} of income
+              </p>
+              <p className="text-green-100 text-xs mt-1 opacity-75">
+                Goal: {goals.savingsPercent || 0}%
+              </p>
+            </div>
+            <FiSave className="w-12 h-12 text-white opacity-80" />
           </div>
         </div>
       </div>
@@ -554,7 +677,7 @@ const PersonalIncomeExpense = () => {
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 z-10" />
             <input
               type="text"
-              placeholder="Search by source, given by, method, or user..."
+              placeholder="Search by name, payment method, or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
@@ -570,26 +693,26 @@ const PersonalIncomeExpense = () => {
             <option value="Expense">Expense</option>
           </select>
           <select
-            value={filterSourceType}
-            onChange={(e) => setFilterSourceType(e.target.value)}
-            className="flex-1 min-w-[180px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white"
-          >
-            <option value="all">All Source Types</option>
-            {uniqueSourceTypes.map((sourceType) => (
-              <option key={sourceType} value={sourceType}>
-                {sourceType}
-              </option>
-            ))}
-          </select>
-          <select
             value={filterGivenBy}
             onChange={(e) => setFilterGivenBy(e.target.value)}
             className="flex-1 min-w-[180px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white"
           >
-            <option value="all">All Given By</option>
+            <option value="all">All Names</option>
             {uniqueGivenBy.map((givenBy) => (
               <option key={givenBy} value={givenBy}>
                 {givenBy}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+            className="flex-1 min-w-[180px] px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white"
+          >
+            <option value="all">All Categories</option>
+            {uniqueCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
               </option>
             ))}
           </select>
@@ -609,10 +732,16 @@ const PersonalIncomeExpense = () => {
                   Date
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Source Type
+                  Name
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Transaction Type
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Category
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Goal Type
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Amount
@@ -625,13 +754,12 @@ const PersonalIncomeExpense = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                     No records found
                   </td>
                 </tr>
               ) : (
                 filteredRecords.map((record, index) => {
-                  const sourceColor = getSourceTypeColor(record.sourceType);
                   const amount = record.credit > 0 ? record.credit : record.debit;
                   const isIncome = record.transactionType === 'Income';
                   return (
@@ -642,12 +770,8 @@ const PersonalIncomeExpense = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {formatDate(record.date)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${sourceColor.bg} ${sourceColor.text}`}
-                        >
-                          {record.sourceType}
-                        </span>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.givenBy || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -657,6 +781,26 @@ const PersonalIncomeExpense = () => {
                         >
                           {record.transactionType}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {record.category || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {record.goalType ? (
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              record.goalType === 'Needs'
+                                ? 'bg-blue-100 text-blue-800'
+                                : record.goalType === 'Wants'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}
+                          >
+                            {record.goalType}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-gray-400">-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <span className={isIncome ? 'text-green-600' : 'text-red-600'}>
@@ -757,48 +901,128 @@ const PersonalIncomeExpense = () => {
                       </select>
                     </div>
 
-                    {/* Source Type */}
+                    {/* Goal Type */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Source Type *
+                        Goal Type {formData.transactionType === 'Expense' && '*'}
                       </label>
                       <select
-                        name="sourceType"
-                        value={formData.sourceType}
+                        name="goalType"
+                        value={formData.goalType}
                         onChange={handleInputChange}
-                        required
+                        required={formData.transactionType === 'Expense'}
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                       >
-                        <option value="">Select Source Type</option>
-                        {sourceTypeOptions.map((option, index) => (
+                        <option value="">
+                          {formData.transactionType === 'Expense' 
+                            ? 'Select Goal Type' 
+                            : 'Select Goal Type (Optional)'}
+                        </option>
+                        <option value="Needs">Needs (Essential expenses: Food, Rent, Bills, Transport, Utilities)</option>
+                        <option value="Wants">Wants (Discretionary spending: Shopping, Entertainment, Dining Out, Hobbies)</option>
+                        <option value="Savings">Savings (Investment, Savings, Emergency Fund)</option>
+                      </select>
+                      {formData.goalType && (
+                        <div className="mt-2">
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                              formData.goalType === 'Needs'
+                                ? 'bg-blue-100 text-blue-800'
+                                : formData.goalType === 'Wants'
+                                ? 'bg-purple-100 text-purple-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}
+                          >
+                            {formData.goalType}
+                          </span>
+                          {formData.transactionType === 'Expense' && formData.category && (
+                            <p className="mt-1 text-xs text-gray-500">
+                              {needsCategories.includes(formData.category) ||
+                              wantsCategories.includes(formData.category) ||
+                              savingsCategories.includes(formData.category)
+                                ? '✓ Auto-selected based on category'
+                                : '⚠ Category not mapped - please select manually'}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {formData.transactionType === 'Expense' && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          Select the goal category this expense belongs to for tracking against your monthly goals.
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="givenBy"
+                        value={formData.givenBy}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Enter transaction name (e.g., Salary, Groceries, Rent)"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      />
+                    </div>
+
+                    {/* Amount */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Amount *
+                      </label>
+                      <input
+                        type="number"
+                        name="amount"
+                        value={formData.amount}
+                        onChange={handleInputChange}
+                        required
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        This will be treated as{' '}
+                        {formData.transactionType === 'Income'
+                          ? 'credit (Income)'
+                          : 'debit (Expense)'}.
+                      </p>
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category
+                      </label>
+                      <select
+                        name="category"
+                        value={formData.category}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      >
+                        <option value="">Select Category</option>
+                        {categoryOptions.map((option) => (
                           <option key={option} value={option}>
                             {option}
                           </option>
                         ))}
                       </select>
-                      {formData.sourceType && (
-                        <div className="mt-2">
-                          <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getSourceTypeColor(formData.sourceType).bg} ${getSourceTypeColor(formData.sourceType).text}`}
-                          >
-                            {formData.sourceType}
-                          </span>
-                        </div>
-                      )}
                       <div className="mt-2 flex gap-2">
                         <input
                           type="text"
-                          placeholder="Add new source type"
-                          value={newSourceType}
-                          onChange={(e) => setNewSourceType(e.target.value)}
-                          onKeyPress={(e) =>
-                            e.key === 'Enter' && (e.preventDefault(), addSourceType())
-                          }
+                          placeholder="Add new category"
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCategory())}
                           className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                         />
                         <button
                           type="button"
-                          onClick={addSourceType}
+                          onClick={addCategory}
                           className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                         >
                           <FiPlus className="w-4 h-4 inline" />
@@ -806,99 +1030,10 @@ const PersonalIncomeExpense = () => {
                       </div>
                     </div>
 
-                    {/* Given By */}
-                    <div className="relative" ref={givenByRef}>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Given By *
-                      </label>
-                      <div className="relative">
-                        <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                          type="text"
-                          name="givenBy"
-                          value={formData.givenBy}
-                          onChange={(e) => {
-                            setFormData((prev) => ({ ...prev, givenBy: e.target.value }));
-                            setGivenBySearch(e.target.value);
-                            setGivenByOpen(true);
-                          }}
-                          onFocus={() => setGivenByOpen(true)}
-                          required
-                          placeholder="Search users or enter custom name"
-                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                        />
-                      </div>
-                      {givenByOpen && (givenBySearch || filteredUsers.length > 0) && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
-                          {filteredUsers.map((user) => (
-                            <div
-                              key={user._id}
-                              onClick={() => handleGivenBySelect(user.name)}
-                              className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                            >
-                              <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                              <p className="text-xs text-gray-500">{user.email}</p>
-                            </div>
-                          ))}
-                          {givenBySearch &&
-                            !filteredUsers.find(
-                              (u) => u.name.toLowerCase() === givenBySearch.toLowerCase()
-                            ) && (
-                              <div
-                                onClick={handleGivenByCustom}
-                                className="px-4 py-3 hover:bg-indigo-50 cursor-pointer bg-indigo-50/50"
-                              >
-                                <p className="text-sm font-medium text-indigo-900">
-                                  Use &quot;{givenBySearch}&quot;
-                                </p>
-                                <p className="text-xs text-indigo-600">Custom name</p>
-                              </div>
-                            )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Credit/Debit */}
-                    {formData.transactionType === 'Income' ? (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Credit Amount *
-                        </label>
-                        <input
-                          type="number"
-                          name="credit"
-                          value={formData.credit}
-                          onChange={handleInputChange}
-                          required
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Debit Amount *
-                        </label>
-                        <input
-                          type="number"
-                          name="debit"
-                          value={formData.debit}
-                          onChange={handleInputChange}
-                          required
-                          min="0"
-                          step="0.01"
-                          placeholder="0.00"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-                        />
-                      </div>
-                    )}
-
-                    {/* Transaction Method */}
+                    {/* Payment Method */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Transaction Method *
+                        Payment Method *
                       </label>
                       <select
                         name="transactionMethod"
@@ -1031,21 +1166,9 @@ const PersonalIncomeExpense = () => {
                     </div>
                   </div>
 
-                  {/* Source Type */}
+                  {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">
-                      Source Type
-                    </label>
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getSourceTypeColor(viewingRecord.sourceType).bg} ${getSourceTypeColor(viewingRecord.sourceType).text}`}
-                    >
-                      {viewingRecord.sourceType}
-                    </span>
-                  </div>
-
-                  {/* Given By */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-500 mb-1">Given By</label>
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Name</label>
                     <p className="text-sm font-semibold text-gray-900">{viewingRecord.givenBy}</p>
                   </div>
 
@@ -1137,6 +1260,153 @@ const PersonalIncomeExpense = () => {
                   className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-lg"
                 >
                   Edit Transaction
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Goals Setting Modal */}
+      {showGoalsModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-50"
+              onClick={() => setShowGoalsModal(false)}
+            ></div>
+
+            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+              <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4 flex items-center justify-between">
+                <h3 className="text-2xl font-bold text-white">Set Monthly Goals</h3>
+                <button
+                  onClick={() => setShowGoalsModal(false)}
+                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-colors"
+                >
+                  <FiX className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="px-6 py-6 space-y-6">
+                <p className="text-sm text-gray-600">
+                  Set your monthly budget goals as percentages of your income. The total should equal 100%.
+                </p>
+
+                <div className="space-y-4">
+                  {/* Needs Goal */}
+                  <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                    <label className="block text-sm font-semibold text-blue-900 mb-2">
+                      Needs Goal (%)
+                    </label>
+                    <p className="text-xs text-blue-700 mb-2">
+                      Essential expenses: Food, Rent, Bills, Transport, Utilities
+                    </p>
+                    <input
+                      type="number"
+                      value={goals.needsPercent || ''}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        setGoals((prev) => ({ ...prev, needsPercent: value }));
+                      }}
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      placeholder="30"
+                      className="w-full px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                    />
+                  </div>
+
+                  {/* Wants Goal */}
+                  <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
+                    <label className="block text-sm font-semibold text-purple-900 mb-2">
+                      Wants Goal (%)
+                    </label>
+                    <p className="text-xs text-purple-700 mb-2">
+                      Discretionary spending: Shopping, Entertainment, Dining Out, Hobbies
+                    </p>
+                    <input
+                      type="number"
+                      value={goals.wantsPercent || ''}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        setGoals((prev) => ({ ...prev, wantsPercent: value }));
+                      }}
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      placeholder="20"
+                      className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none"
+                    />
+                  </div>
+
+                  {/* Savings Goal */}
+                  <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                    <label className="block text-sm font-semibold text-green-900 mb-2">
+                      Savings Goal (%)
+                    </label>
+                    <p className="text-xs text-green-700 mb-2">
+                      Target savings: Investment, Savings, Emergency Fund
+                    </p>
+                    <input
+                      type="number"
+                      value={goals.savingsPercent || ''}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        setGoals((prev) => ({ ...prev, savingsPercent: value }));
+                      }}
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      placeholder="50"
+                      className="w-full px-4 py-2 border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    />
+                  </div>
+
+                  {/* Total Percentage Display */}
+                  <div className="bg-gray-100 rounded-lg p-4 border-2 border-gray-300">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold text-gray-700">Total:</span>
+                      <span
+                        className={`text-lg font-bold ${
+                          (goals.needsPercent || 0) + (goals.wantsPercent || 0) + (goals.savingsPercent || 0) === 100
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {(goals.needsPercent || 0) + (goals.wantsPercent || 0) + (goals.savingsPercent || 0)}%
+                      </span>
+                    </div>
+                    {(goals.needsPercent || 0) + (goals.wantsPercent || 0) + (goals.savingsPercent || 0) !== 100 && (
+                      <p className="text-xs text-red-600 mt-2">
+                        ⚠️ Total must equal 100%
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-6 py-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowGoalsModal(false)}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const total = (goals.needsPercent || 0) + (goals.wantsPercent || 0) + (goals.savingsPercent || 0);
+                    if (total !== 100) {
+                      Swal.fire('Error', 'Total percentage must equal 100%', 'error');
+                      return;
+                    }
+                    localStorage.setItem('personalIncomeGoals', JSON.stringify(goals));
+                    Swal.fire('Success', 'Goals saved successfully!', 'success');
+                    setShowGoalsModal(false);
+                  }}
+                  className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-lg"
+                >
+                  Save Goals
                 </button>
               </div>
             </div>
