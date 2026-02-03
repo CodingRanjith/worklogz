@@ -152,8 +152,20 @@ const PersonalIncomeExpense = () => {
       })
       .reduce((sum, r) => sum + (r.debit || 0), 0);
 
-    // For savings, calculate from goalType or use income - needs - wants
-    const savingsFromGoalType = monthRecords
+    // Calculate savings from Income and Expense transactions with goalType='Savings'
+    const savingsFromIncome = records
+      .filter((r) => {
+        const recordDate = new Date(r.date);
+        return (
+          recordDate >= monthStart &&
+          recordDate <= monthEnd &&
+          r.transactionType === 'Income' &&
+          r.goalType === 'Savings'
+        );
+      })
+      .reduce((sum, r) => sum + (r.credit || 0), 0);
+
+    const savingsFromExpense = monthRecords
       .filter((r) => r.goalType === 'Savings')
       .reduce((sum, r) => sum + (r.debit || 0), 0);
 
@@ -164,7 +176,8 @@ const PersonalIncomeExpense = () => {
       })
       .reduce((sum, r) => sum + (r.credit || 0), 0);
 
-    // If savings transactions exist with goalType, use them; otherwise calculate
+    // Calculate savings: Income with Savings goalType + Expense with Savings goalType, or income - needs - wants
+    const savingsFromGoalType = savingsFromIncome + savingsFromExpense;
     const actualSavings = savingsFromGoalType > 0 
       ? savingsFromGoalType 
       : Math.max(0, monthIncome - needsExpense - wantsExpense);
@@ -178,6 +191,26 @@ const PersonalIncomeExpense = () => {
   };
 
   const monthlyData = getMonthlyExpensesByGoal();
+
+  // Calculate monthly totals for summary cards
+  const [year, month] = selectedMonth.split('-').map(Number);
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month, 0, 23, 59, 59);
+  
+  const monthlySummary = records.reduce((acc, record) => {
+    const recordDate = new Date(record.date);
+    if (recordDate >= monthStart && recordDate <= monthEnd) {
+      if (record.transactionType === 'Income') {
+        acc.totalIncome += record.credit || 0;
+      } else if (record.transactionType === 'Expense') {
+        acc.totalExpense += record.debit || 0;
+      }
+      acc.totalTransactions += 1;
+    }
+    return acc;
+  }, { totalIncome: 0, totalExpense: 0, totalTransactions: 0 });
+  
+  monthlySummary.balance = monthlySummary.totalIncome - monthlySummary.totalExpense;
 
   // Calculate goal amounts from percentages and income
   const goalAmounts = {
@@ -202,6 +235,13 @@ const PersonalIncomeExpense = () => {
     fetchRecords();
     fetchSummary();
   }, []);
+
+  // Ensure category from editing record is in options
+  useEffect(() => {
+    if (editingRecord?.category && !categoryOptions.includes(editingRecord.category)) {
+      setCategoryOptions((prev) => [...prev, editingRecord.category]);
+    }
+  }, [editingRecord]);
 
 
   const fetchCurrentUser = async () => {
@@ -229,6 +269,20 @@ const PersonalIncomeExpense = () => {
       if (response.data.success) {
         const incomeExpenseRecords = response.data.records || [];
         setRecords(incomeExpenseRecords);
+        
+        // Debug: Log all records to check fields
+        console.log('All records fetched:', incomeExpenseRecords);
+        incomeExpenseRecords.forEach((record, index) => {
+          console.log(`Record ${index + 1}:`, {
+            id: record._id,
+            name: record.givenBy,
+            category: record.category,
+            goalType: record.goalType,
+            hasCategory: !!record.category,
+            hasGoalType: !!record.goalType,
+          });
+        });
+        
         // Extract unique methods and categories from records
         const uniqueMethods = [
           ...new Set(incomeExpenseRecords.map((r) => r.transactionMethod).filter(Boolean)),
@@ -269,17 +323,34 @@ const PersonalIncomeExpense = () => {
     if (record) {
       setEditingRecord(record);
       const amountValue = record.credit > 0 ? record.credit : record.debit || '';
+      
+      // Debug: Log the record data
+      console.log('Editing record:', record);
+      console.log('Record category:', record.category);
+      console.log('Record goalType:', record.goalType);
+      
+      // Ensure category and goalType are added to options if they exist
+      if (record.category && !categoryOptions.includes(record.category)) {
+        setCategoryOptions((prev) => [...prev, record.category]);
+      }
+      
       setFormData({
         date: new Date(record.date).toISOString().split('T')[0],
-        givenBy: record.givenBy,
-        transactionType: record.transactionType,
+        givenBy: record.givenBy || '',
+        transactionType: record.transactionType || 'Income',
         amount: amountValue,
         credit: record.credit || '',
         debit: record.debit || '',
         category: record.category || '',
         goalType: record.goalType || '',
-        transactionMethod: record.transactionMethod,
+        transactionMethod: record.transactionMethod || '',
         comments: record.comments || '',
+      });
+      
+      // Debug: Log form data after setting
+      console.log('Form data set:', {
+        category: record.category || '',
+        goalType: record.goalType || '',
       });
     } else {
       setEditingRecord(null);
@@ -359,9 +430,21 @@ const PersonalIncomeExpense = () => {
       return;
     }
 
-    // Validation
-    if (!formData.givenBy || !formData.transactionMethod) {
-      Swal.fire('Error', 'Please fill in all required fields', 'error');
+    // Validation - check for empty strings as well
+    if (!formData.date || formData.date.trim() === '') {
+      Swal.fire('Error', 'Please select a date', 'error');
+      return;
+    }
+    if (!formData.givenBy || formData.givenBy.trim() === '') {
+      Swal.fire('Error', 'Please enter a transaction name', 'error');
+      return;
+    }
+    if (!formData.transactionType || formData.transactionType.trim() === '') {
+      Swal.fire('Error', 'Please select a transaction type', 'error');
+      return;
+    }
+    if (!formData.transactionMethod || formData.transactionMethod.trim() === '') {
+      Swal.fire('Error', 'Please select a payment method', 'error');
       return;
     }
 
@@ -381,18 +464,23 @@ const PersonalIncomeExpense = () => {
       const token = localStorage.getItem('token');
       const creditValue = formData.transactionType === 'Income' ? amountValue : 0;
       const debitValue = formData.transactionType === 'Expense' ? amountValue : 0;
+      
+      // Ensure all required fields have valid values
       const payload = {
         date: new Date(formData.date).toISOString(),
-        sourceType: '', // Not used in personal income/expense
-        givenBy: formData.givenBy,
+        sourceType: 'Personal',
+        givenBy: formData.givenBy.trim(),
         transactionType: formData.transactionType,
         credit: creditValue,
         debit: debitValue,
-        transactionMethod: formData.transactionMethod,
-        category: formData.category || undefined,
-        goalType: formData.transactionType === 'Expense' ? (formData.goalType || undefined) : undefined,
-        comments: formData.comments,
+        transactionMethod: formData.transactionMethod.trim(),
+        category: formData.category?.trim() || undefined,
+        goalType: formData.goalType || undefined,
+        comments: (formData.comments || '').trim(),
       };
+
+      // Debug log
+      console.log('Submitting payload:', payload);
 
       let response;
       if (editingRecord) {
@@ -406,6 +494,11 @@ const PersonalIncomeExpense = () => {
       }
 
       if (response.data.success) {
+        // Debug: Log the saved record
+        console.log('Saved record response:', response.data.record);
+        console.log('Saved category:', response.data.record?.category);
+        console.log('Saved goalType:', response.data.record?.goalType);
+        
         Swal.fire(
           'Success',
           editingRecord ? 'Record updated successfully' : 'Record added successfully',
@@ -423,6 +516,11 @@ const PersonalIncomeExpense = () => {
         error.message ||
         'Failed to save record';
       Swal.fire('Error', errorMessage, 'error');
+      
+      // Log full error details for debugging
+      if (error.response?.data) {
+        console.error('Backend error response:', error.response.data);
+      }
     }
   };
 
@@ -570,7 +668,7 @@ const PersonalIncomeExpense = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-green-100 text-sm font-medium mb-1">Total Income</p>
-              <p className="text-3xl font-bold text-white">{formatCurrency(summary.totalIncome)}</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(monthlySummary.totalIncome)}</p>
             </div>
             <FiTrendingUp className="w-12 h-12 text-white opacity-80" />
           </div>
@@ -581,7 +679,7 @@ const PersonalIncomeExpense = () => {
             <div>
               <p className="text-red-100 text-sm font-medium mb-1">Total Expense</p>
               <p className="text-3xl font-bold text-white">
-                {formatCurrency(summary.totalExpense)}
+                {formatCurrency(monthlySummary.totalExpense)}
               </p>
             </div>
             <FiTrendingDown className="w-12 h-12 text-white opacity-80" />
@@ -590,19 +688,19 @@ const PersonalIncomeExpense = () => {
 
         <div
           className={`bg-gradient-to-br ${
-            summary.balance >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'
+            monthlySummary.balance >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-orange-600'
           } rounded-xl p-6 text-white shadow-lg flex-1 min-w-[200px]`}
         >
           <div className="flex items-center justify-between">
             <div>
               <p
                 className={`${
-                  summary.balance >= 0 ? 'text-blue-100' : 'text-orange-100'
+                  monthlySummary.balance >= 0 ? 'text-blue-100' : 'text-orange-100'
                 } text-sm font-medium mb-1`}
               >
                 Balance
               </p>
-              <p className="text-3xl font-bold text-white">{formatCurrency(summary.balance)}</p>
+              <p className="text-3xl font-bold text-white">{formatCurrency(monthlySummary.balance)}</p>
             </div>
             <FiDollarSign className="w-12 h-12 text-white opacity-80" />
           </div>
@@ -612,7 +710,7 @@ const PersonalIncomeExpense = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-indigo-100 text-sm font-medium mb-1">Total Transactions</p>
-              <p className="text-3xl font-bold text-white">{summary.totalTransactions}</p>
+              <p className="text-3xl font-bold text-white">{monthlySummary.totalTransactions}</p>
             </div>
             <FiFileText className="w-12 h-12 text-white opacity-80" />
           </div>
@@ -783,10 +881,16 @@ const PersonalIncomeExpense = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {record.category || '-'}
+                        {record.category && String(record.category).trim() !== '' ? (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                            {record.category}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400" title={`Category: "${record.category || 'null'}"`}>-</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {record.goalType ? (
+                        {record.goalType && String(record.goalType).trim() !== '' ? (
                           <span
                             className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                               record.goalType === 'Needs'
@@ -799,7 +903,7 @@ const PersonalIncomeExpense = () => {
                             {record.goalType}
                           </span>
                         ) : (
-                          <span className="text-sm text-gray-400">-</span>
+                          <span className="text-sm text-gray-400" title={`GoalType: "${record.goalType || 'null'}"`}>-</span>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
