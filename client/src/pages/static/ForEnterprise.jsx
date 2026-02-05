@@ -73,7 +73,7 @@ const ForEnterprise = () => {
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-3">Custom Integration</h3>
             <p className="text-gray-600">
-              API access, custom integrations, and white-label options to fit your existing infrastructure.
+              API access, custom integrations, and white-label options (plan-based subscription or fully integrated) to fit your existing infrastructure.
             </p>
           </div>
 
@@ -175,7 +175,7 @@ const ForEnterprise = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <FiCheckCircle className="text-green-500" />
-                  <span className="text-gray-600">White-label solution</span>
+                  <span className="text-gray-600">White-label: subscription by plan or fully integrated</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <FiCheckCircle className="text-green-500" />

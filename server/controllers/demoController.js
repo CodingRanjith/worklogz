@@ -3,7 +3,7 @@ const transporter = require('../config/emailConfig');
 const demoController = {
   requestDemo: async (req, res) => {
     try {
-      const { name, email, phone, company, category, whiteLabel, worklogzModules, message, preferredDate, preferredTime } = req.body;
+      const { name, email, phone, company, category, whiteLabel, whiteLabelType, worklogzModules, message, preferredDate, preferredTime } = req.body;
 
       // Validate required fields
       if (!name || !email || !phone) {
@@ -61,6 +61,13 @@ const demoController = {
               <div style="margin-bottom: 15px;">
                 <strong style="color: #6366f1; display: inline-block; width: 140px;">🏷️ White Label:</strong>
                 <span style="color: #10b981; font-weight: 600;">✓ Yes, Interested</span>
+              </div>
+              ` : ''}
+              
+              ${whiteLabelType ? `
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #6366f1; display: inline-block; width: 140px;">📦 White Label Type:</strong>
+                <span style="color: #333;">${whiteLabelType === 'plan-based-subscription' ? 'Plan-based subscription' : whiteLabelType === 'fully-integrated-custom' ? 'Fully integrated / Custom' : whiteLabelType}</span>
               </div>
               ` : ''}
               
@@ -148,6 +155,11 @@ const demoController = {
                   <li>We'll schedule a convenient time for your personalized demo</li>
                   <li>You'll get to see all the features that matter to your business</li>
                 </ul>
+                ${process.env.CALENDAR_LINK ? `
+                <p style="margin: 15px 0 0 0; color: #333;">
+                  You can also <a href="${process.env.CALENDAR_LINK}" style="color: #6366f1; text-decoration: none; font-weight: 600;">schedule a meeting directly</a>.
+                </p>
+                ` : ''}
               </div>
               
               <p style="color: #333; line-height: 1.6;">

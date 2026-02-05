@@ -225,6 +225,7 @@ import Scalability from './docs/pages/Scalability';
 import RoleBasedAccess from './docs/pages/RoleBasedAccess';
 import Customization from './docs/pages/Customization';
 import WhiteLabeling from './docs/pages/WhiteLabeling';
+import PartnerProgram from './docs/pages/PartnerProgram';
 import DocsPricing from './docs/pages/Pricing';
 import Security from './docs/pages/Security';
 import Integrations from './docs/pages/Integrations';
@@ -356,6 +357,7 @@ function App() {
       <Route path="/docs/role-based-access" element={<RoleBasedAccess />} />
       <Route path="/docs/customization" element={<Customization />} />
       <Route path="/docs/white-labeling" element={<WhiteLabeling />} />
+      <Route path="/docs/partners" element={<PartnerProgram />} />
       <Route path="/docs/pricing" element={<DocsPricing />} />
       <Route path="/docs/security" element={<Security />} />
       <Route path="/docs/integrations" element={<Integrations />} />

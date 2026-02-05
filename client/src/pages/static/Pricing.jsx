@@ -563,7 +563,7 @@ const Pricing = () => {
           <div className="pricing-cta-section">
             <h2>Ready to Get Started?</h2>
             <p>
-              Choose the perfect plan for your organization or contact us for custom solutions.
+              Choose the perfect plan for your organization or contact us for custom solutions. Book a 15–30 min demo or schedule a call. No commitment.
             </p>
             <div className="pricing-cta-buttons">
               <button
@@ -571,6 +571,12 @@ const Pricing = () => {
                 className="pricing-cta-button primary"
               >
                 Request Demo
+              </button>
+              <button
+                onClick={() => setDemoFormOpen(true)}
+                className="pricing-cta-button secondary"
+              >
+                Schedule a Call
               </button>
               <Link
                 to="/register"

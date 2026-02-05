@@ -13,6 +13,7 @@ const DemoRequestForm = ({ isOpen, onClose }) => {
     company: '',
     category: '',
     whiteLabel: false,
+    whiteLabelType: '',
     worklogzModules: [],
     message: '',
     preferredDate: '',
@@ -107,6 +108,7 @@ const DemoRequestForm = ({ isOpen, onClose }) => {
         company: '',
         category: '',
         whiteLabel: false,
+        whiteLabelType: '',
         worklogzModules: [],
         message: '',
         preferredDate: '',
@@ -228,6 +230,7 @@ const DemoRequestForm = ({ isOpen, onClose }) => {
               required
             >
               <option value="">Select a category</option>
+              <option value="partner-reseller-white-label">Partner / Reseller / White-label</option>
               <option value="white-label">White Label Solution</option>
               <option value="full-suite">Full Worklogz Suite</option>
               <option value="custom-solution">Custom Solution</option>
@@ -281,6 +284,25 @@ const DemoRequestForm = ({ isOpen, onClose }) => {
             <p style={{ marginTop: '8px', fontSize: '13px', color: '#666' }}>
               Get Worklogz branded with your company's logo and colors
             </p>
+            {formData.whiteLabel && (
+              <div style={{ marginTop: '12px' }}>
+                <label htmlFor="whiteLabelType" className="demo-form-label" style={{ fontSize: '13px' }}>
+                  White-label type (optional)
+                </label>
+                <select
+                  id="whiteLabelType"
+                  name="whiteLabelType"
+                  value={formData.whiteLabelType}
+                  onChange={handleChange}
+                  className="demo-form-input"
+                  style={{ marginTop: '6px' }}
+                >
+                  <option value="">Select type</option>
+                  <option value="plan-based-subscription">Plan-based subscription</option>
+                  <option value="fully-integrated-custom">Fully integrated / Custom</option>
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="demo-form-row">

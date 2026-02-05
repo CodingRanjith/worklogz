@@ -64,7 +64,8 @@ const menuItems = [
     children: [
       { label: 'Role-Based Access', path: '/docs/role-based-access' },
       { label: 'Customization Options', path: '/docs/customization' },
-      { label: 'White-Labeling Process', path: '/docs/white-labeling' }
+      { label: 'White-Labeling Process', path: '/docs/white-labeling' },
+      { label: 'Partner Program', path: '/docs/partners' }
     ]
   },
   {

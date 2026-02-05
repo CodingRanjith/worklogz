@@ -26,7 +26,7 @@ const HeroSection = () => {
           </h1>
           
           <p className="hero-subtitle">
-            Streamline attendance, payroll, projects, and HR processes in one powerful platform. Drive productivity and growth with Worklogz - trusted by teams worldwide to simplify workforce management.
+            One platform for attendance, payroll, projects, and CRM — built for growing companies. Book a 15–30 min demo. No commitment.
           </p>
 
           <div className="hero-stats">
@@ -47,6 +47,9 @@ const HeroSection = () => {
           <div className="hero-cta-wrapper">
             <Link to="/register" className="btn-primary-hero">
               Start Free Trial →
+            </Link>
+            <Link to="/pricing" className="btn-secondary-hero">
+              Request Demo
             </Link>
             <button className="btn-secondary-hero">
               Watch Demo

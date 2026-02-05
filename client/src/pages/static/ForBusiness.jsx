@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FiUsers, FiBarChart2, FiShield, FiZap, FiTrendingUp, FiCheckCircle, FiArrowLeft } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import LandingHeader from '../landing/components/LandingHeader';
 import LandingFooter from '../landing/components/LandingFooter';
+import DemoRequestForm from '../../components/DemoRequestForm';
 import './StaticPage.css';
 
 const ForBusiness = () => {
+  const [demoFormOpen, setDemoFormOpen] = useState(false);
+
   return (
     <div className="static-page">
       <LandingHeader />
@@ -17,8 +20,16 @@ const ForBusiness = () => {
             Worklogz for <span className="static-hero-title-highlight">Business</span>
           </h1>
           <p className="static-hero-description">
-            Streamline your team's workflow, improve productivity, and make data-driven decisions with our comprehensive business management platform.
+            One platform for attendance, payroll, projects, and CRM — built for growing companies. Book a 15–30 min demo. No commitment.
           </p>
+          <div className="static-hero-ctas" style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+            <button onClick={() => setDemoFormOpen(true)} className="btn btn-primary btn-lg">
+              Schedule Demo
+            </button>
+            <button onClick={() => setDemoFormOpen(true)} className="btn btn-secondary btn-lg">
+              Book a Meeting
+            </button>
+          </div>
         </div>
       </div>
 
@@ -250,6 +261,36 @@ const ForBusiness = () => {
             </div>
           </section>
 
+          {/* B2B / Tier 3/4 block */}
+          <section className="static-section" style={{ background: 'var(--docs-bg-secondary, #f5f5f5)', borderRadius: '12px', padding: '2rem' }}>
+            <h2 className="static-section-title">For B2B &amp; Growing Companies</h2>
+            <p className="static-cta-description" style={{ marginBottom: '1.5rem' }}>
+              One platform. Demo in 24–48 hours. No lock-in.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 1.5rem 0' }}>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <FiCheckCircle style={{ color: 'var(--accent-green)', flexShrink: 0 }} />
+                <span>One platform for attendance, payroll, projects, and CRM</span>
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <FiCheckCircle style={{ color: 'var(--accent-green)', flexShrink: 0 }} />
+                <span>Personalized demo scheduled within 24–48 hours</span>
+              </li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+                <FiCheckCircle style={{ color: 'var(--accent-green)', flexShrink: 0 }} />
+                <span>No long-term lock-in; scale as you grow</span>
+              </li>
+            </ul>
+            <div className="static-cta-buttons">
+              <button onClick={() => setDemoFormOpen(true)} className="btn btn-primary btn-lg">
+                Schedule Demo
+              </button>
+              <button onClick={() => setDemoFormOpen(true)} className="btn btn-secondary btn-lg">
+                Request Meeting
+              </button>
+            </div>
+          </section>
+
           {/* CTA Section */}
           <div className="static-cta-section">
             <h2 className="static-cta-title">Transform Your Business Operations</h2>
@@ -260,6 +301,9 @@ const ForBusiness = () => {
               <Link to="/register" className="btn btn-primary btn-lg">
                 Start Free Trial
               </Link>
+              <button onClick={() => setDemoFormOpen(true)} className="btn btn-secondary btn-lg">
+                Request Demo
+              </button>
               <Link to="/pricing" className="btn btn-secondary btn-lg">
                 View Pricing
               </Link>
@@ -269,6 +313,7 @@ const ForBusiness = () => {
       </div>
       
       <LandingFooter />
+      <DemoRequestForm isOpen={demoFormOpen} onClose={() => setDemoFormOpen(false)} />
     </div>
   );
 };

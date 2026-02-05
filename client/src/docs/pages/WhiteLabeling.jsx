@@ -19,6 +19,54 @@ const WhiteLabeling = () => {
           appear as your own product.
         </p>
 
+        <h2 id="white-label-options">White-Label Options</h2>
+        <p>
+          Choose how you want to run Worklogz under your brand: <strong>plan-wise subscription</strong> (SaaS, billed by plan) or <strong>fully integrated</strong> (custom deployment, higher touch). Decision-makers can self-serve with the comparison below.
+        </p>
+
+        <h3>Option A — Plan-Wise Subscription (SaaS White-Label)</h3>
+        <ul>
+          <li>Your branding (logo, colors, domain) on Worklogz cloud.</li>
+          <li>Billed per plan (e.g. Essential, Growth, Enterprise); no custom code.</li>
+          <li>Best for: SMBs, agencies, resellers who want fast go-live and predictable cost.</li>
+          <li>Link to <a href="/pricing">Pricing</a> for plan details.</li>
+        </ul>
+
+        <h3>Option B — Fully Integrated</h3>
+        <ul>
+          <li>Deeper integration: custom domain, SSO, optional on-prem or private cloud, dedicated instance, API/integration support.</li>
+          <li>Positioned as enterprise or custom tier; higher touch and typically higher commitment.</li>
+          <li>Contact for custom quote or <a href="/pricing">Request demo</a> to discuss.</li>
+        </ul>
+
+        <h3>Comparison at a Glance</h3>
+        <table className="intro-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px', marginBottom: '24px' }}>
+          <thead>
+            <tr style={{ borderBottom: '2px solid var(--docs-border)' }}>
+              <th style={{ padding: '12px', textAlign: 'left' }}>Feature</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>Plan-Wise Subscription</th>
+              <th style={{ padding: '12px', textAlign: 'left' }}>Fully Integrated</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ borderBottom: '1px solid var(--docs-border)' }}>
+              <td style={{ padding: '12px' }}>Billing</td>
+              <td style={{ padding: '12px' }}>Per plan (Essential / Growth / Enterprise)</td>
+              <td style={{ padding: '12px' }}>Custom quote</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid var(--docs-border)' }}>
+              <td style={{ padding: '12px' }}>Branding</td>
+              <td style={{ padding: '12px' }}>Logo, colors, custom domain</td>
+              <td style={{ padding: '12px' }}>Full branding + SSO, dedicated instance</td>
+            </tr>
+            <tr style={{ borderBottom: '1px solid var(--docs-border)' }}>
+              <td style={{ padding: '12px' }}>Best for</td>
+              <td style={{ padding: '12px' }}>SMBs, agencies, fast go-live</td>
+              <td style={{ padding: '12px' }}>Enterprise, custom integrations</td>
+            </tr>
+          </tbody>
+        </table>
+
         <h2 id="branding-elements">Branding Elements</h2>
         <div className="features-grid">
           <FeatureCard
