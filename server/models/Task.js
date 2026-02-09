@@ -8,6 +8,7 @@ const TaskSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   reporter: { type: String, default: 'Unknown' },
   assignee: { type: String, default: 'Unassigned' },
+  project: { type: mongoose.Schema.Types.ObjectId, ref: 'Project' },
   department: { 
     type: String,
     enum: [
@@ -30,8 +31,17 @@ const TaskSchema = new mongoose.Schema({
       'Development', 'Testing', 'Accounts', 'Designing', 'Resources', 'Learning'
     ]
   },
+  notes: { type: String },
   startTime: { type: String },
   endTime: { type: String },
+  billable: { type: Boolean, default: true },
+  isLate: { type: Boolean, default: false },
+  timesheetStatus: { 
+    type: String, 
+    enum: ['draft', 'submitted', 'approved', 'rejected'], 
+    default: 'draft'
+  },
+  rejectionReason: { type: String },
   comments: { type: Array, default: [] },
   done: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },

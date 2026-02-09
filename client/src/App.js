@@ -68,6 +68,9 @@ import TaskManager from './pages/admin/TaskManager';
 // Timesheets
 import TimeSheet from './pages/employee/Timesheet';
 import UserTimesheet from './pages/admin/UserTimesheet';
+import MyTimesheet from './pages/employee/MyTimesheet';
+import TimesheetAdmin from './pages/admin/TimesheetAdmin';
+import TimesheetProjects from './pages/admin/TimesheetProjects';
 
 // Calendar View
 import CalendarView from './pages/employee/CalendarView';
@@ -468,6 +471,8 @@ function App() {
 
         {/* Time & Task Tracking - Admin Routes */}
         <Route path="/admin/task-manager" element={<TaskManager />} />
+        <Route path="/admin/timesheet-admin" element={<TimesheetAdmin />} />
+        <Route path="/admin/timesheet-projects" element={<TimesheetProjects />} />
 
         {/* Leave Management - Admin Routes */}
         <Route path="/leave-requests" element={<LeaveRequestsAdmin />} />
@@ -529,6 +534,7 @@ function App() {
 
         {/* Time & Task Tracking */}
         <Route path="/timesheet" element={<TimeSheet />} />
+        <Route path="/my-timesheet" element={<MyTimesheet />} />
         <Route path="/task-manager" element={<TaskManager />} />
         <Route path="/calendar" element={<CalendarView />} />
 

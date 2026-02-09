@@ -115,37 +115,39 @@ const taskController = {
         }
       }
 
-      // Date range filter
+      // Date range filter - handle both date strings and datetime strings
       if (startDate && endDate) {
-        filter.$or = [
-          {
-            startTime: {
-              $gte: startDate,
-              $lte: endDate
-            }
-          },
-          {
-            endTime: {
-              $gte: startDate,
-              $lte: endDate
-            }
-          }
-        ];
+        // Convert date strings to start/end of day for proper comparison
+        const startDateTime = new Date(startDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        
+        // Filter entries where startTime date falls within range
+        // This matches entries where the date part of startTime is between startDate and endDate
+        filter.startTime = {
+          $gte: startDateTime.toISOString(),
+          $lte: endDateTime.toISOString()
+        };
       } else if (startDate) {
-        filter.$or = [
-          { startTime: { $gte: startDate } },
-          { endTime: { $gte: startDate } }
-        ];
+        const startDateTime = new Date(startDate);
+        startDateTime.setHours(0, 0, 0, 0);
+        filter.startTime = { $gte: startDateTime.toISOString() };
       } else if (endDate) {
-        filter.$or = [
-          { startTime: { $lte: endDate } },
-          { endTime: { $lte: endDate } }
-        ];
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        filter.startTime = { $lte: endDateTime.toISOString() };
       }
 
-      // Status filter
+      // Status filter (for regular tasks)
       if (status && status !== 'all') {
         filter.status = status;
+      }
+      
+      // TimesheetStatus filter (for timesheet entries)
+      const timesheetStatus = req.query.timesheetStatus;
+      if (timesheetStatus && timesheetStatus !== 'all') {
+        filter.timesheetStatus = timesheetStatus;
       }
 
       // Assignee filter
@@ -164,7 +166,7 @@ const taskController = {
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit))
-        .populate('user', 'name email');
+        .populate('user', 'name email firstName lastName');
 
       const totalTasks = await Task.countDocuments(filter);
       const totalPages = Math.ceil(totalTasks / limit);

@@ -75,6 +75,11 @@ const FeaturesOverview = () => {
             title="Analytics & Reporting"
             description="Dashboard analytics, department analytics, monthly reports, and performance metrics"
           />
+          <FeatureCard
+            icon="📝"
+            title="Assessment System"
+            description="Secure online assessments with timer, auto-save, security controls, and multiple question types"
+          />
         </div>
 
         <h2 id="employee-features">Employee Features</h2>
@@ -89,6 +94,8 @@ const FeaturesOverview = () => {
           <li>Community hub and employee directory</li>
           <li>Personal workspace and task management</li>
           <li>Helpdesk ticket creation</li>
+          <li>Assessment taking with security features</li>
+          <li>Assessment progress tracking</li>
         </ul>
 
         <h2 id="admin-features">Administrative Features</h2>
@@ -102,6 +109,7 @@ const FeaturesOverview = () => {
           <li>CRM pipeline management</li>
           <li>Document generation and management</li>
           <li>Report generation and analytics</li>
+          <li>Assessment creation and management</li>
           <li>System settings and configuration</li>
         </ul>
 

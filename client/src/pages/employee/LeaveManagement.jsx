@@ -88,7 +88,10 @@ function LeaveManagement({ embedded = false, onBack }) {
       const response = await axios.get(API_ENDPOINTS.getAllUsers, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEmployees(response.data.filter(u => u.role === 'employee') || []);
+      // Ensure response.data is an array before filtering
+      const usersArray = Array.isArray(response.data) ? response.data : 
+                        Array.isArray(response.data?.data) ? response.data.data : [];
+      setEmployees(usersArray.filter(u => u.role === 'employee') || []);
     } catch (error) {
       console.error('Error fetching employees:', error);
     }

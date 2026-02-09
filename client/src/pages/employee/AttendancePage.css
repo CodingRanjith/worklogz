@@ -1295,6 +1295,39 @@
   gap: 0.2rem;
 }
 
+.timesheet-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.timesheet-pill {
+  display: inline-block;
+  background: #e6fffa;
+  color: #065f46;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  cursor: help;
+}
+
+.hours-badge {
+  display: inline-block;
+  background: #667eea;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
 .event-pill,
 .more-pill {
   border-radius: 999px;

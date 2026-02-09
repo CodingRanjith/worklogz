@@ -51,6 +51,8 @@ const ProjectSchema = new mongoose.Schema(
     },
     startDate: { type: Date },
     endDate: { type: Date },
+    neverEnds: { type: Boolean, default: false },
+    billable: { type: Boolean, default: true },
     tags: [{ type: String, trim: true }],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     projectManager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

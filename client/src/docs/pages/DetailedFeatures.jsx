@@ -156,6 +156,50 @@ const DetailedFeatures = () => {
           <li>Progress tracking</li>
           <li>Department organization</li>
         </ul>
+
+        <h2 id="assessment-system">Assessment System</h2>
+        <h3>Assessment Features</h3>
+        <ul>
+          <li>Assessment listing and assignment</li>
+          <li>Multiple question types (single-choice, multiple-choice, text, essay)</li>
+          <li>Question navigation with progress tracking</li>
+          <li>Timer-based assessments with countdown</li>
+          <li>Auto-save answers as you type</li>
+          <li>Auto-submit when time expires</li>
+          <li>Manual submission with confirmation</li>
+          <li>Resume incomplete assessments</li>
+          <li>Progress bar and answered questions counter</li>
+        </ul>
+
+        <h3>Security Features</h3>
+        <ul>
+          <li>Fullscreen mode enforcement</li>
+          <li>Copy/paste prevention</li>
+          <li>Tab/window switch detection</li>
+          <li>Keyboard shortcut blocking (Ctrl+C, Ctrl+V, F12, DevTools)</li>
+          <li>Right-click context menu prevention</li>
+          <li>Question skip prevention (optional)</li>
+          <li>Warning system for first violation</li>
+          <li>Violation tracking and reporting</li>
+          <li>Exit warning modal</li>
+        </ul>
+
+        <h3>Question Types</h3>
+        <ul>
+          <li><strong>Single Choice:</strong> Radio button selection (one answer)</li>
+          <li><strong>Multiple Choice:</strong> Checkbox selection (multiple answers)</li>
+          <li><strong>Text:</strong> Short text input</li>
+          <li><strong>Essay:</strong> Long-form textarea input</li>
+        </ul>
+
+        <h3>Assessment Management</h3>
+        <ul>
+          <li>Assessment details display (title, description, duration, questions count, passing score)</li>
+          <li>Security badge indicators</li>
+          <li>Assessment status tracking</li>
+          <li>Submission history</li>
+          <li>Time spent tracking</li>
+        </ul>
       </div>
     </DocsLayout>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { FiCalendar, FiPlus, FiTrash2, FiClock, FiMapPin } from "react-icons/fi";
 import axios from "axios";
 import { API_ENDPOINTS } from "../../utils/api";
@@ -19,6 +19,7 @@ const CalendarView = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [events, setEvents] = useState([]);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
+  const [timesheetEntries, setTimesheetEntries] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [showEventForm, setShowEventForm] = useState(false);
   const [newEvent, setNewEvent] = useState({
@@ -32,12 +33,7 @@ const CalendarView = () => {
     color: "#0078d4",
   });
 
-  useEffect(() => {
-    fetchEvents();
-    fetchAttendance();
-  }, [currentDate]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(API_ENDPOINTS.getUserEvents, {
@@ -48,9 +44,9 @@ const CalendarView = () => {
     } catch (error) {
       console.error("Error fetching events:", error);
     }
-  };
+  }, []);
 
-  const fetchAttendance = async () => {
+  const fetchAttendance = useCallback(async () => {
     const token = localStorage.getItem("token");
     try {
       const response = await axios.get(API_ENDPOINTS.getMyAttendance, {
@@ -60,7 +56,41 @@ const CalendarView = () => {
     } catch (error) {
       console.error("Error fetching attendance:", error);
     }
-  };
+  }, []);
+
+  const fetchTimesheetEntries = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const startDate = new Date(year, month, 1).toISOString().split('T')[0];
+      const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      
+      const response = await axios.get(`${API_ENDPOINTS.baseURL}/api/tasks`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          startDate,
+          endDate
+        }
+      });
+      
+      // API returns { tasks: [...], pagination: {...} }
+      const tasksArray = Array.isArray(response.data?.tasks) ? response.data.tasks : 
+                        Array.isArray(response.data) ? response.data : [];
+      
+      // Filter timesheet entries (tasks with startTime/endTime)
+      const entries = tasksArray.filter(task => task.startTime && task.endTime);
+      setTimesheetEntries(entries);
+    } catch (error) {
+      console.error("Error fetching timesheet entries:", error);
+    }
+  }, [currentDate]);
+
+  useEffect(() => {
+    fetchEvents();
+    fetchAttendance();
+    fetchTimesheetEntries();
+  }, [currentDate, fetchEvents, fetchAttendance, fetchTimesheetEntries]);
 
   const getAttendanceMap = () => {
     const map = {};
@@ -164,6 +194,46 @@ const CalendarView = () => {
       (event) => new Date(event.startDate).toDateString() === date.toDateString()
     );
 
+  const getTimesheetEntriesForDate = (date) => {
+    return timesheetEntries.filter((entry) => {
+      const entryDate = entry.startTime?.includes('T') 
+        ? entry.startTime.split('T')[0] 
+        : entry.startTime;
+      const dateStr = date.toISOString().split('T')[0];
+      return entryDate === dateStr;
+    });
+  };
+
+  const formatTimeEntry = (entry) => {
+    const startTime = entry.startTime?.includes('T') 
+      ? entry.startTime.split('T')[1]?.substring(0, 5) 
+      : entry.startTime;
+    const endTime = entry.endTime?.includes('T') 
+      ? entry.endTime.split('T')[1]?.substring(0, 5) 
+      : entry.endTime;
+    
+    if (!startTime || !endTime) return '';
+    
+    return `${startTime} - ${endTime}`;
+  };
+
+  const calculateHours = (startTime, endTime) => {
+    if (!startTime || !endTime) return 0;
+    
+    const start = startTime.includes('T') ? startTime.split('T')[1]?.substring(0, 5) : startTime;
+    const end = endTime.includes('T') ? endTime.split('T')[1]?.substring(0, 5) : endTime;
+    
+    if (!start || !end) return 0;
+    
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    
+    return (endMinutes - startMinutes) / 60;
+  };
+
   const isToday = (date) => date.toDateString() === new Date().toDateString();
 
   const changeMonth = (offset) => {
@@ -223,6 +293,7 @@ const CalendarView = () => {
           <div className="calendar-cells">
             {days.map(({ date, inMonth }) => {
               const dayEvents = getEventsForDate(date);
+              const dayTimesheetEntries = inMonth ? getTimesheetEntriesForDate(date) : [];
               const attendanceState = inMonth ? getAttendanceStatus(date) : null;
               const classes = ["calendar-cell"];
               if (!inMonth) classes.push("is-out");
@@ -230,6 +301,12 @@ const CalendarView = () => {
               if (attendanceState === "present") classes.push("attend-ok");
               if (attendanceState === "partial") classes.push("attend-partial");
               if (attendanceState === "absent") classes.push("attend-miss");
+              
+              // Calculate total hours for the day
+              const totalHours = dayTimesheetEntries.reduce((sum, entry) => 
+                sum + calculateHours(entry.startTime, entry.endTime), 0
+              );
+              
               return (
                 <button
                   key={date.toISOString()}
@@ -253,6 +330,27 @@ const CalendarView = () => {
                         {event.title}
                       </span>
                     ))}
+                    {dayTimesheetEntries.length > 0 && (
+                      <div className="timesheet-entries">
+                        {dayTimesheetEntries.slice(0, 2).map((entry) => (
+                          <span
+                            key={entry._id}
+                            className="timesheet-pill"
+                            title={`${entry.notes || entry.description || 'Timesheet'}: ${formatTimeEntry(entry)}`}
+                          >
+                            ⏱️ {entry.notes || entry.description || 'Time Entry'}
+                          </span>
+                        ))}
+                        {dayTimesheetEntries.length > 2 && (
+                          <span className="more-pill">+{dayTimesheetEntries.length - 2}</span>
+                        )}
+                        {totalHours > 0 && (
+                          <span className="hours-badge">
+                            {Math.floor(totalHours)}h{Math.round((totalHours - Math.floor(totalHours)) * 60)}m
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {dayEvents.length > 2 && (
                       <span className="more-pill">+{dayEvents.length - 2}</span>
                     )}

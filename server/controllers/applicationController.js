@@ -15,7 +15,7 @@ exports.createApplication = async (req, res) => {
       name: sanitizeString(name),
       url: sanitizeString(url),
       category: sanitizeString(category || 'Other'),
-      icon: icon?.trim() || '🔗',
+      icon: icon?.trim() || '',
     });
 
     res.status(201).json({ message: 'Application added', application });

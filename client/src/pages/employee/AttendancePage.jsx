@@ -453,10 +453,13 @@ function AttendancePage() {
           : API_ENDPOINTS.getAttendanceByUser(userId),
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setAttendanceHistory(res.data);
+      // Ensure res.data is an array
+      const attendanceData = Array.isArray(res.data) ? res.data : 
+                             Array.isArray(res.data?.data) ? res.data.data : [];
+      setAttendanceHistory(attendanceData);
 
       const today = new Date().toDateString();
-      const todayEntries = res.data.filter(
+      const todayEntries = attendanceData.filter(
         (entry) => new Date(entry.timestamp).toDateString() === today
       );
 
