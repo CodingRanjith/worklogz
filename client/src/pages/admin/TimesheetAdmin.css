@@ -182,18 +182,20 @@
 }
 
 .filters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  align-items: start;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
 }
 
 .filter-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: 100%;
-  min-width: 0;
+  flex: 1;
+  min-width: 180px;
+  max-width: 250px;
 }
 
 .filter-label {
@@ -204,7 +206,7 @@
   text-align: left;
   display: block;
   line-height: 1.5;
-  width: 100%;
+  white-space: nowrap;
 }
 
 .filter-item {
@@ -506,10 +508,12 @@
 .modal-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 24px 28px;
   border-bottom: 1px solid #e9ecef;
   background: #f8f9fa;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .modal-header h2 {
@@ -518,6 +522,56 @@
   color: #212529;
   margin: 0;
   letter-spacing: -0.3px;
+}
+
+.modal-header .date-filter-section {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.modal-header .date-filter-section label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  white-space: nowrap;
+}
+
+.modal-header .date-filter-section select {
+  padding: 8px 12px;
+  border: 1.5px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #212529;
+  background: white;
+  cursor: pointer;
+  min-width: 200px;
+  transition: all 0.2s ease;
+}
+
+.modal-header .date-filter-section select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.modal-header .date-filter-section .clear-filter-btn {
+  padding: 6px 12px;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.modal-header .date-filter-section .clear-filter-btn:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
 }
 
 .modal-close {
@@ -1039,8 +1093,9 @@
     grid-template-columns: repeat(3, 1fr);
   }
   
-  .filters-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .filter-group {
+    min-width: 160px;
+    max-width: 220px;
   }
 }
 
@@ -1058,7 +1113,12 @@
   }
 
   .filters-grid {
-    grid-template-columns: repeat(2, 1fr);
+    flex-wrap: wrap;
+  }
+
+  .filter-group {
+    min-width: 150px;
+    max-width: 200px;
   }
 
   .admin-header {
@@ -1091,7 +1151,12 @@
   }
 
   .filters-grid {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .filter-group {
+    min-width: 100%;
+    max-width: 100%;
   }
 
   .employee-table-wrapper {
@@ -1100,9 +1165,5 @@
 
   .dates-cell {
     min-width: 180px;
-  }
-
-  .filter-group {
-    width: 100%;
   }
 }

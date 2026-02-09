@@ -33,8 +33,15 @@ const MyTimesheet = () => {
   const [projects, setProjects] = useState([]);
   const [timesheetEntries, setTimesheetEntries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'weekly'
+  const [viewMode, setViewMode] = useState('daily'); // 'daily', 'weekly', or 'calendar'
   const [selectedEntries, setSelectedEntries] = useState([]); // Array of entry IDs
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const d = new Date();
+    d.setDate(1);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+  const [monthEntries, setMonthEntries] = useState([]); // Entries for calendar month view
   
   // Form state for new entry
   const [entryForm, setEntryForm] = useState({
@@ -56,9 +63,18 @@ const MyTimesheet = () => {
     nonBillableHours: 0
   });
 
-  // Modal: show entries for a specific date (weekly view row click)
+  // Modal: show entries for a specific date (weekly view row click or calendar date click)
   const [showDateEntriesModal, setShowDateEntriesModal] = useState(false);
   const [modalDate, setModalDate] = useState(null);
+  // Entry form for modal (when adding from calendar date modal)
+  const [modalEntryForm, setModalEntryForm] = useState({
+    project: '',
+    department: '',
+    deliverable: '',
+    fromTime: '',
+    toTime: '',
+    isLate: false
+  });
 
   // Get start and end of week
   const getWeekRange = (date) => {
@@ -105,8 +121,10 @@ const MyTimesheet = () => {
       try {
         if (viewMode === 'daily') {
           await fetchDailyEntries();
-        } else {
+        } else if (viewMode === 'weekly') {
           await fetchWeeklyEntries();
+        } else if (viewMode === 'calendar') {
+          await fetchMonthEntries();
         }
       } catch (error) {
         if (isMounted) {
@@ -121,7 +139,7 @@ const MyTimesheet = () => {
       isMounted = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDate, viewMode]);
+  }, [selectedDate, viewMode, calendarMonth]);
 
   const fetchProjects = async () => {
     try {
@@ -230,6 +248,34 @@ const MyTimesheet = () => {
     }
   };
 
+  // Fetch entries for calendar month (for indicators on dates)
+  const fetchMonthEntries = async () => {
+    setLoading(true);
+    try {
+      const startOfMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1);
+      const endOfMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0);
+      const startStr = formatDateForAPI(startOfMonth);
+      const endStr = formatDateForAPI(endOfMonth);
+      const res = await axios.get(`${API_ENDPOINTS.baseURL}/api/tasks`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          startDate: startStr,
+          endDate: endStr,
+          limit: 500
+        }
+      });
+      const tasksArray = Array.isArray(res.data?.tasks) ? res.data.tasks : Array.isArray(res.data) ? res.data : [];
+      const entries = tasksArray.filter(task => task.startTime && task.endTime);
+      setMonthEntries(entries);
+      setTimesheetEntries(entries); // also set for getEntriesForDate when modal uses timesheetEntries from weekly
+    } catch (error) {
+      console.error('Error fetching month entries:', error);
+      setMonthEntries([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateDailySummary = (entries) => {
     let totalHours = 0;
     let billableHours = 0;
@@ -319,12 +365,111 @@ const MyTimesheet = () => {
   };
 
   const getEntriesForDate = (date) => {
-    if (!date || !Array.isArray(timesheetEntries)) return [];
-    const dateStr = date.toDateString();
-    return timesheetEntries.filter(e => {
-      const entryDate = e.startTime ? new Date(e.startTime.split('T')[0]).toDateString() : '';
-      return entryDate === dateStr;
+    if (!date) return [];
+    const source = viewMode === 'calendar' ? monthEntries : timesheetEntries;
+    if (!Array.isArray(source)) return [];
+    const dateStr = formatDateForAPI(date);
+    return source.filter(e => {
+      const entryDateStr = e.startTime?.split?.('T')[0] || (e.startTime ? new Date(e.startTime).toISOString().split('T')[0] : '');
+      return entryDateStr === dateStr;
     });
+  };
+
+  // Get calendar grid: Only show dates from the current month
+  const getCalendarDays = () => {
+    const year = calendarMonth.getFullYear();
+    const month = calendarMonth.getMonth();
+    const first = new Date(year, month, 1);
+    const last = new Date(year, month + 1, 0);
+    const startDay = first.getDay(); // 0 = Sun
+    const daysInMonth = last.getDate();
+    const days = [];
+    
+    // Add empty cells at the start to align with weekday headers
+    for (let i = 0; i < startDay; i++) {
+      days.push({ date: null, isCurrentMonth: false, isToday: false, isHoliday: false, isEmpty: true });
+    }
+    
+    // Add only current month dates
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(year, month, d);
+      const isSunday = date.getDay() === 0;
+      days.push({ date, isCurrentMonth: true, isToday: isSameDay(date, new Date()), isHoliday: isSunday });
+    }
+    
+    return days;
+  };
+
+  const isSameDay = (d1, d2) => {
+    return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate();
+  };
+
+  const getEntryCountForDate = (date) => {
+    return getEntriesForDate(date).length;
+  };
+
+  const handleCalendarDateClick = (dayObj) => {
+    setModalDate(dayObj.date);
+    setModalEntryForm({
+      project: '',
+      department: '',
+      deliverable: '',
+      fromTime: '',
+      toTime: '',
+      isLate: false
+    });
+    setShowDateEntriesModal(true);
+  };
+
+  const handleModalInputChange = (field, value) => {
+    setModalEntryForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const addEntryForModalDate = async () => {
+    if (!modalDate) return;
+    if (!modalEntryForm.project || !modalEntryForm.department || !modalEntryForm.fromTime || !modalEntryForm.toTime) {
+      Swal.fire('Validation Error', 'Please fill Project, Department, From time and To time', 'warning');
+      return;
+    }
+    if (modalEntryForm.fromTime >= modalEntryForm.toTime) {
+      Swal.fire('Validation Error', 'End time must be after start time', 'warning');
+      return;
+    }
+    const dateStr = formatDateForAPI(modalDate);
+    const taskData = {
+      title: modalEntryForm.deliverable || 'Timesheet Entry',
+      description: modalEntryForm.deliverable,
+      notes: modalEntryForm.deliverable,
+      project: modalEntryForm.project,
+      department: modalEntryForm.department,
+      startTime: `${dateStr}T${modalEntryForm.fromTime}:00`,
+      endTime: `${dateStr}T${modalEntryForm.toTime}:00`,
+      billable: true,
+      isLate: modalEntryForm.isLate || false,
+      timesheetStatus: 'draft',
+      status: 'backlog'
+    };
+    try {
+      const res = await axios.post(`${API_ENDPOINTS.baseURL}/api/tasks`, taskData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const newEntry = res.data;
+      Swal.fire('Success', 'Timesheet entry added', 'success');
+      setModalEntryForm({ project: '', department: '', deliverable: '', fromTime: '', toTime: '', isLate: false });
+      if (viewMode === 'calendar') {
+        setMonthEntries(prev => [...prev, newEntry]);
+      }
+      if (viewMode === 'daily' && isSameDay(modalDate, selectedDate)) {
+        await fetchDailyEntries();
+      } else if (viewMode === 'weekly') {
+        await fetchWeeklyEntries();
+      } else if (viewMode === 'calendar') {
+        setTimesheetEntries(prev => [...prev, newEntry]);
+      }
+    } catch (error) {
+      console.error('Error saving entry:', error);
+      Swal.fire('Error', error.response?.data?.message || 'Failed to save entry', 'error');
+    }
   };
 
   const handleDateChange = (days) => {
@@ -599,6 +744,12 @@ const MyTimesheet = () => {
             >
               Weekly
             </button>
+            <button 
+              className={viewMode === 'calendar' ? 'active' : ''}
+              onClick={() => setViewMode('calendar')}
+            >
+              <FiCalendar /> Calendar
+            </button>
           </div>
         </div>
       </div>
@@ -750,6 +901,69 @@ const MyTimesheet = () => {
         </>
       )}
 
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <div className="calendar-view-section">
+          <div className="calendar-header">
+            <button
+              type="button"
+              className="calendar-nav-btn"
+              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}
+              aria-label="Previous month"
+            >
+              <FiChevronLeft />
+            </button>
+            <h2 className="calendar-month-title">
+              {calendarMonth.toLocaleString('default', { month: 'long' })} {calendarMonth.getFullYear()}
+            </h2>
+            <button
+              type="button"
+              className="calendar-nav-btn"
+              onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}
+              aria-label="Next month"
+            >
+              <FiChevronRight />
+            </button>
+          </div>
+          {loading ? (
+            <div className="calendar-loading">Loading...</div>
+          ) : (
+            <div className="calendar-grid">
+              <div className="calendar-weekdays">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="calendar-weekday">{day}</div>
+                ))}
+              </div>
+              <div className="calendar-days">
+                {getCalendarDays().map((dayObj, idx) => {
+                  if (dayObj.isEmpty || !dayObj.date) {
+                    return <div key={idx} className="calendar-day-empty"></div>;
+                  }
+                  const count = getEntryCountForDate(dayObj.date);
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      className={`calendar-day ${dayObj.isToday ? 'today' : ''} ${dayObj.isHoliday ? 'holiday' : ''} ${count > 0 ? 'has-entries' : ''}`}
+                      onClick={() => handleCalendarDateClick(dayObj)}
+                    >
+                      <span className="calendar-day-num">{dayObj.date.getDate()}</span>
+                      {dayObj.isHoliday && (
+                        <span className="calendar-holiday-label">Holiday</span>
+                      )}
+                      {count > 0 && (
+                        <span className="calendar-day-count">{count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          <p className="calendar-hint">Click a date to view or add timesheet entries</p>
+        </div>
+      )}
+
       {/* Weekly Summary */}
       {viewMode === 'weekly' && (
         <div className="weekly-summary-section">
@@ -860,10 +1074,10 @@ const MyTimesheet = () => {
         </div>
       )}
 
-      {/* Modal: Entries for selected date */}
+      {/* Modal: Entries for selected date - open from calendar (or weekly) to view/add entries */}
       {showDateEntriesModal && modalDate && (
         <div className="date-entries-modal-overlay" onClick={() => setShowDateEntriesModal(false)}>
-          <div className="date-entries-modal" onClick={(e) => e.stopPropagation()}>
+          <div className="date-entries-modal date-entries-modal-with-form" onClick={(e) => e.stopPropagation()}>
             <div className="date-entries-modal-header">
               <h2>Entries for {formatDate(modalDate)}</h2>
               <button
@@ -876,68 +1090,133 @@ const MyTimesheet = () => {
               </button>
             </div>
             <div className="date-entries-modal-body">
-              {(() => {
-                const entriesForDate = getEntriesForDate(modalDate);
-                if (entriesForDate.length === 0) {
+              {/* Add entry form for this date */}
+              <div className="date-entries-add-form">
+                <h3 className="date-entries-form-title">Add entry for this date</h3>
+                <div className="date-entries-form-row">
+                  <select
+                    value={modalEntryForm.project}
+                    onChange={(e) => handleModalInputChange('project', e.target.value)}
+                    className="form-select modal-form-select"
+                  >
+                    <option value="">Select Project</option>
+                    {Array.isArray(projects) && projects.map(project => (
+                      <option key={project._id} value={project._id}>{project.name}</option>
+                    ))}
+                    <option value="non-project">Non-Projects</option>
+                  </select>
+                  <select
+                    value={modalEntryForm.department}
+                    onChange={(e) => handleModalInputChange('department', e.target.value)}
+                    className="form-select modal-form-select"
+                  >
+                    <option value="">Department</option>
+                    {COMPANY_DEPARTMENTS.map(dept => (
+                      <option key={dept} value={dept}>{dept}</option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Deliverable / Notes"
+                    value={modalEntryForm.deliverable}
+                    onChange={(e) => handleModalInputChange('deliverable', e.target.value)}
+                    className="form-input modal-form-input"
+                  />
+                  <input
+                    type="time"
+                    value={modalEntryForm.fromTime}
+                    onChange={(e) => handleModalInputChange('fromTime', e.target.value)}
+                    className="form-time modal-form-time"
+                    placeholder="From"
+                  />
+                  <input
+                    type="time"
+                    value={modalEntryForm.toTime}
+                    onChange={(e) => handleModalInputChange('toTime', e.target.value)}
+                    className="form-time modal-form-time"
+                    placeholder="To"
+                  />
+                  <button type="button" onClick={addEntryForModalDate} className="btn-add-entry modal-btn-add">
+                    <FiPlus /> Add Entry
+                  </button>
+                </div>
+                <label className="checkbox-label-inline modal-late-check">
+                  <input
+                    type="checkbox"
+                    checked={modalEntryForm.isLate || false}
+                    onChange={(e) => handleModalInputChange('isLate', e.target.checked)}
+                  />
+                  <span className="late-label">Mark as Late</span>
+                </label>
+              </div>
+
+              {/* Existing entries for this date */}
+              <div className="date-entries-list">
+                <h3 className="date-entries-list-title">Entries on this date</h3>
+                {(() => {
+                  const entriesForDate = getEntriesForDate(modalDate);
+                  if (entriesForDate.length === 0) {
+                    return (
+                      <div className="date-entries-empty">
+                        <FiFileText />
+                        <p>No timesheet entries for this date yet. Add one above.</p>
+                      </div>
+                    );
+                  }
+                  const totalH = entriesForDate.reduce((s, e) => s + calculateHours(e.startTime, e.endTime), 0);
+                  const billableH = entriesForDate.filter(e => e.billable !== false).reduce((s, e) => s + calculateHours(e.startTime, e.endTime), 0);
                   return (
-                    <div className="date-entries-empty">
-                      <FiFileText />
-                      <p>No timesheet entries for this date.</p>
-                    </div>
+                    <>
+                      <div className="date-entries-summary">
+                        <span>Total: {formatHours(totalH)}</span>
+                        <span>Billable: {formatHours(billableH)}</span>
+                        <span>Non-billable: {formatHours(totalH - billableH)}</span>
+                      </div>
+                      <table className="date-entries-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Project</th>
+                            <th>Deliverable</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Billable</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {entriesForDate.map((entry, idx) => {
+                            const startT = entry.startTime?.includes('T') ? entry.startTime.split('T')[1]?.substring(0, 5) : entry.startTime;
+                            const endT = entry.endTime?.includes('T') ? entry.endTime.split('T')[1]?.substring(0, 5) : entry.endTime;
+                            const hrs = calculateHours(entry.startTime, entry.endTime);
+                            const badge = getStatusBadge(entry.timesheetStatus || 'draft');
+                            return (
+                              <tr key={entry._id}>
+                                <td>{idx + 1}</td>
+                                <td>{getProjectName(entry.project)}</td>
+                                <td>{entry.notes || entry.description || '-'}</td>
+                                <td>{startT || '-'}</td>
+                                <td>{endT || '-'}</td>
+                                <td>{formatHours(hrs)}</td>
+                                <td><span className={`badge ${badge.class}`}>{badge.label}</span></td>
+                                <td>{entry.billable !== false ? 'Yes' : 'No'}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </>
                   );
-                }
-                const totalH = entriesForDate.reduce((s, e) => s + calculateHours(e.startTime, e.endTime), 0);
-                const billableH = entriesForDate.filter(e => e.billable !== false).reduce((s, e) => s + calculateHours(e.startTime, e.endTime), 0);
-                return (
-                  <>
-                    <div className="date-entries-summary">
-                      <span>Total: {formatHours(totalH)}</span>
-                      <span>Billable: {formatHours(billableH)}</span>
-                      <span>Non-billable: {formatHours(totalH - billableH)}</span>
-                    </div>
-                    <table className="date-entries-table">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>Project</th>
-                          <th>Deliverable</th>
-                          <th>From</th>
-                          <th>To</th>
-                          <th>Total</th>
-                          <th>Status</th>
-                          <th>Billable</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {entriesForDate.map((entry, idx) => {
-                          const startT = entry.startTime?.includes('T') ? entry.startTime.split('T')[1]?.substring(0, 5) : entry.startTime;
-                          const endT = entry.endTime?.includes('T') ? entry.endTime.split('T')[1]?.substring(0, 5) : entry.endTime;
-                          const hrs = calculateHours(entry.startTime, entry.endTime);
-                          const badge = getStatusBadge(entry.timesheetStatus || 'draft');
-                          return (
-                            <tr key={entry._id}>
-                              <td>{idx + 1}</td>
-                              <td>{getProjectName(entry.project)}</td>
-                              <td>{entry.notes || entry.description || '-'}</td>
-                              <td>{startT || '-'}</td>
-                              <td>{endT || '-'}</td>
-                              <td>{formatHours(hrs)}</td>
-                              <td><span className={`badge ${badge.class}`}>{badge.label}</span></td>
-                              <td>{entry.billable !== false ? 'Yes' : 'No'}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </>
-                );
-              })()}
+                })()}
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Entries Detail Table */}
+      {/* Entries Detail Table - hidden in calendar view (use calendar + modal to view/add) */}
+      {viewMode !== 'calendar' && (
       <div className="entries-detail-section">
         <div className="entries-section-header">
           <h2>Entries Detail</h2>
@@ -1075,6 +1354,7 @@ const MyTimesheet = () => {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };

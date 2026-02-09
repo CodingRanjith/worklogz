@@ -15,6 +15,7 @@ const TimesheetAdmin = () => {
   const [viewMode, setViewMode] = useState('employee'); // 'employee' or 'project'
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeEntries, setShowEmployeeEntries] = useState(false);
+  const [selectedDateFilter, setSelectedDateFilter] = useState('all'); // 'all' or specific date
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -232,14 +233,21 @@ const TimesheetAdmin = () => {
       
       if (!groups[userIdStr]) {
         // Find employee by matching _id (handle both string and object IDs)
-        const employee = employees.find(e => 
+        let employee = employees.find(e => 
           e._id?.toString() === userIdStr || 
           e._id === userId ||
           (entry.user?.firstName && e.firstName === entry.user.firstName && e.lastName === entry.user.lastName)
         );
         
+        // If employee not found, try to use entry.user if it has name properties
+        if (!employee && entry.user) {
+          if (entry.user.firstName || entry.user.lastName || entry.user.name) {
+            employee = entry.user;
+          }
+        }
+        
         groups[userIdStr] = {
-          employee: employee || entry.user, // Fallback to entry.user if not found in employees list
+          employee: employee || { name: 'Unknown Employee' },
           entries: [],
           dates: new Set(),
           totalEntries: 0,
@@ -285,13 +293,22 @@ const TimesheetAdmin = () => {
       if (!byDate[d]) byDate[d] = [];
       byDate[d].push(entry);
     });
-    return Object.entries(byDate)
+    
+    let result = Object.entries(byDate)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, entries]) => ({ date, entries }));
-  }, [selectedEmployee?.entries]);
+    
+    // Filter by selected date if not 'all'
+    if (selectedDateFilter !== 'all') {
+      result = result.filter(({ date }) => date === selectedDateFilter);
+    }
+    
+    return result;
+  }, [selectedEmployee?.entries, selectedDateFilter]);
 
   const handleViewEmployee = (employeeData) => {
     setSelectedEmployee(employeeData);
+    setSelectedDateFilter('all'); // Reset date filter when opening modal
     setShowEmployeeEntries(true);
   };
 
@@ -339,44 +356,75 @@ const TimesheetAdmin = () => {
   };
 
   const handleReject = async (entryId) => {
-    const { value: reason } = await Swal.fire({
+    const { value: reason, isConfirmed } = await Swal.fire({
       title: 'Reject Timesheet Entry',
+      html: `
+        <div style="text-align: left; margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #495057;">
+            Reason for rejection <span style="color: #ef4444;">*</span>
+          </label>
+        </div>
+      `,
       input: 'textarea',
-      inputLabel: 'Reason for rejection',
-      inputPlaceholder: 'Enter reason...',
+      inputLabel: '',
+      inputPlaceholder: 'Enter rejection reason...',
+      inputAttributes: {
+        rows: 4,
+        style: 'width: 100%; padding: 10px; border: 1.5px solid #dee2e6; border-radius: 8px; font-size: 14px;'
+      },
       showCancelButton: true,
-      confirmButtonText: 'Reject',
+      confirmButtonText: 'Reject Entry',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#ef4444',
       inputValidator: (value) => {
-        if (!value) {
-          return 'Please provide a reason';
+        if (!value || !value.trim()) {
+          return 'Please provide a rejection reason';
+        }
+        if (value.trim().length < 5) {
+          return 'Rejection reason must be at least 5 characters';
         }
       }
     });
 
-    if (reason) {
+    if (reason && isConfirmed) {
       try {
         const entry = timesheets.find(e => e._id === entryId);
         await axios.put(`${API_ENDPOINTS.baseURL}/api/tasks/${entryId}`, {
           ...entry,
           timesheetStatus: 'rejected',
-          rejectionReason: reason
+          rejectionReason: reason.trim()
         }, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        Swal.fire('Success', 'Timesheet entry rejected', 'success');
-        fetchTimesheets();
-        if (showEmployeeEntries) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Entry Rejected',
+          text: 'The timesheet entry has been rejected successfully.',
+          confirmButtonColor: '#667eea'
+        });
+        
+        // Refresh timesheets
+        await fetchTimesheets();
+        
+        // Update modal if open
+        if (showEmployeeEntries && selectedEmployee) {
           const updatedEmployee = {
             ...selectedEmployee,
             entries: selectedEmployee.entries.map(e => 
-              e._id === entryId ? { ...e, timesheetStatus: 'rejected', rejectionReason: reason } : e
+              e._id === entryId ? { ...e, timesheetStatus: 'rejected', rejectionReason: reason.trim() } : e
             )
           };
           setSelectedEmployee(updatedEmployee);
         }
       } catch (error) {
-        Swal.fire('Error', 'Failed to reject entry', 'error');
+        console.error('Error rejecting entry:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: error.response?.data?.message || 'Failed to reject entry. Please try again.',
+          confirmButtonColor: '#667eea'
+        });
       }
     }
   };
@@ -718,11 +766,49 @@ const TimesheetAdmin = () => {
         <div className="modal-overlay" onClick={() => setShowEmployeeEntries(false)}>
           <div className="modal-content employee-entries-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>
-                {selectedEmployee.employee 
-                  ? `${selectedEmployee.employee.firstName} ${selectedEmployee.employee.lastName} - Timesheet Entries`
-                  : 'Employee Timesheet Entries'}
-              </h2>
+              <div style={{ flex: 1 }}>
+                <h2>
+                  {(() => {
+                    const emp = selectedEmployee.employee;
+                    if (!emp) return 'Employee - Timesheet Entries';
+                    
+                    const firstName = emp.firstName || '';
+                    const lastName = emp.lastName || '';
+                    const fullName = `${firstName} ${lastName}`.trim();
+                    
+                    if (fullName) return `${fullName} - Timesheet Entries`;
+                    if (emp.name) return `${emp.name} - Timesheet Entries`;
+                    return 'Employee - Timesheet Entries';
+                  })()}
+                </h2>
+                <div className="date-filter-section">
+                  <label>Filter by Date:</label>
+                  <select
+                    value={selectedDateFilter}
+                    onChange={(e) => setSelectedDateFilter(e.target.value)}
+                  >
+                    <option value="all">All Dates</option>
+                    {selectedEmployee.entries && (() => {
+                      const dates = new Set();
+                      selectedEmployee.entries.forEach(entry => {
+                        const d = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10);
+                        if (d) dates.add(d);
+                      });
+                      return Array.from(dates).sort().map(date => (
+                        <option key={date} value={date}>{date}</option>
+                      ));
+                    })()}
+                  </select>
+                  {selectedDateFilter !== 'all' && (
+                    <button
+                      onClick={() => setSelectedDateFilter('all')}
+                      className="clear-filter-btn"
+                    >
+                      Clear Filter
+                    </button>
+                  )}
+                </div>
+              </div>
               <button onClick={() => setShowEmployeeEntries(false)} className="modal-close">
                 <FiX />
               </button>
@@ -732,7 +818,12 @@ const TimesheetAdmin = () => {
                 <div className="entries-by-date">
                   {entriesByDate.map(({ date, entries }) => (
                     <div key={date} className="date-section">
-                      <h3 className="date-section-title">Entries for {date}</h3>
+                      <h3 className="date-section-title">
+                        Entries for {date}
+                        <span style={{ marginLeft: '12px', fontSize: '14px', fontWeight: '500', color: '#6c757d' }}>
+                          ({entries.length} {entries.length === 1 ? 'entry' : 'entries'})
+                        </span>
+                      </h3>
                       <div className="entries-table-wrapper">
                         <table className="entries-table">
                           <thead>
@@ -787,15 +878,17 @@ const TimesheetAdmin = () => {
                                   </td>
                                   <td>
                                     <div className="action-buttons">
-                                      {status === 'submitted' && (
+                                      {(status === 'submitted' || status === 'draft') && (
                                         <>
-                                          <button 
-                                            onClick={() => handleApprove(entry._id)} 
-                                            className="btn-approve" 
-                                            title="Approve"
-                                          >
-                                            <FiCheckCircle /> Approve
-                                          </button>
+                                          {status === 'submitted' && (
+                                            <button 
+                                              onClick={() => handleApprove(entry._id)} 
+                                              className="btn-approve" 
+                                              title="Approve"
+                                            >
+                                              <FiCheckCircle /> Approve
+                                            </button>
+                                          )}
                                           <button 
                                             onClick={() => handleReject(entry._id)} 
                                             className="btn-reject" 
