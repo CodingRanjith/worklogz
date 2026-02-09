@@ -504,235 +504,214 @@ const TimesheetAdmin = () => {
 
   return (
     <div className="timesheet-admin-page">
+      {/* Professional Header */}
       <div className="admin-header">
         <div>
-          <h1>Timesheet Admin</h1>
-          <p>Manage and approve timesheet entries</p>
+          <h1>Timesheet Administration</h1>
+          <p>Manage, review, and approve employee timesheet entries</p>
         </div>
         <div className="header-actions">
           <button onClick={() => setShowAddTimesheetModal(true)} className="btn-add-timesheet">
-            <FiPlus /> Add Timesheet
+            <FiPlus /> Add Entry
           </button>
           <button onClick={fetchTimesheets} className="btn-refresh">
             <FiRefreshCw /> Refresh
           </button>
           <button onClick={exportToExcel} className="btn-export">
-            <FiDownload /> Export Excel
+            <FiDownload /> Export
           </button>
         </div>
       </div>
 
-      {/* Projects List Section */}
-      <div className="projects-list-section">
-        <h2>Projects</h2>
-        <div className="projects-grid">
-          {projects.length === 0 ? (
-            <div className="no-projects">No projects found</div>
-          ) : (
-            projects.map(project => (
-              <div key={project._id} className="project-card">
-                <div className="project-icon">
-                  <FiBriefcase />
-                </div>
-                <div className="project-info">
-                  <h3>{project.name}</h3>
-                  <p>{project.client || 'No client'}</p>
-                  <span className={`project-status status-${project.status || 'planning'}`}>
-                    {project.status || 'planning'}
-                  </span>
-                </div>
+      <div className="main-content-wrapper">
+        {/* Summary Cards */}
+        <div className="summary-cards">
+          <div className="summary-card total-hours">
+            <div className="card-label">Total Hours</div>
+            <div className="card-value">{summary.totalHours}</div>
+          </div>
+          <div className="summary-card booked-hours">
+            <div className="card-label">Booked Hours</div>
+            <div className="card-value">{summary.bookedHours}</div>
+          </div>
+          <div className="summary-card billable-hours">
+            <div className="card-label">Billable Hours</div>
+            <div className="card-value">{summary.billableHours}</div>
+          </div>
+          <div className="summary-card non-billable">
+            <div className="card-label">Non-Billable</div>
+            <div className="card-value">{summary.nonBillable}</div>
+          </div>
+          <div className="summary-card pending-approval">
+            <div className="card-label">Pending Approval</div>
+            <div className="card-value">{summary.pendingApproval}</div>
+          </div>
+        </div>
+
+        {/* Professional Filters Section */}
+        <div className="filters-section">
+          <h3>Filter & Search</h3>
+          <div className="filters-grid">
+            <div className="filter-group">
+              <label className="filter-label">Search Employee</label>
+              <div className="filter-item">
+                <FiSearch className="filter-icon" />
+                <input
+                  type="text"
+                  placeholder="Enter employee name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="filter-input"
+                />
               </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* View Toggle */}
-      <div className="view-toggle-section">
-        <button 
-          className={viewMode === 'employee' ? 'active' : ''}
-          onClick={() => setViewMode('employee')}
-        >
-          Employee List
-        </button>
-        <button 
-          className={viewMode === 'project' ? 'active' : ''}
-          onClick={() => setViewMode('project')}
-        >
-          Project Summary
-        </button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="summary-cards">
-        <div className="summary-card total-hours">
-          <div className="card-label">TOTAL HOURS</div>
-          <div className="card-value">{summary.totalHours}</div>
-        </div>
-        <div className="summary-card booked-hours">
-          <div className="card-label">BOOKED HOURS</div>
-          <div className="card-value">{summary.bookedHours}</div>
-        </div>
-        <div className="summary-card billable-hours">
-          <div className="card-label">BILLABLE HOURS</div>
-          <div className="card-value">{summary.billableHours}</div>
-        </div>
-        <div className="summary-card non-billable">
-          <div className="card-label">NON-BILLABLE</div>
-          <div className="card-value">{summary.nonBillable}</div>
-        </div>
-        <div className="summary-card pending-approval">
-          <div className="card-label">PENDING APPROVAL</div>
-          <div className="card-value">{summary.pendingApproval}</div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="filters-section">
-        <h3>Filters</h3>
-        <div className="filters-grid">
-          <div className="filter-item">
-            <FiSearch className="filter-icon" />
-            <input
-              type="text"
-              placeholder="Search employee..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="filter-input"
-            />
-          </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="submitted">Submitted</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-          <select
-            value={employeeFilter}
-            onChange={(e) => setEmployeeFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Employees</option>
-            {employees.map(emp => (
-              <option key={emp._id} value={emp._id}>
-                {emp.firstName} {emp.lastName}
-              </option>
-            ))}
-          </select>
-          <select
-            value={userFilter}
-            onChange={(e) => setUserFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Users</option>
-            {users.map(user => (
-              <option key={user._id} value={user._id}>
-                {user.firstName} {user.lastName}
-              </option>
-            ))}
-          </select>
-          <div className="filter-item">
-            <FiCalendar className="filter-icon" />
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="filter-date"
-            />
-          </div>
-          <div className="filter-item">
-            <FiCalendar className="filter-icon" />
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="filter-date"
-            />
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">Status</label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Status</option>
+                <option value="draft">Draft</option>
+                <option value="submitted">Submitted</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">Employee</label>
+              <select
+                value={employeeFilter}
+                onChange={(e) => setEmployeeFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Employees</option>
+                {employees.map(emp => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.firstName} {emp.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">User</label>
+              <select
+                value={userFilter}
+                onChange={(e) => setUserFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Users</option>
+                {users.map(user => (
+                  <option key={user._id} value={user._id}>
+                    {user.firstName} {user.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">Start Date</label>
+              <div className="filter-item">
+                <FiCalendar className="filter-icon" />
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="filter-date"
+                />
+              </div>
+            </div>
+            <div className="filter-group">
+              <label className="filter-label">End Date</label>
+              <div className="filter-item">
+                <FiCalendar className="filter-icon" />
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="filter-date"
+                />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Manager View Notice */}
-      <div className="manager-notice">
-        <strong>Manager View:</strong> You can approve/reject timesheet entries for employees where you are set as their <strong>Reporting To</strong> in their basic details.
-      </div>
+        {/* Manager View Notice */}
+        <div className="manager-notice">
+          <strong>Manager View:</strong> You can approve/reject timesheet entries for employees where you are set as their <strong>Reporting To</strong> in their basic details.
+        </div>
 
-      {/* Employee List Table */}
-      {loading ? (
-        <div className="loading">Loading...</div>
-      ) : (
-        <div className="employee-table-wrapper">
-          <table className="employee-table">
-            <thead>
-              <tr>
-                <th>S.NO</th>
-                <th>EMPLOYEE NAME</th>
-                <th>TIMESHEET DATES</th>
-                <th>TOTAL ENTRIES</th>
-                <th>SUBMITTED</th>
-                <th>APPROVED</th>
-                <th>REJECTED</th>
-                <th>TOTAL HOURS</th>
-                <th>ACTIONS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employeeGroups.map((group, index) => (
-                <tr key={group.employee?._id || index}>
-                  <td>{index + 1}</td>
-                  <td>
-                    <div 
-                      className="employee-name clickable"
-                      onClick={() => handleViewEmployee(group)}
-                      style={{ cursor: 'pointer', color: '#667eea', fontWeight: '600' }}
-                      title="Click to view date-wise entries"
-                    >
-                      <FiUsers className="employee-icon" />
-                      {group.employee ? `${group.employee.firstName || ''} ${group.employee.lastName || ''}`.trim() || group.employee.name : 'Unknown'}
-                    </div>
-                  </td>
-                  <td className="dates-cell">
-                    {group.dates && group.dates.length > 0
-                      ? group.dates.slice(0, 5).map(d => (
-                          <span key={d} className="date-tag">{d}</span>
-                        ))
-                      : '-'}
-                    {group.dates?.length > 5 && (
-                      <span className="date-tag more">+{group.dates.length - 5} more</span>
-                    )}
-                  </td>
-                  <td>{group.totalEntries}</td>
-                  <td>{group.submitted ?? group.pending}</td>
-                  <td>{group.approved}</td>
-                  <td>{group.rejected}</td>
-                  <td>{formatHours(group.totalHours)}</td>
-                  <td>
-                    <button 
-                      onClick={() => handleViewEmployee(group)}
-                      className="btn-view"
-                      title="View date-wise entries"
-                    >
-                      <FiEye /> View
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {employeeGroups.length === 0 && (
+        {/* Employee List Table */}
+        {loading ? (
+          <div className="loading">Loading timesheet data...</div>
+        ) : (
+          <div className="employee-table-wrapper">
+            <table className="employee-table">
+              <thead>
                 <tr>
-                  <td colSpan="9" className="no-data">
-                    No timesheet entries found
-                  </td>
+                  <th>S.NO</th>
+                  <th>EMPLOYEE NAME</th>
+                  <th>TIMESHEET DATES</th>
+                  <th>TOTAL ENTRIES</th>
+                  <th>SUBMITTED</th>
+                  <th>APPROVED</th>
+                  <th>REJECTED</th>
+                  <th>TOTAL HOURS</th>
+                  <th>ACTIONS</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {employeeGroups.map((group, index) => (
+                  <tr key={group.employee?._id || index}>
+                    <td>{index + 1}</td>
+                    <td>
+                      <div 
+                        className="employee-name clickable"
+                        onClick={() => handleViewEmployee(group)}
+                        title="Click to view date-wise entries"
+                      >
+                        <FiUsers className="employee-icon" />
+                        {group.employee ? `${group.employee.firstName || ''} ${group.employee.lastName || ''}`.trim() || group.employee.name : 'Unknown'}
+                      </div>
+                    </td>
+                    <td className="dates-cell">
+                      {group.dates && group.dates.length > 0
+                        ? group.dates.slice(0, 5).map(d => (
+                            <span key={d} className="date-tag">{d}</span>
+                          ))
+                        : '-'}
+                      {group.dates?.length > 5 && (
+                        <span className="date-tag more">+{group.dates.length - 5} more</span>
+                      )}
+                    </td>
+                    <td>{group.totalEntries}</td>
+                    <td>{group.submitted ?? group.pending}</td>
+                    <td>{group.approved}</td>
+                    <td>{group.rejected}</td>
+                    <td>{formatHours(group.totalHours)}</td>
+                    <td>
+                      <button 
+                        onClick={() => handleViewEmployee(group)}
+                        className="btn-view"
+                        title="View date-wise entries"
+                      >
+                        <FiEye /> View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {employeeGroups.length === 0 && (
+                  <tr>
+                    <td colSpan="9" className="no-data">
+                      No timesheet entries found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Employee Entries Modal */}
       {showEmployeeEntries && selectedEmployee && (
@@ -877,11 +856,11 @@ const TimesheetAdmin = () => {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label>Employee *</label>
+                <label className="form-label">Employee <span style={{color: '#ef4444'}}>*</span></label>
                 <select
                   value={timesheetForm.employee}
                   onChange={(e) => setTimesheetForm({ ...timesheetForm, employee: e.target.value })}
-                  className="form-input"
+                  className="form-select"
                   required
                 >
                   <option value="">Select Employee</option>
@@ -894,11 +873,11 @@ const TimesheetAdmin = () => {
               </div>
 
               <div className="form-group">
-                <label>Project</label>
+                <label className="form-label">Project</label>
                 <select
                   value={timesheetForm.project}
                   onChange={(e) => setTimesheetForm({ ...timesheetForm, project: e.target.value })}
-                  className="form-input"
+                  className="form-select"
                 >
                   <option value="">Select Project</option>
                   {(() => {
@@ -922,18 +901,18 @@ const TimesheetAdmin = () => {
                   <option value="non-project">Non-Projects</option>
                 </select>
                 {timesheetForm.employee && (
-                  <small className="form-hint">
+                  <small style={{display: 'block', marginTop: '6px', color: '#6c757d', fontSize: '12px'}}>
                     Only projects where this employee is a team member are shown
                   </small>
                 )}
               </div>
 
               <div className="form-group">
-                <label>Department</label>
+                <label className="form-label">Department</label>
                 <select
                   value={timesheetForm.department}
                   onChange={(e) => setTimesheetForm({ ...timesheetForm, department: e.target.value })}
-                  className="form-input"
+                  className="form-select"
                 >
                   <option value="">Select Department</option>
                   {COMPANY_DEPARTMENTS.map(dept => (
@@ -943,7 +922,7 @@ const TimesheetAdmin = () => {
               </div>
 
               <div className="form-group">
-                <label>Deliverable / Notes</label>
+                <label className="form-label">Deliverable / Notes</label>
                 <input
                   type="text"
                   value={timesheetForm.deliverable}
@@ -955,7 +934,7 @@ const TimesheetAdmin = () => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Date *</label>
+                  <label className="form-label">Date <span style={{color: '#ef4444'}}>*</span></label>
                   <input
                     type="date"
                     value={timesheetForm.date}
@@ -966,7 +945,7 @@ const TimesheetAdmin = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>From Time *</label>
+                  <label className="form-label">From Time <span style={{color: '#ef4444'}}>*</span></label>
                   <input
                     type="time"
                     value={timesheetForm.fromTime}
@@ -977,7 +956,7 @@ const TimesheetAdmin = () => {
                 </div>
 
                 <div className="form-group">
-                  <label>To Time *</label>
+                  <label className="form-label">To Time <span style={{color: '#ef4444'}}>*</span></label>
                   <input
                     type="time"
                     value={timesheetForm.toTime}
@@ -989,13 +968,14 @@ const TimesheetAdmin = () => {
               </div>
 
               <div className="form-group">
-                <label className="checkbox-label">
+                <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#495057'}}>
                   <input
                     type="checkbox"
                     checked={timesheetForm.billable}
                     onChange={(e) => setTimesheetForm({ ...timesheetForm, billable: e.target.checked })}
+                    style={{width: '18px', height: '18px', cursor: 'pointer'}}
                   />
-                  Billable
+                  Billable Hours
                 </label>
               </div>
             </div>
@@ -1003,7 +983,17 @@ const TimesheetAdmin = () => {
               <button onClick={() => setShowAddTimesheetModal(false)} className="btn-cancel">
                 Cancel
               </button>
-              <button onClick={handleAddTimesheet} className="btn-submit">
+              <button onClick={handleAddTimesheet} style={{
+                padding: '10px 24px',
+                border: 'none',
+                background: '#667eea',
+                color: 'white',
+                borderRadius: '8px',
+                fontWeight: '600',
+                fontSize: '14px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }} onMouseOver={(e) => e.target.style.background = '#5568d3'} onMouseOut={(e) => e.target.style.background = '#667eea'}>
                 Add Timesheet
               </button>
             </div>
