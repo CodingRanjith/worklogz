@@ -69,7 +69,7 @@ import TaskManager from './pages/admin/TaskManager';
 import TimeSheet from './pages/employee/Timesheet';
 import UserTimesheet from './pages/admin/UserTimesheet';
 import MyTimesheet from './pages/employee/MyTimesheet';
-import TimesheetAdmin from './pages/admin/TimesheetAdmin';
+import TimesheetAdmin from './pages/admin/TimesheetAdmin.jsx';
 import TimesheetProjects from './pages/admin/TimesheetProjects';
 
 // Calendar View

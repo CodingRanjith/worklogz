@@ -6,6 +6,7 @@ import {
   FiXCircle, FiClock, FiBriefcase, FiSearch, FiCalendar, FiPlus, FiX
 } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 import './TimesheetAdmin.css';
 
 const TimesheetAdmin = () => {
@@ -15,21 +16,20 @@ const TimesheetAdmin = () => {
   const [viewMode, setViewMode] = useState('employee'); // 'employee' or 'project'
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showEmployeeEntries, setShowEmployeeEntries] = useState(false);
-  const [selectedDateFilter, setSelectedDateFilter] = useState('all'); // 'all' or specific date
+  const [selectedEntryDetail, setSelectedEntryDetail] = useState(null);
+  const [showEntryDetailModal, setShowEntryDetailModal] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [userFilter, setUserFilter] = useState('all');
-  // Set default date range to last 30 days
-  const getDefaultStartDate = () => {
-    const date = new Date();
-    date.setDate(date.getDate() - 30);
-    return date.toISOString().split('T')[0];
+  // Set default dates to current date
+  const getCurrentDate = () => {
+    return new Date().toISOString().split('T')[0];
   };
-  const [startDate, setStartDate] = useState(getDefaultStartDate());
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(getCurrentDate());
+  const [endDate, setEndDate] = useState(getCurrentDate());
   
   // Summary stats
   const [summary, setSummary] = useState({
@@ -107,10 +107,9 @@ const TimesheetAdmin = () => {
       const params = {
         startDate,
         endDate,
-        limit: 1000, // Increase limit to get more entries
-        page: 1
+        limit: 1000
       };
-
+      
       // Use timesheetStatus instead of status for timesheet entries
       if (statusFilter !== 'all') {
         params.timesheetStatus = statusFilter;
@@ -120,226 +119,197 @@ const TimesheetAdmin = () => {
         params.userId = employeeFilter;
       }
 
-      const res = await axios.get(`${API_ENDPOINTS.baseURL}/api/tasks`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params
-      });
-
-      // API returns { tasks: [...], pagination: {...} }
-      const tasksArray = Array.isArray(res.data?.tasks) ? res.data.tasks : 
-                        Array.isArray(res.data) ? res.data : [];
-
-      console.log('Fetched tasks:', tasksArray.length);
-      
-      // Filter timesheet entries (tasks with startTime/endTime)
-      let entries = tasksArray.filter(task => task.startTime && task.endTime);
-      
-      console.log('Timesheet entries (with startTime/endTime):', entries.length);
-      
-      // Apply search filter
-      if (searchQuery) {
-        entries = entries.filter(entry => {
-          const userId = entry.user?._id || entry.user;
-          const employee = employees.find(e => e._id === userId || e._id?.toString() === userId?.toString());
-          const employeeName = employee ? `${employee.firstName || ''} ${employee.lastName || ''}`.trim() : '';
-          return employeeName.toLowerCase().includes(searchQuery.toLowerCase());
-        });
-        console.log('After search filter:', entries.length);
+      if (userFilter !== 'all') {
+        params.userId = userFilter;
       }
 
-      console.log('Final entries to display:', entries.length);
-      setTimesheets(entries);
-      calculateSummary(entries);
+      const res = await axios.get(`${API_ENDPOINTS.baseURL}/api/tasks`, {
+        params,
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      let allTasks = Array.isArray(res.data?.data) ? res.data.data : 
+                     Array.isArray(res.data) ? res.data : [];
+
+      // Filter timesheet entries (tasks with startTime/endTime)
+      const timesheetEntries = allTasks.filter(entry => 
+        entry.startTime && entry.endTime
+      );
+
+      // Apply search filter
+      let filtered = timesheetEntries;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        filtered = timesheetEntries.filter(entry => {
+          const userName = entry.user?.name || 
+                          `${entry.user?.firstName || ''} ${entry.user?.lastName || ''}`.trim() ||
+                          '';
+          return userName.toLowerCase().includes(query);
+        });
+      }
+
+      setTimesheets(filtered);
+
+      // Calculate summary
+      let totalMinutes = 0;
+      let bookedMinutes = 0;
+      let billableMinutes = 0;
+      let nonBillableMinutes = 0;
+      let pendingMinutes = 0;
+
+      filtered.forEach(entry => {
+        const hours = calculateHours(entry.startTime, entry.endTime);
+        const minutes = hours;
+        totalMinutes += minutes;
+
+        if (entry.timesheetStatus === 'submitted' || entry.timesheetStatus === 'approved') {
+          bookedMinutes += minutes;
+        }
+
+        if (entry.timesheetStatus === 'draft' || entry.timesheetStatus === 'submitted') {
+          pendingMinutes += minutes;
+        }
+
+        if (entry.billable !== false) {
+          billableMinutes += minutes;
+        } else {
+          nonBillableMinutes += minutes;
+        }
+      });
+
+      setSummary({
+        totalHours: formatHours(totalMinutes),
+        bookedHours: formatHours(bookedMinutes),
+        billableHours: formatHours(billableMinutes),
+        nonBillable: formatHours(nonBillableMinutes),
+        pendingApproval: formatHours(pendingMinutes)
+      });
     } catch (error) {
       console.error('Error fetching timesheets:', error);
-      Swal.fire('Error', 'Failed to load timesheets', 'error');
-      setTimesheets([]); // Ensure timesheets is always an array
+      Swal.fire('Error', 'Failed to fetch timesheet data', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateSummary = (entries) => {
-    let totalMinutes = 0;
-    let bookedMinutes = 0;
-    let billableMinutes = 0;
-    let nonBillableMinutes = 0;
-    let pendingMinutes = 0;
-
-    entries.forEach(entry => {
-      const hours = calculateHours(entry.startTime, entry.endTime);
-      const minutes = hours * 60;
-      totalMinutes += minutes;
-      
-      if (entry.timesheetStatus === 'submitted' || entry.timesheetStatus === 'approved') {
-        bookedMinutes += minutes;
-      }
-      
-      if (entry.billable !== false) {
-        billableMinutes += minutes;
-      } else {
-        nonBillableMinutes += minutes;
-      }
-      
-      if (entry.timesheetStatus === 'draft' || entry.timesheetStatus === 'submitted') {
-        pendingMinutes += minutes;
-      }
-    });
-
-    setSummary({
-      totalHours: formatMinutes(totalMinutes),
-      bookedHours: formatMinutes(bookedMinutes),
-      billableHours: formatMinutes(billableMinutes),
-      nonBillable: formatMinutes(nonBillableMinutes),
-      pendingApproval: formatMinutes(pendingMinutes)
-    });
-  };
-
   const calculateHours = (startTime, endTime) => {
     if (!startTime || !endTime) return 0;
-    
-    const start = startTime.includes('T') ? startTime.split('T')[1]?.substring(0, 5) : startTime;
-    const end = endTime.includes('T') ? endTime.split('T')[1]?.substring(0, 5) : endTime;
-    
-    if (!start || !end) return 0;
-    
-    const [startH, startM] = start.split(':').map(Number);
-    const [endH, endM] = end.split(':').map(Number);
-    
-    const startMinutes = startH * 60 + startM;
-    const endMinutes = endH * 60 + endM;
-    
-    return (endMinutes - startMinutes) / 60;
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    const diffMs = end - start;
+    return diffMs / (1000 * 60); // Return minutes
   };
 
-  const formatMinutes = (minutes) => {
-    const h = Math.floor(minutes / 60);
-    const m = Math.round(minutes % 60);
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  const formatHours = (minutes) => {
+    if (!minutes || minutes === 0) return '00:00';
+    const hrs = Math.floor(minutes / 60);
+    const mins = Math.floor(minutes % 60);
+    return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
   };
 
-  const formatHours = (hours) => {
-    const h = Math.floor(hours);
-    const m = Math.round((hours - h) * 60);
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-  };
-
-  // Group entries by employee and collect unique dates
+  // Group entries by employee
   const employeeGroups = useMemo(() => {
     const groups = {};
+    
     timesheets.forEach(entry => {
       const userId = entry.user?._id || entry.user;
-      const userIdStr = userId?.toString();
+      if (!userId) return;
+
+      // Try to find employee in employees list
+      let employee = employees.find(emp => 
+        emp._id === userId || 
+        emp._id?.toString() === userId?.toString() ||
+        emp._id === entry.user?._id?.toString()
+      );
+
+      // If not found, use entry.user data
+      if (!employee && entry.user) {
+        employee = entry.user;
+      }
+
+      const key = userId?.toString() || 'unknown';
       
-      if (!groups[userIdStr]) {
-        // Find employee by matching _id (handle both string and object IDs)
-        let employee = employees.find(e => 
-          e._id?.toString() === userIdStr || 
-          e._id === userId ||
-          (entry.user?.firstName && e.firstName === entry.user.firstName && e.lastName === entry.user.lastName)
-        );
-        
-        // If employee not found, try to use entry.user if it has name properties
-        if (!employee && entry.user) {
-          if (entry.user.firstName || entry.user.lastName || entry.user.name) {
-            employee = entry.user;
-          }
-        }
-        
-        groups[userIdStr] = {
+      if (!groups[key]) {
+        groups[key] = {
           employee: employee || { name: 'Unknown Employee' },
           entries: [],
           dates: new Set(),
           totalEntries: 0,
-          pending: 0,
           submitted: 0,
           approved: 0,
           rejected: 0,
+          pending: 0,
           totalHours: 0
         };
       }
-      groups[userIdStr].entries.push(entry);
-      groups[userIdStr].totalEntries++;
-      
+
       const entryDate = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10);
-      if (entryDate) groups[userIdStr].dates.add(entryDate);
-      
-      if (entry.timesheetStatus === 'draft') {
-        groups[userIdStr].pending++;
-      } else if (entry.timesheetStatus === 'submitted') {
-        groups[userIdStr].submitted = (groups[userIdStr].submitted || 0) + 1;
-        groups[userIdStr].pending++;
-      } else if (entry.timesheetStatus === 'approved') {
-        groups[userIdStr].approved++;
-      } else if (entry.timesheetStatus === 'rejected') {
-        groups[userIdStr].rejected++;
+      if (entryDate) {
+        groups[key].dates.add(entryDate);
       }
-      
-      const hours = calculateHours(entry.startTime, entry.endTime);
-      groups[userIdStr].totalHours += hours;
+
+      groups[key].entries.push(entry);
+      groups[key].totalEntries++;
+      groups[key].totalHours += calculateHours(entry.startTime, entry.endTime);
+
+      if (entry.timesheetStatus === 'submitted' || entry.timesheetStatus === 'approved') {
+        groups[key].submitted++;
+      }
+
+      if (entry.timesheetStatus === 'draft' || entry.timesheetStatus === 'submitted') {
+        groups[key].pending++;
+      }
+
+      if (entry.timesheetStatus === 'approved') {
+        groups[key].approved++;
+      }
+
+      if (entry.timesheetStatus === 'rejected') {
+        groups[key].rejected++;
+      }
     });
-    return Object.values(groups).map(g => ({
-      ...g,
-      dates: Array.from(g.dates).sort()
+
+    return Object.values(groups).map(group => ({
+      ...group,
+      dates: Array.from(group.dates).sort()
     }));
   }, [timesheets, employees]);
 
-  // Group selected employee entries by date for modal
-  const entriesByDate = useMemo(() => {
+  // Get all entries for modal (single view, no filtering)
+  const filteredEntries = useMemo(() => {
     if (!selectedEmployee?.entries?.length) return [];
-    const byDate = {};
-    selectedEmployee.entries.forEach(entry => {
-      const d = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10) || 'unknown';
-      if (!byDate[d]) byDate[d] = [];
-      byDate[d].push(entry);
+    
+    // Sort by date (newest first) then by start time
+    return selectedEmployee.entries.sort((a, b) => {
+      const dateA = a.startTime?.split?.('T')[0] || '';
+      const dateB = b.startTime?.split?.('T')[0] || '';
+      if (dateA !== dateB) return dateB.localeCompare(dateA);
+      const timeA = a.startTime?.split?.('T')[1] || '';
+      const timeB = b.startTime?.split?.('T')[1] || '';
+      return timeB.localeCompare(timeA);
     });
-    
-    let result = Object.entries(byDate)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, entries]) => ({ date, entries }));
-    
-    // Filter by selected date if not 'all'
-    if (selectedDateFilter !== 'all') {
-      result = result.filter(({ date }) => date === selectedDateFilter);
-    }
-    
-    return result;
-  }, [selectedEmployee?.entries, selectedDateFilter]);
+  }, [selectedEmployee?.entries]);
 
   const handleViewEmployee = (employeeData) => {
     setSelectedEmployee(employeeData);
-    setSelectedDateFilter('all'); // Reset date filter when opening modal
     setShowEmployeeEntries(true);
   };
 
   const handleApprove = async (entryId) => {
-    const result = await Swal.fire({
-      title: 'Approve Timesheet Entry?',
-      text: 'Are you sure you want to approve this entry?',
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#10b981',
-      cancelButtonColor: '#718096',
-      confirmButtonText: 'Yes, approve it!'
-    });
-
-    if (!result.isConfirmed) return;
-
     try {
-      const entry = timesheets.find(e => e._id === entryId);
-      await axios.put(`${API_ENDPOINTS.baseURL}/api/tasks/${entryId}`, {
-        ...entry,
-        timesheetStatus: 'approved'
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      Swal.fire('Success', 'Timesheet entry approved successfully', 'success');
-      
-      // Refresh timesheets
-      await fetchTimesheets();
-      
-      // Update modal if open
+      await axios.put(
+        `${API_ENDPOINTS.baseURL}/api/tasks/${entryId}`,
+        {
+          timesheetStatus: 'approved'
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      Swal.fire('Success', 'Timesheet entry approved', 'success');
+      fetchTimesheets();
+
       if (showEmployeeEntries && selectedEmployee) {
         const updatedEmployee = {
           ...selectedEmployee,
@@ -356,107 +326,96 @@ const TimesheetAdmin = () => {
   };
 
   const handleReject = async (entryId) => {
-    const { value: reason, isConfirmed } = await Swal.fire({
+    const { value: reason } = await Swal.fire({
       title: 'Reject Timesheet Entry',
       html: `
-        <div style="text-align: left; margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #495057;">
-            Reason for rejection <span style="color: #ef4444;">*</span>
-          </label>
-        </div>
+        <label style="display: block; text-align: left; margin-bottom: 8px; font-weight: 600; color: #212529;">
+          Rejection Reason <span style="color: #ef4444;">*</span>
+        </label>
+        <textarea 
+          id="rejection-reason" 
+          class="swal2-textarea" 
+          placeholder="Please provide a reason for rejection (minimum 5 characters)..."
+          style="width: 100%; min-height: 100px; padding: 12px; border: 1.5px solid #dee2e6; border-radius: 8px; font-size: 14px; resize: vertical;"
+        ></textarea>
       `,
-      input: 'textarea',
-      inputLabel: '',
-      inputPlaceholder: 'Enter rejection reason...',
-      inputAttributes: {
-        rows: 4,
-        style: 'width: 100%; padding: 10px; border: 1.5px solid #dee2e6; border-radius: 8px; font-size: 14px;'
-      },
+      focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: 'Reject Entry',
+      confirmButtonText: 'Reject',
       cancelButtonText: 'Cancel',
       confirmButtonColor: '#ef4444',
-      inputValidator: (value) => {
-        if (!value || !value.trim()) {
-          return 'Please provide a rejection reason';
+      cancelButtonColor: '#6c757d',
+      preConfirm: () => {
+        const reasonInput = document.getElementById('rejection-reason');
+        const reasonValue = reasonInput?.value?.trim() || '';
+        if (!reasonValue || reasonValue.length < 5) {
+          Swal.showValidationMessage('Please provide a rejection reason (minimum 5 characters)');
+          return false;
         }
-        if (value.trim().length < 5) {
-          return 'Rejection reason must be at least 5 characters';
-        }
+        return reasonValue;
       }
     });
 
-    if (reason && isConfirmed) {
-      try {
-        const entry = timesheets.find(e => e._id === entryId);
-        await axios.put(`${API_ENDPOINTS.baseURL}/api/tasks/${entryId}`, {
-          ...entry,
+    if (!reason) return;
+
+    try {
+      await axios.put(
+        `${API_ENDPOINTS.baseURL}/api/tasks/${entryId}`,
+        {
           timesheetStatus: 'rejected',
           rejectionReason: reason.trim()
-        }, {
+        },
+        {
           headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'Entry Rejected',
-          text: 'The timesheet entry has been rejected successfully.',
-          confirmButtonColor: '#667eea'
-        });
-        
-        // Refresh timesheets
-        await fetchTimesheets();
-        
-        // Update modal if open
-        if (showEmployeeEntries && selectedEmployee) {
-          const updatedEmployee = {
-            ...selectedEmployee,
-            entries: selectedEmployee.entries.map(e => 
-              e._id === entryId ? { ...e, timesheetStatus: 'rejected', rejectionReason: reason.trim() } : e
-            )
-          };
-          setSelectedEmployee(updatedEmployee);
         }
-      } catch (error) {
-        console.error('Error rejecting entry:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: error.response?.data?.message || 'Failed to reject entry. Please try again.',
-          confirmButtonColor: '#667eea'
-        });
+      );
+
+      Swal.fire('Success', 'Timesheet entry rejected', 'success');
+      fetchTimesheets();
+
+      if (showEmployeeEntries && selectedEmployee) {
+        const updatedEmployee = {
+          ...selectedEmployee,
+          entries: selectedEmployee.entries.map(e => 
+            e._id === entryId ? { ...e, timesheetStatus: 'rejected', rejectionReason: reason.trim() } : e
+          )
+        };
+        setSelectedEmployee(updatedEmployee);
       }
+    } catch (error) {
+      console.error('Error rejecting entry:', error);
+      Swal.fire('Error', error.response?.data?.message || 'Failed to reject entry', 'error');
     }
   };
 
   const handleRevert = async (entryId) => {
-    const result = await Swal.fire({
-      title: 'Revoke Approval?',
+    const { isConfirmed } = await Swal.fire({
+      title: 'Revoke Approval',
       text: 'Are you sure you want to revoke the approval for this entry?',
       icon: 'warning',
       showCancelButton: true,
+      confirmButtonText: 'Yes, Revoke',
+      cancelButtonText: 'Cancel',
       confirmButtonColor: '#f59e0b',
-      cancelButtonColor: '#718096',
-      confirmButtonText: 'Yes, revoke it!'
+      cancelButtonColor: '#6c757d'
     });
 
-    if (!result.isConfirmed) return;
+    if (!isConfirmed) return;
 
     try {
-      const entry = timesheets.find(e => e._id === entryId);
-      await axios.put(`${API_ENDPOINTS.baseURL}/api/tasks/${entryId}`, {
-        ...entry,
-        timesheetStatus: 'submitted'
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      Swal.fire('Success', 'Approval revoked successfully', 'success');
-      
-      // Refresh timesheets
-      await fetchTimesheets();
-      
-      // Update modal if open
+      await axios.put(
+        `${API_ENDPOINTS.baseURL}/api/tasks/${entryId}`,
+        {
+          timesheetStatus: 'submitted'
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      Swal.fire('Success', 'Approval revoked', 'success');
+      fetchTimesheets();
+
       if (showEmployeeEntries && selectedEmployee) {
         const updatedEmployee = {
           ...selectedEmployee,
@@ -472,8 +431,102 @@ const TimesheetAdmin = () => {
     }
   };
 
-  const exportToExcel = () => {
-    Swal.fire('Info', 'Excel export feature coming soon', 'info');
+  const handleDownloadReport = () => {
+    try {
+      if (!timesheets || timesheets.length === 0) {
+        Swal.fire('Info', 'No data available to export', 'info');
+        return;
+      }
+
+      // Prepare data for export
+      const exportData = [];
+      
+      // Add header row
+      exportData.push([
+        'S.No',
+        'Date',
+        'Employee Name',
+        'Project',
+        'Department',
+        'Deliverable',
+        'From Time',
+        'To Time',
+        'Total Hours',
+        'Billable',
+        'Status',
+        'Rejection Reason'
+      ]);
+
+      // Add data rows from filtered timesheets
+      let serialNo = 1;
+      timesheets.forEach(entry => {
+        const entryDate = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10) || '-';
+        const startTime = entry.startTime?.includes('T') 
+          ? entry.startTime.split('T')[1]?.substring(0, 5) 
+          : entry.startTime || '-';
+        const endTime = entry.endTime?.includes('T') 
+          ? entry.endTime.split('T')[1]?.substring(0, 5) 
+          : entry.endTime || '-';
+        const hours = calculateHours(entry.startTime, entry.endTime);
+        const employeeName = entry.user?.firstName && entry.user?.lastName
+          ? `${entry.user.firstName} ${entry.user.lastName}`
+          : entry.user?.name || 'Unknown';
+        const status = entry.timesheetStatus || 'draft';
+        const statusLabel = status === 'submitted' ? 'Submitted' : 
+                           status === 'approved' ? 'Approved' : 
+                           status === 'rejected' ? 'Rejected' : 'Draft';
+
+        exportData.push([
+          serialNo++,
+          entryDate,
+          employeeName,
+          getProjectName(entry.project),
+          entry.department || '-',
+          entry.notes || entry.description || entry.title || '-',
+          startTime,
+          endTime,
+          formatHours(hours),
+          entry.billable !== false ? 'Yes' : 'No',
+          statusLabel,
+          entry.rejectionReason || '-'
+        ]);
+      });
+
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(exportData);
+      
+      // Set column widths
+      const colWidths = [
+        { wch: 6 },   // S.No
+        { wch: 12 },  // Date
+        { wch: 20 },  // Employee Name
+        { wch: 25 },  // Project
+        { wch: 18 },  // Department
+        { wch: 30 },  // Deliverable
+        { wch: 10 },  // From Time
+        { wch: 10 },  // To Time
+        { wch: 12 },  // Total Hours
+        { wch: 10 },  // Billable
+        { wch: 12 },  // Status
+        { wch: 30 }   // Rejection Reason
+      ];
+      ws['!cols'] = colWidths;
+
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Timesheet Report');
+
+      // Generate filename with date range
+      const filename = `timesheet_report_${startDate}_to_${endDate}.xlsx`;
+      
+      // Download file
+      XLSX.writeFile(wb, filename);
+      
+      Swal.fire('Success', 'Report downloaded successfully', 'success');
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      Swal.fire('Error', 'Failed to download report', 'error');
+    }
   };
 
   const getProjectName = (projectId) => {
@@ -565,7 +618,7 @@ const TimesheetAdmin = () => {
           <button onClick={fetchTimesheets} className="btn-refresh">
             <FiRefreshCw /> Refresh
           </button>
-          <button onClick={exportToExcel} className="btn-export">
+          <button onClick={handleDownloadReport} className="btn-export">
             <FiDownload /> Export
           </button>
         </div>
@@ -681,12 +734,16 @@ const TimesheetAdmin = () => {
                 />
               </div>
             </div>
+            <div className="filter-group filter-group-button">
+              <button 
+                onClick={handleDownloadReport} 
+                className="btn-download-report"
+                title="Download Report"
+              >
+                <FiDownload /> Download Report
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Manager View Notice */}
-        <div className="manager-notice">
-          <strong>Manager View:</strong> You can approve/reject timesheet entries for employees where you are set as their <strong>Reporting To</strong> in their basic details.
         </div>
 
         {/* Employee List Table */}
@@ -710,7 +767,7 @@ const TimesheetAdmin = () => {
               </thead>
               <tbody>
                 {employeeGroups.map((group, index) => (
-                  <tr key={group.employee?._id || index}>
+                  <tr key={index}>
                     <td>{index + 1}</td>
                     <td>
                       <div 
@@ -781,145 +838,93 @@ const TimesheetAdmin = () => {
                     return 'Employee - Timesheet Entries';
                   })()}
                 </h2>
-                <div className="date-filter-section">
-                  <label>Filter by Date:</label>
-                  <select
-                    value={selectedDateFilter}
-                    onChange={(e) => setSelectedDateFilter(e.target.value)}
-                  >
-                    <option value="all">All Dates</option>
-                    {selectedEmployee.entries && (() => {
-                      const dates = new Set();
-                      selectedEmployee.entries.forEach(entry => {
-                        const d = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10);
-                        if (d) dates.add(d);
-                      });
-                      return Array.from(dates).sort().map(date => (
-                        <option key={date} value={date}>{date}</option>
-                      ));
-                    })()}
-                  </select>
-                  {selectedDateFilter !== 'all' && (
-                    <button
-                      onClick={() => setSelectedDateFilter('all')}
-                      className="clear-filter-btn"
-                    >
-                      Clear Filter
-                    </button>
-                  )}
-                </div>
               </div>
               <button onClick={() => setShowEmployeeEntries(false)} className="modal-close">
                 <FiX />
               </button>
             </div>
             <div className="modal-body">
-              {entriesByDate.length > 0 ? (
-                <div className="entries-by-date">
-                  {entriesByDate.map(({ date, entries }) => (
-                    <div key={date} className="date-section">
-                      <h3 className="date-section-title">
-                        Entries for {date}
-                        <span style={{ marginLeft: '12px', fontSize: '14px', fontWeight: '500', color: '#6c757d' }}>
-                          ({entries.length} {entries.length === 1 ? 'entry' : 'entries'})
-                        </span>
-                      </h3>
-                      <div className="entries-table-wrapper">
-                        <table className="entries-table">
-                          <thead>
-                            <tr>
-                              <th>S.NO</th>
-                              <th>Project</th>
-                              <th>Department</th>
-                              <th>Deliverable</th>
-                              <th>From</th>
-                              <th>To</th>
-                              <th>Hours</th>
-                              <th>Billable</th>
-                              <th>Status</th>
-                              <th>Rejection Reason</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {entries.map((entry, index) => {
-                              const startTime = entry.startTime?.includes('T') 
-                                ? entry.startTime.split('T')[1]?.substring(0, 5) 
-                                : entry.startTime;
-                              const endTime = entry.endTime?.includes('T') 
-                                ? entry.endTime.split('T')[1]?.substring(0, 5) 
-                                : entry.endTime;
-                              const hours = calculateHours(entry.startTime, entry.endTime);
-                              const status = entry.timesheetStatus || 'draft';
-                              const statusLabel = status === 'submitted' ? 'Submitted' : status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Draft';
-                              
-                              return (
-                                <tr key={entry._id} className={`row-status-${status}`}>
-                                  <td>{index + 1}</td>
-                                  <td>{getProjectName(entry.project)}</td>
-                                  <td>{entry.department || '-'}</td>
-                                  <td>{entry.notes || entry.description || entry.title || '-'}</td>
-                                  <td>{startTime || '-'}</td>
-                                  <td>{endTime || '-'}</td>
-                                  <td>{formatHours(hours)}</td>
-                                  <td>{entry.billable !== false ? 'Yes' : 'No'}</td>
-                                  <td>
-                                    <span className={`badge badge-${status}`}>
-                                      {statusLabel}
-                                    </span>
-                                  </td>
-                                  <td className="rejection-reason-cell">
-                                    {status === 'rejected' && (
-                                      <span className="rejection-reason-full">
-                                        {entry.rejectionReason || 'No reason provided'}
-                                      </span>
-                                    )}
-                                    {status !== 'rejected' && '-'}
-                                  </td>
-                                  <td>
-                                    <div className="action-buttons">
-                                      {(status === 'submitted' || status === 'draft') && (
-                                        <>
-                                          {status === 'submitted' && (
-                                            <button 
-                                              onClick={() => handleApprove(entry._id)} 
-                                              className="btn-approve" 
-                                              title="Approve"
-                                            >
-                                              <FiCheckCircle /> Approve
-                                            </button>
-                                          )}
-                                          <button 
-                                            onClick={() => handleReject(entry._id)} 
-                                            className="btn-reject" 
-                                            title="Reject"
-                                          >
-                                            <FiXCircle /> Reject
-                                          </button>
-                                        </>
-                                      )}
-                                      {status === 'approved' && (
+              {filteredEntries.length > 0 ? (
+                <div className="entries-single-view">
+                  <div className="entries-table-wrapper">
+                    <table className="entries-table">
+                      <thead>
+                        <tr>
+                          <th>S.NO</th>
+                          <th>Date</th>
+                          <th>Project</th>
+                          <th>Total Hours</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredEntries.map((entry, index) => {
+                          const entryDate = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10) || '-';
+                          const hours = calculateHours(entry.startTime, entry.endTime);
+                          const status = entry.timesheetStatus || 'draft';
+                          const statusLabel = status === 'submitted' ? 'Submitted' : status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Draft';
+                          
+                          return (
+                            <tr key={entry._id} className={`row-status-${status}`}>
+                              <td>{index + 1}</td>
+                              <td>{entryDate}</td>
+                              <td>{getProjectName(entry.project)}</td>
+                              <td>{formatHours(hours)}</td>
+                              <td>
+                                <span className={`badge badge-${status}`}>
+                                  {statusLabel}
+                                </span>
+                              </td>
+                              <td>
+                                <div className="action-buttons-icon-only">
+                                  <button 
+                                    onClick={() => {
+                                      setSelectedEntryDetail(entry);
+                                      setShowEntryDetailModal(true);
+                                    }}
+                                    className="btn-view-icon" 
+                                    title="View Details"
+                                  >
+                                    <FiEye />
+                                  </button>
+                                  {(status === 'submitted' || status === 'draft') && (
+                                    <>
+                                      {status === 'submitted' && (
                                         <button 
-                                          onClick={() => handleRevert(entry._id)} 
-                                          className="btn-revert" 
-                                          title="Revert to Submitted"
+                                          onClick={() => handleApprove(entry._id)} 
+                                          className="btn-approve-icon" 
+                                          title="Approve"
                                         >
-                                          ↶ Revoke
+                                          <FiCheckCircle />
                                         </button>
                                       )}
-                                      {status === 'rejected' && (
-                                        <span className="rejection-only-label">Rejected</span>
-                                      )}
-                                    </div>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  ))}
+                                      <button 
+                                        onClick={() => handleReject(entry._id)} 
+                                        className="btn-reject-icon" 
+                                        title="Reject"
+                                      >
+                                        <FiXCircle />
+                                      </button>
+                                    </>
+                                  )}
+                                  {status === 'approved' && (
+                                    <button 
+                                      onClick={() => handleRevert(entry._id)} 
+                                      className="btn-revert-icon" 
+                                      title="Revoke Approval"
+                                    >
+                                      ↶
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               ) : (
                 <div className="empty-state">
@@ -930,6 +935,135 @@ const TimesheetAdmin = () => {
             </div>
             <div className="modal-footer">
               <button onClick={() => setShowEmployeeEntries(false)} className="btn-cancel">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Entry Detail View Modal */}
+      {showEntryDetailModal && selectedEntryDetail && (
+        <div className="modal-overlay" onClick={() => setShowEntryDetailModal(false)}>
+          <div className="modal-content entry-detail-modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Timesheet Entry Details</h2>
+              <button onClick={() => setShowEntryDetailModal(false)} className="modal-close">
+                <FiX />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="entry-detail-form">
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Date</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.startTime?.split?.('T')[0] || selectedEntryDetail.startTime?.substring?.(0, 10) || '-'}
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Project</label>
+                    <div className="detail-value">
+                      {getProjectName(selectedEntryDetail.project)}
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Department</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.department || '-'}
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Status</label>
+                    <div className="detail-value">
+                      <span className={`badge badge-${selectedEntryDetail.timesheetStatus || 'draft'}`}>
+                        {(selectedEntryDetail.timesheetStatus || 'draft') === 'submitted' ? 'Submitted' : 
+                         (selectedEntryDetail.timesheetStatus || 'draft') === 'approved' ? 'Approved' : 
+                         (selectedEntryDetail.timesheetStatus || 'draft') === 'rejected' ? 'Rejected' : 'Draft'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Deliverable</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.notes || selectedEntryDetail.description || selectedEntryDetail.title || '-'}
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">From Time</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.startTime?.includes('T') 
+                        ? selectedEntryDetail.startTime.split('T')[1]?.substring(0, 5) 
+                        : selectedEntryDetail.startTime || '-'}
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">To Time</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.endTime?.includes('T') 
+                        ? selectedEntryDetail.endTime.split('T')[1]?.substring(0, 5) 
+                        : selectedEntryDetail.endTime || '-'}
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Total Hours</label>
+                    <div className="detail-value">
+                      {formatHours(calculateHours(selectedEntryDetail.startTime, selectedEntryDetail.endTime))}
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Billable</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.billable !== false ? 'Yes' : 'No'}
+                    </div>
+                  </div>
+                </div>
+                {selectedEntryDetail.timesheetStatus === 'rejected' && selectedEntryDetail.rejectionReason && (
+                  <div className="detail-row">
+                    <div className="detail-group full-width">
+                      <label className="detail-label">Rejection Reason</label>
+                      <div className="detail-value rejection-reason-detail">
+                        {selectedEntryDetail.rejectionReason}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="detail-actions">
+                  {selectedEntryDetail.timesheetStatus === 'submitted' && (
+                    <button 
+                      onClick={() => {
+                        handleApprove(selectedEntryDetail._id);
+                        setShowEntryDetailModal(false);
+                      }}
+                      className="btn-approve"
+                    >
+                      <FiCheckCircle /> Approve
+                    </button>
+                  )}
+                  {selectedEntryDetail.timesheetStatus === 'approved' && (
+                    <button 
+                      onClick={() => {
+                        handleRevert(selectedEntryDetail._id);
+                        setShowEntryDetailModal(false);
+                      }}
+                      className="btn-revert"
+                    >
+                      ↶ Revoke Approval
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setShowEntryDetailModal(false)} className="btn-cancel">
                 Close
               </button>
             </div>
@@ -948,146 +1082,118 @@ const TimesheetAdmin = () => {
               </button>
             </div>
             <div className="modal-body">
-              <div className="form-group">
-                <label className="form-label">Employee <span style={{color: '#ef4444'}}>*</span></label>
-                <select
-                  value={timesheetForm.employee}
-                  onChange={(e) => setTimesheetForm({ ...timesheetForm, employee: e.target.value })}
-                  className="form-select"
-                  required
-                >
-                  <option value="">Select Employee</option>
-                  {employees.map(emp => (
-                    <option key={emp._id} value={emp._id}>
-                      {emp.firstName} {emp.lastName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Project</label>
-                <select
-                  value={timesheetForm.project}
-                  onChange={(e) => setTimesheetForm({ ...timesheetForm, project: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="">Select Project</option>
-                  {(() => {
-                    // Filter projects: only show projects where selected employee is a team member
-                    const filteredProjects = timesheetForm.employee
-                      ? projects.filter(project => {
-                          const teamMembers = project.teamMembers || [];
-                          return teamMembers.some(member => {
-                            const memberId = member.user?._id || member.user;
-                            return memberId === timesheetForm.employee;
-                          });
-                        })
-                      : projects;
-                    
-                    return filteredProjects.map(project => (
-                      <option key={project._id} value={project._id}>
-                        {project.name}
-                      </option>
-                    ));
-                  })()}
-                  <option value="non-project">Non-Projects</option>
-                </select>
-                {timesheetForm.employee && (
-                  <small style={{display: 'block', marginTop: '6px', color: '#6c757d', fontSize: '12px'}}>
-                    Only projects where this employee is a team member are shown
-                  </small>
-                )}
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Department</label>
-                <select
-                  value={timesheetForm.department}
-                  onChange={(e) => setTimesheetForm({ ...timesheetForm, department: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="">Select Department</option>
-                  {COMPANY_DEPARTMENTS.map(dept => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Deliverable / Notes</label>
-                <input
-                  type="text"
-                  value={timesheetForm.deliverable}
-                  onChange={(e) => setTimesheetForm({ ...timesheetForm, deliverable: e.target.value })}
-                  className="form-input"
-                  placeholder="Enter deliverable or notes"
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Date <span style={{color: '#ef4444'}}>*</span></label>
-                  <input
-                    type="date"
-                    value={timesheetForm.date}
-                    onChange={(e) => setTimesheetForm({ ...timesheetForm, date: e.target.value })}
-                    className="form-input"
-                    required
-                  />
+              <div className="form-container">
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Employee <span style={{color: '#ef4444'}}>*</span></label>
+                    <select
+                      value={timesheetForm.employee}
+                      onChange={(e) => setTimesheetForm({...timesheetForm, employee: e.target.value})}
+                      className="form-select"
+                    >
+                      <option value="">Select Employee</option>
+                      {employees.map(emp => (
+                        <option key={emp._id} value={emp._id}>
+                          {emp.firstName} {emp.lastName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Project</label>
+                    <select
+                      value={timesheetForm.project}
+                      onChange={(e) => {
+                        const selectedProjectId = e.target.value;
+                        setTimesheetForm({...timesheetForm, project: selectedProjectId});
+                        // Filter projects: only show projects where selected employee is a team member
+                      }}
+                      className="form-select"
+                    >
+                      <option value="">Select Project</option>
+                      {projects.map(project => (
+                        <option key={project._id} value={project._id}>
+                          {project.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">From Time <span style={{color: '#ef4444'}}>*</span></label>
-                  <input
-                    type="time"
-                    value={timesheetForm.fromTime}
-                    onChange={(e) => setTimesheetForm({ ...timesheetForm, fromTime: e.target.value })}
-                    className="form-input"
-                    required
-                  />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Department</label>
+                    <select
+                      value={timesheetForm.department}
+                      onChange={(e) => setTimesheetForm({...timesheetForm, department: e.target.value})}
+                      className="form-select"
+                    >
+                      <option value="">Select Department</option>
+                      {COMPANY_DEPARTMENTS.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Date <span style={{color: '#ef4444'}}>*</span></label>
+                    <input
+                      type="date"
+                      value={timesheetForm.date}
+                      onChange={(e) => setTimesheetForm({...timesheetForm, date: e.target.value})}
+                      className="form-input"
+                    />
+                  </div>
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">To Time <span style={{color: '#ef4444'}}>*</span></label>
-                  <input
-                    type="time"
-                    value={timesheetForm.toTime}
-                    onChange={(e) => setTimesheetForm({ ...timesheetForm, toTime: e.target.value })}
-                    className="form-input"
-                    required
-                  />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">From Time <span style={{color: '#ef4444'}}>*</span></label>
+                    <input
+                      type="time"
+                      value={timesheetForm.fromTime}
+                      onChange={(e) => setTimesheetForm({...timesheetForm, fromTime: e.target.value})}
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">To Time <span style={{color: '#ef4444'}}>*</span></label>
+                    <input
+                      type="time"
+                      value={timesheetForm.toTime}
+                      onChange={(e) => setTimesheetForm({...timesheetForm, toTime: e.target.value})}
+                      className="form-input"
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <div className="form-group">
-                <label style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '500', color: '#495057'}}>
-                  <input
-                    type="checkbox"
-                    checked={timesheetForm.billable}
-                    onChange={(e) => setTimesheetForm({ ...timesheetForm, billable: e.target.checked })}
-                    style={{width: '18px', height: '18px', cursor: 'pointer'}}
-                  />
-                  Billable Hours
-                </label>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label className="form-label">Deliverable</label>
+                    <input
+                      type="text"
+                      value={timesheetForm.deliverable}
+                      onChange={(e) => setTimesheetForm({...timesheetForm, deliverable: e.target.value})}
+                      placeholder="Enter deliverable description..."
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Billable</label>
+                    <select
+                      value={timesheetForm.billable ? 'yes' : 'no'}
+                      onChange={(e) => setTimesheetForm({...timesheetForm, billable: e.target.value === 'yes'})}
+                      className="form-select"
+                    >
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="modal-footer">
               <button onClick={() => setShowAddTimesheetModal(false)} className="btn-cancel">
                 Cancel
               </button>
-              <button onClick={handleAddTimesheet} style={{
-                padding: '10px 24px',
-                border: 'none',
-                background: '#667eea',
-                color: 'white',
-                borderRadius: '8px',
-                fontWeight: '600',
-                fontSize: '14px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }} onMouseOver={(e) => e.target.style.background = '#5568d3'} onMouseOut={(e) => e.target.style.background = '#667eea'}>
-                Add Timesheet
+              <button onClick={handleAddTimesheet} className="btn-primary">
+                Add Entry
               </button>
             </div>
           </div>
