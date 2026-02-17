@@ -57,12 +57,13 @@ const Attendance = () => {
   // Fetch users for filter
   const fetchUsers = async () => {
     try {
-      const res = await axios.get(API_ENDPOINTS.getAllUsers, {
+      const res = await axios.get(API_ENDPOINTS.getUsers, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAllUsers(res.data || []);
+      setAllUsers(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error('Failed to fetch users:', error);
+      setAllUsers([]);
     }
   };
 
