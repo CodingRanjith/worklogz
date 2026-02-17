@@ -201,19 +201,22 @@ const MyEarnings = ({ embedded = false, onBack }) => {
             <p>Track salary credits and lifetime payouts</p>
           </div>
           <div className="header-actions">
-            {(earnings?.dailyEarnings || 0) > 0 && (
-              <button
-                className="request-payout-header-btn"
-                onClick={() => {
+            <button
+              className={`request-payout-header-btn ${(earnings?.dailyEarnings || 0) <= 0 ? 'disabled' : ''}`}
+              onClick={() => {
+                if ((earnings?.dailyEarnings || 0) > 0) {
                   setRequestAmount('');
                   setRequestDescription('');
                   setShowRequestModal(true);
-                }}
-              >
-                <FiSend />
-                Request Payout
-              </button>
-            )}
+                } else {
+                  Swal.fire('Info', 'You don\'t have any earnings available for payout', 'info');
+                }
+              }}
+              disabled={(earnings?.dailyEarnings || 0) <= 0}
+            >
+              <FiSend />
+              Request Payout
+            </button>
             <button className="back-button" onClick={handleBack}>
               <FiArrowLeft />
               Back
@@ -230,19 +233,22 @@ const MyEarnings = ({ embedded = false, onBack }) => {
             <p className="summary-label">Total Earnings</p>
             <h2 className="summary-value">₹{(earnings?.dailyEarnings || 0).toLocaleString('en-IN')}</h2>
             <p className="summary-hint">All-time credits</p>
-            {(earnings?.dailyEarnings || 0) > 0 && (
-              <button
-                className="request-payout-btn"
-                onClick={() => {
+            <button
+              className={`request-payout-btn ${(earnings?.dailyEarnings || 0) <= 0 ? 'disabled' : ''}`}
+              onClick={() => {
+                if ((earnings?.dailyEarnings || 0) > 0) {
                   setRequestAmount('');
                   setRequestDescription('');
                   setShowRequestModal(true);
-                }}
-              >
-                <FiSend />
-                Request Payout
-              </button>
-            )}
+                } else {
+                  Swal.fire('Info', 'You don\'t have any earnings available for payout', 'info');
+                }
+              }}
+              disabled={(earnings?.dailyEarnings || 0) <= 0}
+            >
+              <FiSend />
+              Request Payout
+            </button>
           </div>
 
           <div className="summary-card">
