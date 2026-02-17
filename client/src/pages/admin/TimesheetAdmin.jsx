@@ -21,7 +21,7 @@ const TimesheetAdmin = () => {
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('submitted'); // Default to submitted entries only
   const [employeeFilter, setEmployeeFilter] = useState('all');
   const [userFilter, setUserFilter] = useState('all');
   // Set default dates to current date
@@ -60,19 +60,33 @@ const TimesheetAdmin = () => {
 
   useEffect(() => {
     fetchEmployees();
-    fetchUsers();
     fetchProjects();
     fetchTimesheets();
-  }, [statusFilter, employeeFilter, userFilter, startDate, endDate, searchQuery]);
+  }, [statusFilter, employeeFilter, startDate, endDate, searchQuery]);
 
   const fetchEmployees = async () => {
     try {
       const res = await axios.get(API_ENDPOINTS.getUsers, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setEmployees(res.data || []);
+      
+      // Handle different API response formats
+      let employeesList = [];
+      if (Array.isArray(res.data?.data)) {
+        employeesList = res.data.data;
+      } else if (Array.isArray(res.data?.users)) {
+        employeesList = res.data.users;
+      } else if (Array.isArray(res.data)) {
+        employeesList = res.data;
+      } else if (res.data?.data && Array.isArray(res.data.data)) {
+        employeesList = res.data.data;
+      }
+      
+      console.log('Fetched employees:', employeesList.length);
+      setEmployees(employeesList);
     } catch (error) {
       console.error('Error fetching employees:', error);
+      setEmployees([]);
     }
   };
 
@@ -109,18 +123,15 @@ const TimesheetAdmin = () => {
         endDate,
         limit: 1000
       };
-      
-      // Use timesheetStatus instead of status for timesheet entries
+
+      // Status filter - send to API when not 'all'
       if (statusFilter !== 'all') {
         params.timesheetStatus = statusFilter;
       }
 
+      // Employee filter
       if (employeeFilter !== 'all') {
         params.userId = employeeFilter;
-      }
-
-      if (userFilter !== 'all') {
-        params.userId = userFilter;
       }
 
       const res = await axios.get(`${API_ENDPOINTS.baseURL}/api/tasks`, {
@@ -128,23 +139,53 @@ const TimesheetAdmin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      let allTasks = Array.isArray(res.data?.data) ? res.data.data : 
-                     Array.isArray(res.data) ? res.data : [];
+      // Handle different API response formats
+      let allTasks = [];
+      if (Array.isArray(res.data?.tasks)) {
+        allTasks = res.data.tasks;
+      } else if (Array.isArray(res.data?.data)) {
+        allTasks = res.data.data;
+      } else if (Array.isArray(res.data)) {
+        allTasks = res.data;
+      }
 
       // Filter timesheet entries (tasks with startTime/endTime)
-      const timesheetEntries = allTasks.filter(entry => 
+      let timesheetEntries = allTasks.filter(entry =>
         entry.startTime && entry.endTime
       );
 
-      // Apply search filter
+      // Client-side date range filter (in case API returns broader range)
+      const startDt = startDate ? new Date(startDate) : null;
+      const endDt = endDate ? new Date(endDate) : null;
+      if (startDt || endDt) {
+        timesheetEntries = timesheetEntries.filter(entry => {
+          const entryDate = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10);
+          if (!entryDate) return false;
+          const d = new Date(entryDate);
+          if (startDt && d < new Date(startDt.toISOString().split('T')[0])) return false;
+          if (endDt && d > new Date(endDt.toISOString().split('T')[0])) return false;
+          return true;
+        });
+      }
+
+      // Apply status filter (client-side when 'all' is selected, API already filters when status is set)
       let filtered = timesheetEntries;
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
+      if (statusFilter !== 'all') {
         filtered = timesheetEntries.filter(entry => {
-          const userName = entry.user?.name || 
-                          `${entry.user?.firstName || ''} ${entry.user?.lastName || ''}`.trim() ||
-                          '';
-          return userName.toLowerCase().includes(query);
+          const status = entry.timesheetStatus || 'draft';
+          return status === statusFilter;
+        });
+      }
+
+      // Apply search filter on top of status filter (by employee/user name)
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        filtered = filtered.filter(entry => {
+          const userName = entry.user?.name ||
+            `${entry.user?.firstName || ''} ${entry.user?.lastName || ''}`.trim() ||
+            '';
+          const email = (entry.user?.email || '').toLowerCase();
+          return userName.toLowerCase().includes(query) || email.includes(query);
         });
       }
 
@@ -212,26 +253,58 @@ const TimesheetAdmin = () => {
     const groups = {};
     
     timesheets.forEach(entry => {
-      const userId = entry.user?._id || entry.user;
-      if (!userId) return;
+      // Handle different user field formats
+      let userId = null;
+      if (entry.user) {
+        if (typeof entry.user === 'string') {
+          userId = entry.user;
+        } else if (entry.user._id) {
+          userId = entry.user._id;
+        } else if (entry.user.id) {
+          userId = entry.user.id;
+        }
+      }
+      
+      // If no userId found, try to use the entry's user field as-is
+      if (!userId && entry.user) {
+        userId = entry.user;
+      }
+      
+      // If still no userId, skip this entry (it won't be grouped properly)
+      if (!userId) {
+        console.warn('Entry without user field:', entry);
+        return;
+      }
 
       // Try to find employee in employees list
-      let employee = employees.find(emp => 
-        emp._id === userId || 
-        emp._id?.toString() === userId?.toString() ||
-        emp._id === entry.user?._id?.toString()
-      );
+      let employee = employees.find(emp => {
+        const empId = emp._id?.toString();
+        const userIdStr = userId?.toString();
+        return empId === userIdStr || 
+               emp._id === userId || 
+               emp._id === entry.user?._id ||
+               (entry.user && typeof entry.user === 'object' && emp._id?.toString() === entry.user._id?.toString());
+      });
 
-      // If not found, use entry.user data
-      if (!employee && entry.user) {
-        employee = entry.user;
+      // If not found, use entry.user data or create a placeholder
+      if (!employee) {
+        if (entry.user && typeof entry.user === 'object') {
+          employee = entry.user;
+        } else {
+          // Try to find by matching the userId string
+          employee = employees.find(emp => emp._id?.toString() === userId?.toString());
+        }
       }
 
       const key = userId?.toString() || 'unknown';
       
       if (!groups[key]) {
         groups[key] = {
-          employee: employee || { name: 'Unknown Employee' },
+          employee: employee || { 
+            name: 'Unknown Employee',
+            firstName: entry.user?.firstName || '',
+            lastName: entry.user?.lastName || ''
+          },
           entries: [],
           dates: new Set(),
           totalEntries: 0,
@@ -277,10 +350,15 @@ const TimesheetAdmin = () => {
 
   // Get all entries for modal (single view, no filtering)
   const filteredEntries = useMemo(() => {
-    if (!selectedEmployee?.entries?.length) return [];
+    if (!selectedEmployee?.entries || !Array.isArray(selectedEmployee.entries) || selectedEmployee.entries.length === 0) {
+      return [];
+    }
+    
+    // Create a copy before sorting to avoid mutation
+    const entriesCopy = [...selectedEmployee.entries];
     
     // Sort by date (newest first) then by start time
-    return selectedEmployee.entries.sort((a, b) => {
+    return entriesCopy.sort((a, b) => {
       const dateA = a.startTime?.split?.('T')[0] || '';
       const dateB = b.startTime?.split?.('T')[0] || '';
       if (dateA !== dateB) return dateB.localeCompare(dateA);
@@ -688,26 +766,27 @@ const TimesheetAdmin = () => {
                 className="filter-select"
               >
                 <option value="all">All Employees</option>
-                {employees.map(emp => (
-                  <option key={emp._id} value={emp._id}>
-                    {emp.firstName} {emp.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="filter-group">
-              <label className="filter-label">User</label>
-              <select
-                value={userFilter}
-                onChange={(e) => setUserFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Users</option>
-                {users.map(user => (
-                  <option key={user._id} value={user._id}>
-                    {user.firstName} {user.lastName}
-                  </option>
-                ))}
+                {employees && employees.length > 0 ? (
+                  employees.map(emp => {
+                    // Handle both name formats: name field or firstName/lastName
+                    let displayName = '';
+                    if (emp.firstName || emp.lastName) {
+                      displayName = `${emp.firstName || ''} ${emp.lastName || ''}`.trim();
+                    } else if (emp.name) {
+                      displayName = emp.name;
+                    } else {
+                      displayName = emp.email || 'Unknown Employee';
+                    }
+                    const employeeId = emp._id || emp.id;
+                    return (
+                      <option key={employeeId} value={employeeId} style={{ color: '#212529', backgroundColor: '#fff' }}>
+                        {displayName}
+                      </option>
+                    );
+                  })
+                ) : (
+                  <option value="" disabled style={{ color: '#212529' }}>No employees found</option>
+                )}
               </select>
             </div>
             <div className="filter-group">
@@ -766,46 +845,50 @@ const TimesheetAdmin = () => {
                 </tr>
               </thead>
               <tbody>
-                {employeeGroups.map((group, index) => (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>
-                      <div 
-                        className="employee-name clickable"
-                        onClick={() => handleViewEmployee(group)}
-                        title="Click to view date-wise entries"
-                      >
-                        <FiUsers className="employee-icon" />
-                        {group.employee ? `${group.employee.firstName || ''} ${group.employee.lastName || ''}`.trim() || group.employee.name : 'Unknown'}
-                      </div>
-                    </td>
-                    <td className="dates-cell">
-                      {group.dates && group.dates.length > 0
-                        ? group.dates.slice(0, 5).map(d => (
-                            <span key={d} className="date-tag">{d}</span>
-                          ))
-                        : '-'}
-                      {group.dates?.length > 5 && (
-                        <span className="date-tag more">+{group.dates.length - 5} more</span>
-                      )}
-                    </td>
-                    <td>{group.totalEntries}</td>
-                    <td>{group.submitted ?? group.pending}</td>
-                    <td>{group.approved}</td>
-                    <td>{group.rejected}</td>
-                    <td>{formatHours(group.totalHours)}</td>
-                    <td>
-                      <button 
-                        onClick={() => handleViewEmployee(group)}
-                        className="btn-view"
-                        title="View date-wise entries"
-                      >
-                        <FiEye /> View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {employeeGroups.length === 0 && (
+                {employeeGroups.length > 0 ? (
+                  employeeGroups.map((group, index) => {
+                    const employeeId = group.employee?._id || group.employee?.id || `employee-${index}`;
+                    return (
+                      <tr key={employeeId}>
+                        <td>{index + 1}</td>
+                        <td>
+                          <div 
+                            className="employee-name clickable"
+                            onClick={() => handleViewEmployee(group)}
+                            title="Click to view date-wise entries"
+                          >
+                            <FiUsers className="employee-icon" />
+                            {group.employee ? `${group.employee.firstName || ''} ${group.employee.lastName || ''}`.trim() || group.employee.name : 'Unknown'}
+                          </div>
+                        </td>
+                        <td className="dates-cell">
+                          {group.dates && group.dates.length > 0
+                            ? group.dates.slice(0, 5).map(d => (
+                                <span key={d} className="date-tag">{d}</span>
+                              ))
+                            : '-'}
+                          {group.dates?.length > 5 && (
+                            <span className="date-tag more">+{group.dates.length - 5} more</span>
+                          )}
+                        </td>
+                        <td>{group.totalEntries}</td>
+                        <td>{group.submitted ?? group.pending}</td>
+                        <td>{group.approved}</td>
+                        <td>{group.rejected}</td>
+                        <td>{formatHours(group.totalHours)}</td>
+                        <td>
+                          <button 
+                            onClick={() => handleViewEmployee(group)}
+                            className="btn-view"
+                            title="View date-wise entries"
+                          >
+                            <FiEye /> View
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
                   <tr>
                     <td colSpan="9" className="no-data">
                       No timesheet entries found
@@ -853,28 +936,59 @@ const TimesheetAdmin = () => {
                           <th>S.NO</th>
                           <th>Date</th>
                           <th>Project</th>
+                          <th>Department</th>
+                          <th>Deliverable</th>
+                          <th>From Time</th>
+                          <th>To Time</th>
                           <th>Total Hours</th>
+                          <th>Billable</th>
                           <th>Status</th>
+                          <th>Late</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredEntries.map((entry, index) => {
                           const entryDate = entry.startTime?.split?.('T')[0] || entry.startTime?.substring?.(0, 10) || '-';
+                          const startTime = entry.startTime?.includes('T') 
+                            ? entry.startTime.split('T')[1]?.substring(0, 5) 
+                            : entry.startTime || '-';
+                          const endTime = entry.endTime?.includes('T') 
+                            ? entry.endTime.split('T')[1]?.substring(0, 5) 
+                            : entry.endTime || '-';
                           const hours = calculateHours(entry.startTime, entry.endTime);
                           const status = entry.timesheetStatus || 'draft';
                           const statusLabel = status === 'submitted' ? 'Submitted' : status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Draft';
+                          const deliverable = entry.notes || entry.description || entry.title || '-';
                           
                           return (
-                            <tr key={entry._id} className={`row-status-${status}`}>
+                            <tr key={entry._id || `entry-${index}-${entryDate}`} className={`row-status-${status}`}>
                               <td>{index + 1}</td>
                               <td>{entryDate}</td>
                               <td>{getProjectName(entry.project)}</td>
+                              <td>{entry.department || '-'}</td>
+                              <td className="deliverable-cell" title={deliverable}>
+                                {deliverable.length > 50 ? `${deliverable.substring(0, 50)}...` : deliverable}
+                              </td>
+                              <td>{startTime}</td>
+                              <td>{endTime}</td>
                               <td>{formatHours(hours)}</td>
+                              <td>
+                                <span className={`badge ${entry.billable !== false ? 'badge-billable' : 'badge-nonbillable'}`}>
+                                  {entry.billable !== false ? 'Yes' : 'No'}
+                                </span>
+                              </td>
                               <td>
                                 <span className={`badge badge-${status}`}>
                                   {statusLabel}
                                 </span>
+                              </td>
+                              <td>
+                                {entry.isLate ? (
+                                  <span className="badge badge-late">Late</span>
+                                ) : (
+                                  <span className="badge badge-ontime">On Time</span>
+                                )}
                               </td>
                               <td>
                                 <div className="action-buttons-icon-only">
@@ -956,15 +1070,34 @@ const TimesheetAdmin = () => {
               <div className="entry-detail-form">
                 <div className="detail-row">
                   <div className="detail-group">
+                    <label className="detail-label">Employee Name</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.user?.firstName && selectedEntryDetail.user?.lastName
+                        ? `${selectedEntryDetail.user.firstName} ${selectedEntryDetail.user.lastName}`
+                        : selectedEntryDetail.user?.name || '-'}
+                    </div>
+                  </div>
+                  <div className="detail-group">
                     <label className="detail-label">Date</label>
                     <div className="detail-value">
                       {selectedEntryDetail.startTime?.split?.('T')[0] || selectedEntryDetail.startTime?.substring?.(0, 10) || '-'}
                     </div>
                   </div>
+                </div>
+                <div className="detail-row">
                   <div className="detail-group">
                     <label className="detail-label">Project</label>
                     <div className="detail-value">
                       {getProjectName(selectedEntryDetail.project)}
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Client</label>
+                    <div className="detail-value">
+                      {(() => {
+                        const project = projects.find(p => p._id === selectedEntryDetail.project);
+                        return project?.client || '-';
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -987,8 +1120,8 @@ const TimesheetAdmin = () => {
                   </div>
                 </div>
                 <div className="detail-row">
-                  <div className="detail-group">
-                    <label className="detail-label">Deliverable</label>
+                  <div className="detail-group full-width">
+                    <label className="detail-label">Deliverable / Notes</label>
                     <div className="detail-value">
                       {selectedEntryDetail.notes || selectedEntryDetail.description || selectedEntryDetail.title || '-'}
                     </div>
@@ -1022,7 +1155,27 @@ const TimesheetAdmin = () => {
                   <div className="detail-group">
                     <label className="detail-label">Billable</label>
                     <div className="detail-value">
-                      {selectedEntryDetail.billable !== false ? 'Yes' : 'No'}
+                      <span className={`badge ${selectedEntryDetail.billable !== false ? 'badge-billable' : 'badge-nonbillable'}`}>
+                        {selectedEntryDetail.billable !== false ? 'Yes' : 'No'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="detail-row">
+                  <div className="detail-group">
+                    <label className="detail-label">Late Entry</label>
+                    <div className="detail-value">
+                      {selectedEntryDetail.isLate ? (
+                        <span className="badge badge-late">Late</span>
+                      ) : (
+                        <span className="badge badge-ontime">On Time</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="detail-group">
+                    <label className="detail-label">Entry ID</label>
+                    <div className="detail-value" style={{ fontSize: '12px', color: '#666' }}>
+                      {selectedEntryDetail._id || '-'}
                     </div>
                   </div>
                 </div>
@@ -1092,11 +1245,17 @@ const TimesheetAdmin = () => {
                       className="form-select"
                     >
                       <option value="">Select Employee</option>
-                      {employees.map(emp => (
-                        <option key={emp._id} value={emp._id}>
-                          {emp.firstName} {emp.lastName}
-                        </option>
-                      ))}
+                      {employees.map(emp => {
+                        const displayName = emp.name || 
+                          (emp.firstName && emp.lastName ? `${emp.firstName} ${emp.lastName}`.trim() : '') ||
+                          emp.email || 
+                          'Unknown Employee';
+                        return (
+                          <option key={emp._id} value={emp._id} style={{ color: '#212529', backgroundColor: '#fff' }}>
+                            {displayName}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                   <div className="form-group">

@@ -283,6 +283,19 @@ export const API_ENDPOINTS = {
   getMyCreditHistory: `${BASE_URL}/api/daily-salary/credit-history/me`,
   editCreditTransaction: (transactionId) => `${BASE_URL}/api/daily-salary/credit-transaction/${transactionId}`,
   deleteCreditTransaction: (transactionId) => `${BASE_URL}/api/daily-salary/credit-transaction/${transactionId}`,
+
+  // -----------------
+  // Payout APIs
+  // -----------------
+  createPayout: `${BASE_URL}/api/payouts`,
+  requestPayout: `${BASE_URL}/api/payouts/request`,
+  getAllPayouts: `${BASE_URL}/api/payouts`,
+  getPayoutById: (id) => `${BASE_URL}/api/payouts/${id}`,
+  getMyPayouts: `${BASE_URL}/api/payouts/me`,
+  updatePayoutStatus: (id) => `${BASE_URL}/api/payouts/${id}/status`,
+  updatePayout: (id) => `${BASE_URL}/api/payouts/${id}`,
+  deletePayout: (id) => `${BASE_URL}/api/payouts/${id}`,
+  getPayoutStats: `${BASE_URL}/api/payouts/stats`,
   baseURL: BASE_URL,
 
   // -----------------

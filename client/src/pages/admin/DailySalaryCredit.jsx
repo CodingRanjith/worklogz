@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { API_ENDPOINTS } from '../../utils/api';
-import { FiDollarSign, FiUsers, FiCalendar, FiPlus, FiEdit2, FiSave, FiClock, FiList } from 'react-icons/fi';
+import { FiDollarSign, FiUsers, FiCalendar, FiPlus, FiEdit2, FiSave, FiClock, FiList, FiCheckCircle, FiXCircle, FiAlertCircle } from 'react-icons/fi';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 import SalaryHistoryModal from '../../components/salary/SalaryHistoryModal';
 import CreditHistoryModal from '../../components/salary/CreditHistoryModal';
 
@@ -17,9 +18,12 @@ const DailySalaryCredit = () => {
   const [userEarnings, setUserEarnings] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showCreditHistoryModal, setShowCreditHistoryModal] = useState(false);
+  const [payoutRequests, setPayoutRequests] = useState([]);
+  const [loadingPayoutRequests, setLoadingPayoutRequests] = useState(false);
 
   useEffect(() => {
     fetchUsers();
+    fetchPayoutRequests();
   }, []);
 
   useEffect(() => {
@@ -60,6 +64,119 @@ const DailySalaryCredit = () => {
     } catch (error) {
       console.error('Error fetching user earnings:', error);
     }
+  };
+
+  const fetchPayoutRequests = async () => {
+    try {
+      setLoadingPayoutRequests(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(API_ENDPOINTS.getAllPayouts, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        params: { status: 'pending', requestedByUser: 'true' }
+      });
+      
+      if (response.data.success) {
+        // Filter only user-requested payouts (double check)
+        const userRequests = response.data.data.filter(p => p.requestedByUser === true);
+        setPayoutRequests(userRequests);
+      }
+    } catch (error) {
+      console.error('Error fetching payout requests:', error);
+    } finally {
+      setLoadingPayoutRequests(false);
+    }
+  };
+
+  const handleApprovePayoutRequest = async (payoutId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        API_ENDPOINTS.updatePayoutStatus(payoutId),
+        { status: 'processing' },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        Swal.fire('Success', 'Payout request approved and moved to processing', 'success');
+        fetchPayoutRequests();
+      }
+    } catch (error) {
+      Swal.fire('Error', error.response?.data?.error || 'Failed to approve payout request', 'error');
+    }
+  };
+
+  const handleRejectPayoutRequest = async (payoutId) => {
+    const { value: reason } = await Swal.fire({
+      title: 'Reject Payout Request',
+      input: 'text',
+      inputLabel: 'Reason for rejection (optional)',
+      inputPlaceholder: 'Enter rejection reason...',
+      showCancelButton: true,
+      confirmButtonText: 'Reject',
+      confirmButtonColor: '#d33',
+      inputValidator: (value) => {
+        return new Promise((resolve) => {
+          resolve();
+        });
+      }
+    });
+
+    if (reason !== undefined) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.put(
+          API_ENDPOINTS.updatePayoutStatus(payoutId),
+          { status: 'cancelled', failureReason: reason || 'Rejected by admin' },
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (response.data.success) {
+          Swal.fire('Success', 'Payout request rejected', 'success');
+          fetchPayoutRequests();
+        }
+      } catch (error) {
+        Swal.fire('Error', error.response?.data?.error || 'Failed to reject payout request', 'error');
+      }
+    }
+  };
+
+  const handleProcessPayoutRequest = async (payoutId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        API_ENDPOINTS.updatePayoutStatus(payoutId),
+        { status: 'completed' },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        Swal.fire('Success', 'Payout completed successfully', 'success');
+        fetchPayoutRequests();
+      }
+    } catch (error) {
+      Swal.fire('Error', error.response?.data?.error || 'Failed to complete payout', 'error');
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      pending: { class: 'bg-yellow-100 text-yellow-800', label: 'Pending', icon: <FiClock /> },
+      processing: { class: 'bg-blue-100 text-blue-800', label: 'Processing', icon: <FiAlertCircle /> },
+      completed: { class: 'bg-green-100 text-green-800', label: 'Completed', icon: <FiCheckCircle /> },
+      failed: { class: 'bg-red-100 text-red-800', label: 'Failed', icon: <FiXCircle /> },
+      cancelled: { class: 'bg-gray-100 text-gray-800', label: 'Cancelled', icon: <FiXCircle /> }
+    };
+    return badges[status] || badges.pending;
+  };
+
+  const formatDateTime = (dateString) => {
+    return new Date(dateString).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const calculateDailyFromMonthly = (monthly) => {
@@ -215,6 +332,113 @@ const DailySalaryCredit = () => {
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Daily Salary Credit Management</h1>
         <p className="text-gray-600">Set employee salaries and manage daily credits</p>
       </div>
+
+      {/* Payout Requests Section */}
+      {payoutRequests.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <FiAlertCircle className="text-orange-600" />
+              Pending Payout Requests ({payoutRequests.length})
+            </h2>
+            <button
+              onClick={fetchPayoutRequests}
+              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              Refresh
+            </button>
+          </div>
+          
+          <div className="space-y-3">
+            {payoutRequests.map((request) => {
+              const statusBadge = getStatusBadge(request.status);
+              return (
+                <div
+                  key={request._id}
+                  className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="font-semibold text-lg text-gray-800">
+                          {request.userId?.name || 'Unknown User'}
+                        </h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusBadge.class}`}>
+                          {statusBadge.icon}
+                          {statusBadge.label}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">Amount:</span>
+                          <span className="ml-2 font-bold text-green-600">
+                            ₹{request.amount?.toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Transaction ID:</span>
+                          <span className="ml-2 font-mono text-xs text-gray-700">
+                            {request.transactionId}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Requested:</span>
+                          <span className="ml-2 text-gray-800">
+                            {formatDateTime(request.createdAt)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Email:</span>
+                          <span className="ml-2 text-gray-800">{request.userId?.email || 'N/A'}</span>
+                        </div>
+                      </div>
+                      {request.description && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          <strong>Description:</strong> {request.description}
+                        </div>
+                      )}
+                      {request.requestNotes && (
+                        <div className="mt-1 text-sm text-gray-500 italic">
+                          <strong>Notes:</strong> {request.requestNotes}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2 ml-4">
+                      {request.status === 'pending' && (
+                        <>
+                          <button
+                            onClick={() => handleApprovePayoutRequest(request._id)}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2 text-sm font-semibold"
+                          >
+                            <FiCheckCircle />
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleRejectPayoutRequest(request._id)}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2 text-sm font-semibold"
+                          >
+                            <FiXCircle />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {request.status === 'processing' && (
+                        <button
+                          onClick={() => handleProcessPayoutRequest(request._id)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 text-sm font-semibold"
+                        >
+                          <FiCheckCircle />
+                          Mark Complete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Panel - Employee Selection & Salary Setup */}

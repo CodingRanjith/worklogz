@@ -31,6 +31,7 @@ function HomePage() {
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showHolidayModal, setShowHolidayModal] = useState(false);
+  const [salaryData, setSalaryData] = useState(null);
   
   // Attendance check-in/check-out states
   const [type, setType] = useState(null);
@@ -154,11 +155,27 @@ function HomePage() {
     }
   }, [isSelf, userId]);
 
+  const fetchSalaryData = useCallback(async () => {
+    if (!isSelf) return; // Only fetch for self
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(API_ENDPOINTS.getMyEarnings, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        setSalaryData(res.data.data);
+      }
+    } catch (err) {
+      console.error("Unable to load salary data", err);
+    }
+  }, [isSelf]);
+
   useEffect(() => {
     fetchUser();
     fetchAttendance();
     fetchHolidays();
-  }, [fetchUser, fetchAttendance, fetchHolidays]);
+    fetchSalaryData();
+  }, [fetchUser, fetchAttendance, fetchHolidays, fetchSalaryData]);
 
   // Attendance helper functions
   const getLocation = () => {
@@ -805,6 +822,54 @@ function HomePage() {
                         <span className="text-sm sm:text-base text-gray-400 italic ml-2">No responsibilities listed</span>
                       )}
                     </div>
+                    
+                    {/* Credit Amount Card - Clickable */}
+                    {isSelf && (
+                      <div 
+                        onClick={() => navigate('/my-earnings')}
+                        className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg cursor-pointer hover:shadow-lg hover:border-green-300 transition-all duration-200 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors">
+                              <svg
+                                className="w-5 h-5 text-white"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-xs font-medium text-gray-600 uppercase tracking-wide">Credit Amount</p>
+                              <p className="text-xl sm:text-2xl font-bold text-green-700 mt-0.5">
+                                ₹{(salaryData?.dailyEarnings || 0).toLocaleString('en-IN')}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">Click to view credit details</p>
+                            </div>
+                          </div>
+                          <svg
+                            className="w-5 h-5 text-green-600 group-hover:translate-x-1 transition-transform"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 5l7 7-7 7"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

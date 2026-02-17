@@ -99,9 +99,11 @@ import MyEarnings from './pages/employee/MyEarnings';
 import PayslipGenerator from './pages/admin/PayslipGenerator';
 import PayslipList from './pages/admin/PayslipList';
 import DailySalaryCredit from './pages/admin/DailySalaryCredit';
+import PayoutManagement from './pages/admin/PayoutManagement';
 
 // Invoices
 import Invoices from './pages/employee/Invoices';
+import MyPayouts from './pages/employee/MyPayouts';
 
 // Income & Expense
 import IncomeExpense from './pages/admin/IncomeExpense';
@@ -483,6 +485,7 @@ function App() {
         <Route path="/payslip" element={<PayslipGenerator />} />
         <Route path="/salaryhistory" element={<PayslipList />} />
         <Route path="/daily-salary-credit" element={<DailySalaryCredit />} />
+        <Route path="/payout-management" element={<PayoutManagement />} />
         <Route path="/income-expense" element={<IncomeExpense />} />
         <Route path="/income&expence" element={<IncomeExpense />} />
         <Route path="/daytoday" element={<DayToday />} />
@@ -543,6 +546,7 @@ function App() {
 
         {/* Finance & Compensation */}
         <Route path="/my-earnings" element={<MyEarnings />} />
+        <Route path="/my-payouts" element={<MyPayouts />} />
         <Route path="/invoices" element={<Invoices />} />
         <Route path="/personal-income-expense" element={<PersonalIncomeExpense />} />
         <Route path="/my-income-expense" element={<PersonalIncomeExpense />} />
