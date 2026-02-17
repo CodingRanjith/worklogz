@@ -20,6 +20,13 @@ const DailySalaryCredit = () => {
   const [showCreditHistoryModal, setShowCreditHistoryModal] = useState(false);
   const [payoutRequests, setPayoutRequests] = useState([]);
   const [loadingPayoutRequests, setLoadingPayoutRequests] = useState(false);
+  const [showEmployeeModal, setShowEmployeeModal] = useState(false);
+  const [selectedEmployeeData, setSelectedEmployeeData] = useState(null);
+  const [employeeEarnings, setEmployeeEarnings] = useState(null);
+  const [employeeCredits, setEmployeeCredits] = useState([]);
+  const [employeePayouts, setEmployeePayouts] = useState([]);
+  const [loadingEmployeeData, setLoadingEmployeeData] = useState(false);
+  const [userEarningsMap, setUserEarningsMap] = useState({});
 
   useEffect(() => {
     fetchUsers();
@@ -32,6 +39,13 @@ const DailySalaryCredit = () => {
     }
   }, [selectedUser]);
 
+  useEffect(() => {
+    // Fetch earnings for all users to display in table
+    if (users.length > 0) {
+      fetchAllUsersEarnings();
+    }
+  }, [users]);
+
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -43,6 +57,82 @@ const DailySalaryCredit = () => {
     } catch (error) {
       console.error('Error fetching users:', error);
     }
+  };
+
+  const fetchAllUsersEarnings = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const earningsPromises = users.map(async (user) => {
+        try {
+          const response = await fetch(API_ENDPOINTS.getUserDailyEarningsById(user._id), {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await response.json();
+          return { userId: user._id, earnings: data.success ? data.data : null };
+        } catch (error) {
+          return { userId: user._id, earnings: null };
+        }
+      });
+      
+      const results = await Promise.all(earningsPromises);
+      const earningsMap = {};
+      results.forEach(({ userId, earnings }) => {
+        earningsMap[userId] = earnings;
+      });
+      setUserEarningsMap(earningsMap);
+    } catch (error) {
+      console.error('Error fetching all users earnings:', error);
+    }
+  };
+
+  const handleEmployeeClick = async (employee) => {
+    setSelectedEmployeeData(employee);
+    setShowEmployeeModal(true);
+    setLoadingEmployeeData(true);
+    
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch earnings
+      const earningsRes = await axios.get(API_ENDPOINTS.getUserDailyEarningsById(employee._id), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (earningsRes.data.success) {
+        setEmployeeEarnings(earningsRes.data.data);
+      }
+      
+      // Fetch credit history
+      const creditsRes = await axios.get(API_ENDPOINTS.getUserCreditHistory(employee._id), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (creditsRes.data.success) {
+        setEmployeeCredits(creditsRes.data.data || []);
+      }
+      
+      // Fetch payouts
+      const payoutsRes = await axios.get(API_ENDPOINTS.getAllPayouts, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        params: { userId: employee._id }
+      });
+      if (payoutsRes.data.success) {
+        setEmployeePayouts(payoutsRes.data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching employee data:', error);
+      Swal.fire('Error', 'Failed to load employee details', 'error');
+    } finally {
+      setLoadingEmployeeData(false);
+    }
+  };
+
+  const calculateTotalDebit = () => {
+    return employeePayouts
+      .filter(p => p.status === 'completed')
+      .reduce((sum, p) => sum + (p.amount || 0), 0);
+  };
+
+  const calculateTotalPayout = () => {
+    return employeePayouts.reduce((sum, p) => sum + (p.amount || 0), 0);
   };
 
   const fetchUserEarnings = async (userId) => {
@@ -331,6 +421,83 @@ const DailySalaryCredit = () => {
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Daily Salary Credit Management</h1>
         <p className="text-gray-600">Set employee salaries and manage daily credits</p>
+      </div>
+
+      {/* Employees Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <FiUsers className="text-blue-600" />
+            All Employees ({users.length})
+          </h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Salary</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Total Earnings</th>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {users.map((user) => {
+                const earnings = userEarningsMap[user._id];
+                return (
+                  <tr key={user._id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => handleEmployeeClick(user)}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          {user.profilePic ? (
+                            <img className="h-10 w-10 rounded-full object-cover" src={user.profilePic} alt={user.name} />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-semibold">
+                              {user.name?.charAt(0)?.toUpperCase() || 'U'}
+                            </div>
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-semibold text-gray-900">{user.name}</div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{user.department || 'N/A'}</div>
+                      <div className="text-sm text-gray-500">{user.position || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-semibold text-gray-900">
+                        ₹{(user.salary || 0).toLocaleString('en-IN')}/month
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        ₹{Math.round((user.salary || 0) / 30).toLocaleString('en-IN')}/day
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-bold text-green-600">
+                        ₹{(earnings?.dailyEarnings || 0).toLocaleString('en-IN')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEmployeeClick(user);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 font-semibold"
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Payout Requests Section */}
@@ -781,6 +948,177 @@ const DailySalaryCredit = () => {
         onClose={() => setShowCreditHistoryModal(false)}
         isAdmin={true}
       />
+
+      {/* Employee Details Modal */}
+      {showEmployeeModal && selectedEmployeeData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowEmployeeModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">{selectedEmployeeData.name}</h2>
+                <p className="text-sm text-gray-600">{selectedEmployeeData.email} • {selectedEmployeeData.department || 'N/A'}</p>
+              </div>
+              <button
+                onClick={() => setShowEmployeeModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-3xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6">
+              {loadingEmployeeData ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : (
+                <>
+                  {/* 4 Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    {/* Total Amount Card */}
+                    <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium opacity-90">Total Amount</p>
+                        <FiDollarSign className="text-2xl opacity-80" />
+                      </div>
+                      <p className="text-3xl font-black">
+                        ₹{(employeeEarnings?.dailyEarnings || 0).toLocaleString('en-IN')}
+                      </p>
+                      <p className="text-xs opacity-75 mt-2">All-time earnings</p>
+                    </div>
+
+                    {/* Debit Card */}
+                    <div className="bg-gradient-to-br from-red-500 to-pink-600 rounded-xl p-6 text-white shadow-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium opacity-90">Total Debit</p>
+                        <FiDollarSign className="text-2xl opacity-80" />
+                      </div>
+                      <p className="text-3xl font-black">
+                        ₹{calculateTotalDebit().toLocaleString('en-IN')}
+                      </p>
+                      <p className="text-xs opacity-75 mt-2">Completed payouts</p>
+                    </div>
+
+                    {/* Payout Card */}
+                    <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium opacity-90">Total Payout</p>
+                        <FiDollarSign className="text-2xl opacity-80" />
+                      </div>
+                      <p className="text-3xl font-black">
+                        ₹{calculateTotalPayout().toLocaleString('en-IN')}
+                      </p>
+                      <p className="text-xs opacity-75 mt-2">All payout requests</p>
+                    </div>
+
+                    {/* Payout Count Card */}
+                    <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-6 text-white shadow-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-sm font-medium opacity-90">Payout Count</p>
+                        <FiList className="text-2xl opacity-80" />
+                      </div>
+                      <p className="text-3xl font-black">
+                        {employeePayouts.length}
+                      </p>
+                      <p className="text-xs opacity-75 mt-2">Total transactions</p>
+                    </div>
+                  </div>
+
+                  {/* Credit History Section */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <FiDollarSign className="text-green-600" />
+                        Credit History ({employeeCredits.length})
+                      </h3>
+                      <button
+                        onClick={() => {
+                          setSelectedUser(selectedEmployeeData._id);
+                          setShowCreditHistoryModal(true);
+                        }}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        View All
+                      </button>
+                    </div>
+                    {employeeCredits.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No credit history</p>
+                    ) : (
+                      <div className="space-y-2">
+                        {employeeCredits.slice(0, 5).map((credit) => (
+                          <div key={credit._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <p className="font-semibold text-green-600">+₹{credit.amount?.toLocaleString('en-IN')}</p>
+                              <p className="text-sm text-gray-600">
+                                {(credit.configsApplied && credit.configsApplied[0]?.configName) || 'Manual credit'}
+                              </p>
+                            </div>
+                            <p className="text-sm text-gray-500">
+                              {new Date(credit.date).toLocaleDateString('en-IN', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Payout List Section */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <FiDollarSign className="text-blue-600" />
+                        Payout List ({employeePayouts.length})
+                      </h3>
+                    </div>
+                    {employeePayouts.length === 0 ? (
+                      <p className="text-gray-500 text-center py-4">No payouts found</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {employeePayouts.map((payout) => {
+                          const statusBadge = getStatusBadge(payout.status);
+                          return (
+                            <div key={payout._id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <p className="font-bold text-lg text-gray-800">
+                                    ₹{payout.amount?.toLocaleString('en-IN')}
+                                  </p>
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusBadge.class}`}>
+                                    {statusBadge.icon}
+                                    {statusBadge.label}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-600 font-mono">{payout.transactionId}</p>
+                                {payout.description && (
+                                  <p className="text-sm text-gray-500 mt-1">{payout.description}</p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="text-sm font-semibold text-gray-700">
+                                  {formatDateTime(payout.payoutTime)}
+                                </p>
+                                {payout.requestedByUser && (
+                                  <span className="text-xs text-blue-600 mt-1 block">User Requested</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
