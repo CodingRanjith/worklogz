@@ -316,29 +316,41 @@ exports.updatePayoutStatus = async (req, res) => {
     }
 
     const previousStatus = payout.status;
+    const user = await User.findById(payout.userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // If payout is being approved (moved to processing), deduct from user's earnings
+    if (status === 'processing' && previousStatus === 'pending') {
+      const currentEarnings = user.dailyEarnings || 0;
+      if (currentEarnings >= payout.amount) {
+        user.dailyEarnings = Math.max(0, currentEarnings - payout.amount);
+        await user.save();
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: `User has insufficient earnings. Available: ₹${currentEarnings.toLocaleString('en-IN')}`
+        });
+      }
+    }
+
+    // If payout is being cancelled/rejected after being approved, refund the amount
+    if ((status === 'cancelled' || status === 'failed') && previousStatus === 'processing') {
+      user.dailyEarnings = (user.dailyEarnings || 0) + payout.amount;
+      await user.save();
+    }
+
     payout.status = status;
     payout.processedBy = req.user._id;
     payout.processedAt = new Date();
     
     if (status === 'failed' && failureReason) {
       payout.failureReason = failureReason;
-    }
-
-    // If payout is being completed, deduct from user's earnings
-    if (status === 'completed' && previousStatus !== 'completed') {
-      const user = await User.findById(payout.userId);
-      if (user) {
-        const currentEarnings = user.dailyEarnings || 0;
-        if (currentEarnings >= payout.amount) {
-          user.dailyEarnings = Math.max(0, currentEarnings - payout.amount);
-          await user.save();
-        } else {
-          return res.status(400).json({
-            success: false,
-            error: `User has insufficient earnings. Available: ₹${currentEarnings.toLocaleString('en-IN')}`
-          });
-        }
-      }
     }
 
     await payout.save();

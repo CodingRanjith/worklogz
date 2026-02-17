@@ -187,8 +187,23 @@ const DailySalaryCredit = () => {
       );
 
       if (response.data.success) {
-        Swal.fire('Success', 'Payout request approved and moved to processing', 'success');
+        Swal.fire({
+          icon: 'success',
+          title: 'Payout Approved!',
+          text: 'Amount has been deducted from employee credit balance',
+          showConfirmButton: true
+        });
         fetchPayoutRequests();
+        // Refresh users and earnings data
+        fetchUsers();
+        if (selectedEmployeeData) {
+          // Refresh employee modal data if open
+          handleEmployeeClick(selectedEmployeeData);
+        }
+        // Refresh all users earnings for table
+        if (users.length > 0) {
+          fetchAllUsersEarnings();
+        }
       }
     } catch (error) {
       Swal.fire('Error', error.response?.data?.error || 'Failed to approve payout request', 'error');
@@ -223,6 +238,16 @@ const DailySalaryCredit = () => {
         if (response.data.success) {
           Swal.fire('Success', 'Payout request rejected', 'success');
           fetchPayoutRequests();
+          // Refresh users and earnings data
+          fetchUsers();
+          if (selectedEmployeeData) {
+            // Refresh employee modal data if open
+            handleEmployeeClick(selectedEmployeeData);
+          }
+          // Refresh all users earnings for table
+          if (users.length > 0) {
+            fetchAllUsersEarnings();
+          }
         }
       } catch (error) {
         Swal.fire('Error', error.response?.data?.error || 'Failed to reject payout request', 'error');
@@ -240,8 +265,18 @@ const DailySalaryCredit = () => {
       );
 
       if (response.data.success) {
-        Swal.fire('Success', 'Payout completed successfully', 'success');
+        Swal.fire('Success', 'Payout marked as completed', 'success');
         fetchPayoutRequests();
+        // Refresh users and earnings data
+        fetchUsers();
+        if (selectedEmployeeData) {
+          // Refresh employee modal data if open
+          handleEmployeeClick(selectedEmployeeData);
+        }
+        // Refresh all users earnings for table
+        if (users.length > 0) {
+          fetchAllUsersEarnings();
+        }
       }
     } catch (error) {
       Swal.fire('Error', error.response?.data?.error || 'Failed to complete payout', 'error');
